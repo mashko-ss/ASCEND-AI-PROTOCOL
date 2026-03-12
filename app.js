@@ -101,6 +101,200 @@ const db = {
 };
 
 // ==========================================
+// 1.5 LANGUAGE MODULE
+// ==========================================
+const langModule = {
+    currentLanguage: 'en',
+    translations: {
+        en: {
+            "Start Assessment": "Start Assessment",
+            "Resume Step": "Resume Step",
+            "Welcome to ASCEND AI PROTOCOL": "Welcome to ASCEND AI PROTOCOL",
+            "Personal Setup": "Personal Setup",
+            "Login": "Login",
+            "Create Account": "Create Account",
+            "Logged In As": "Logged In As",
+            "Dashboard": "Dashboard",
+            "Logout": "Logout",
+            "PREMIUM AI FITNESS SYSTEM": "PREMIUM AI FITNESS SYSTEM",
+            "Adaptive System": "Adaptive System for Conditioning, Endurance & Natural Development",
+            "Hero Subtitle": "A premium AI fitness system optimized for strength, health, longevity, and body recomposition.",
+            "Features": "Features",
+            "Features Subtitle": "Designed for your success. No cookie-cutter plans.",
+            "Comprehensive Assessment": "Comprehensive Assessment",
+            "Assessment Desc": "Detailed analysis mapping your current fitness level, health history, and schedule.",
+            "Smart Training Plans": "Smart Training Plans",
+            "Training Desc": "Personalized workouts that adapt to your progress and consistency.",
+            "Weekly Check-ins": "Weekly Check-ins",
+            "Check-in Desc": "Weekly tracking ensures your plan stays optimized for your current level.",
+            "Access Dashboard": "Access your personalized dashboard.",
+            "Email Address": "Email Address",
+            "Password": "Password",
+            "No account yet?": "No account yet?",
+            "Initialize text": "Initialize your assessment to generate a precision protocol for strength, health, longevity, and body recomposition.",
+            "Back": "Back",
+            "Next Step": "Next Step",
+            "YOUR TRAINING PLAN": "YOUR TRAINING PLAN",
+            "Pending Assessment": "Pending your assessment.",
+            "Log Progress": "Log Progress",
+            "Nutrition Plan": "Nutrition Plan",
+            "Recovery Plan": "Recovery Plan",
+            "Friendly Reminder": "Friendly Reminder",
+            "Recovery Note": "Getting enough sleep is crucial for your recovery and progress.",
+            "No Data Yet": "No Data Yet",
+            "Log Progress Desc": "Log your weekly progress to track your improvements.",
+            "Workout Plan": "Workout Plan",
+            "Your Progress Title": "Your Progress",
+            "Your track record": "Your track record of results.",
+            "Body Weight": "Body Weight",
+            "Consistency": "Consistency",
+            "Energy Level": "Energy Level",
+            "kg": "kg",
+            "History Log": "History Log",
+            "Timestamp": "Timestamp",
+            "Weight (kg)": "Weight (kg)",
+            "Waist (cm)": "Waist (cm)",
+            "Workouts": "Workouts",
+            "Energy": "Energy",
+            "Sleep": "Sleep",
+            "Notes": "Notes",
+            "[ No progress logged yet ]": "[ No progress logged yet ]",
+            "Plan History": "Plan History",
+            "Your previous plans": "Your previous training plans.",
+            "Retake Assessment": "Retake Assessment",
+            "Current Weight (kg)": "Current Weight (kg)",
+            "Diet Consistency (%)": "Diet Consistency (%)",
+            "Workouts Completed (%)": "Workouts Completed (%)",
+            "Energy Level (1-10)": "Energy Level (1-10)",
+            "Sleep Quality (1-10)": "Sleep Quality (1-10)",
+            "Low [1]": "Low [1]",
+            "High [10]": "High [10]",
+            "Poor [1]": "Poor [1]",
+            "Great [10]": "Great [10]",
+            "Cancel": "Cancel",
+            "Save Log": "Save Log",
+            "GENERATING PLAN": "GENERATING PLAN",
+            "Analyzing status...": "Analyzing your profile..."
+        },
+        bg: {
+            "Start Assessment": "Започни настройката",
+            "Resume Step": "Продължи от стъпка",
+            "Welcome to ASCEND AI PROTOCOL": "Добре дошли в ASCEND AI PROTOCOL",
+            "Personal Setup": "Лична настройка",
+            "Login": "Вход",
+            "Create Account": "Създай профил",
+            "Logged In As": "Влязъл като",
+            "Dashboard": "Табло",
+            "Logout": "Изход",
+            "PREMIUM AI FITNESS SYSTEM": "ПРЕМИУМ AI ФИТНЕС СИСТЕМА",
+            "Adaptive System": "Адаптивна система за кондиция, издръжливост и естествено развитие",
+            "Hero Subtitle": "Премиум AI фитнес система, оптимизирана за сила, здраве, дълголетие и рекомпозиция на тялото.",
+            "Features": "Възможности",
+            "Features Subtitle": "Създадено за вашия успех. Без шаблони.",
+            "Comprehensive Assessment": "Пълен анализ",
+            "Assessment Desc": "Детайлен анализ на текущото ви ниво, здравна история и график.",
+            "Smart Training Plans": "Умни тренировъчни планове",
+            "Training Desc": "Персонализирани тренировки, които се адаптират към вашия напредък.",
+            "Weekly Check-ins": "Седмични отчети",
+            "Check-in Desc": "Седмичното проследяване гарантира, че планът остава оптимизиран.",
+            "Access Dashboard": "Достъп до вашето лично табло.",
+            "Email Address": "Имейл адрес",
+            "Password": "Парола",
+            "No account yet?": "Нямате профил?",
+            "Initialize text": "Започнете настройката, за да генерирате прецизен протокол за сила, здраве, дълголетие и рекомпозиция на тялото.",
+            "Back": "Назад",
+            "Next Step": "Напред",
+            "YOUR TRAINING PLAN": "ВАШИЯТ ТРЕНИРОВЪЧЕН ПЛАН",
+            "Pending Assessment": "Очаква вашата настройка.",
+            "Log Progress": "Въведи прогрес",
+            "Nutrition Plan": "Хранителен план",
+            "Recovery Plan": "План за възстановяване",
+            "Friendly Reminder": "Приятелско напомняне",
+            "Recovery Note": "Достатъчният сън е критичен фактор за вашето възстановяване и напредък.",
+            "No Data Yet": "Няма данни",
+            "Log Progress Desc": "Въвеждайте своя седмичен прогрес, за да следите резултатите си.",
+            "Workout Plan": "Тренировъчен план",
+            "Your Progress Title": "Вашият прогрес",
+            "Your track record": "История на резултатите ви.",
+            "Body Weight": "Тегло",
+            "Consistency": "Постоянство",
+            "Energy Level": "Енергия",
+            "kg": "кг",
+            "History Log": "История",
+            "Timestamp": "Дата",
+            "Weight (kg)": "Тегло (кг)",
+            "Waist (cm)": "Талия (см)",
+            "Workouts": "Тренировки",
+            "Energy": "Енергия",
+            "Sleep": "Сън",
+            "Notes": "Бележки",
+            "[ No progress logged yet ]": "[ Все още няма въведен прогрес ]",
+            "Plan History": "История на плановете",
+            "Your previous plans": "Предишни тренировъчни планове.",
+            "Retake Assessment": "Повторна настройка",
+            "Current Weight (kg)": "Текущо тегло (кг)",
+            "Diet Consistency (%)": "Спазване на диетата (%)",
+            "Workouts Completed (%)": "Завършени тренировки (%)",
+            "Energy Level (1-10)": "Ниво на енергия (1-10)",
+            "Sleep Quality (1-10)": "Качество на съня (1-10)",
+            "Low [1]": "Ниска [1]",
+            "High [10]": "Висока [10]",
+            "Poor [1]": "Лошо [1]",
+            "Great [10]": "Отлично [10]",
+            "Cancel": "Отказ",
+            "Save Log": "Запази отчета",
+            "GENERATING PLAN": "ГЕНЕРИРАНЕ НА ПЛАН",
+            "Analyzing status...": "Анализиране на профила..."
+        }
+    },
+    
+    init: () => {
+        const savedLang = localStorage.getItem('ascend_lang');
+        if (savedLang && (savedLang === 'en' || savedLang === 'bg')) {
+            langModule.currentLanguage = savedLang;
+        } else {
+            langModule.currentLanguage = 'en';
+        }
+        langModule.applyTranslations();
+    },
+
+    setLanguage: (lang) => {
+        if (!langModule.translations[lang]) return;
+        langModule.currentLanguage = lang;
+        localStorage.setItem('ascend_lang', lang);
+        langModule.applyTranslations();
+        
+        // Add active state to switcher if it exists
+        document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('text-primary', 'font-bold'));
+        const activeBtn = document.getElementById(`lang-btn-${lang}`);
+        if(activeBtn) activeBtn.classList.add('text-primary', 'font-bold');
+    },
+
+    t: (key) => {
+        return langModule.translations[langModule.currentLanguage][key] || key;
+    },
+
+    applyTranslations: () => {
+        const dict = langModule.translations[langModule.currentLanguage];
+        // Translate static elements
+        document.querySelectorAll('[data-i18n]').forEach(el => {
+            const key = el.getAttribute('data-i18n');
+            if (dict[key]) {
+                el.innerText = dict[key];
+            }
+        });
+        
+        // Translate placeholders
+        document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+            const key = el.getAttribute('data-i18n-placeholder');
+            if (dict[key]) {
+                el.placeholder = dict[key];
+            }
+        });
+    }
+};
+
+// ==========================================
 // 2. CORE ROUTING & APP STATE
 // ==========================================
 const app = {
@@ -202,15 +396,15 @@ const authModule = {
     
     setMode: (mode) => {
         authModule.isSignup = (mode === 'signup');
-        document.getElementById('auth-title').textContent = authModule.isSignup ? 'Create Account' : 'Login';
-        document.getElementById('btn-auth-submit').textContent = authModule.isSignup ? 'Create Account' : 'Login';
+        document.getElementById('auth-title').textContent = authModule.isSignup ? langModule.t('Create Account') : langModule.t('Login');
+        document.getElementById('btn-auth-submit').textContent = authModule.isSignup ? langModule.t('Create Account') : langModule.t('Login');
         document.getElementById('auth-error').classList.add('hidden');
         
         const toggleTxt = document.getElementById('auth-toggle-text');
         if(authModule.isSignup) {
-            toggleTxt.innerHTML = `Already have an account? <span class="text-primary hover-underline cursor-pointer font-bold" onclick="authModule.toggleMode()">Login</span>`;
+            toggleTxt.innerHTML = `<span data-i18n="Already have an account?">${langModule.t('Already have an account?')}</span> <span class="text-primary hover-underline cursor-pointer font-bold" onclick="authModule.toggleMode()" data-i18n="Login">${langModule.t('Login')}</span>`;
         } else {
-            toggleTxt.innerHTML = `No account yet? <span class="text-primary hover-underline cursor-pointer font-bold" onclick="authModule.toggleMode()">Create Account</span>`;
+            toggleTxt.innerHTML = `<span data-i18n="No account yet?">${langModule.t('No account yet?')}</span> <span class="text-primary hover-underline cursor-pointer font-bold" onclick="authModule.toggleMode()" data-i18n="Create Account">${langModule.t('Create Account')}</span>`;
         }
     },
     
@@ -224,17 +418,17 @@ const authModule = {
         const err = document.getElementById('auth-error');
 
         if (!em || !pwd) {
-            err.textContent = "Please fill in all fields.";
+            err.textContent = langModule.t("Please fill in all fields.");
             err.classList.remove('hidden'); return;
         }
 
         let success;
         if (authModule.isSignup) {
             success = db.createUser(em, pwd);
-            if (!success) { err.textContent = "Email already registered."; err.classList.remove('hidden'); return; }
+            if (!success) { err.textContent = langModule.t("Email already registered."); err.classList.remove('hidden'); return; }
         } else {
             success = db.login(em, pwd);
-            if (!success) { err.textContent = "Invalid email or password."; err.classList.remove('hidden'); return; }
+            if (!success) { err.textContent = langModule.t("Invalid email or password."); err.classList.remove('hidden'); return; }
         }
 
         // Success - clean forms and route
@@ -414,8 +608,8 @@ const wizardModule = {
     render: () => {
         const q = questions[wizardModule.current];
         document.getElementById('step-counter').textContent = `${wizardModule.current + 1} / ${questions.length}`;
-        document.getElementById('step-label').textContent = `Step ${wizardModule.current + 1}`;
-        document.getElementById('step-title').textContent = q.title;
+        document.getElementById('step-label').textContent = `${langModule.t('Step')} ${wizardModule.current + 1}`;
+        document.getElementById('step-title').textContent = langModule.t(q.title);
         document.getElementById('wizard-progress').style.width = `${((wizardModule.current) / questions.length) * 100}%`;
 
         const form = document.getElementById('wizard-form');
@@ -426,11 +620,12 @@ const wizardModule = {
             const displayStyle = isVisible ? '' : 'display: none;';
             
             html += `<div class="question-block" id="block-${f.id}" style="${displayStyle}">
-                        <span class="question-label">${f.label}</span>`;
+                        <span class="question-label">${langModule.t(f.label)}</span>`;
             
             if (f.type === 'number') {
                 const val = wizardModule.data[f.id] || '';
-                html += `<input type="number" id="inp-${f.id}" class="input-modern w-full font-mono" placeholder="${f.placeholder}" value="${val}" oninput="wizardModule.handleInputChange()">`;
+                const placeholder = f.placeholder ? langModule.t(f.placeholder) : '';
+                html += `<input type="number" id="inp-${f.id}" class="input-modern w-full font-mono" placeholder="${placeholder}" value="${val}" oninput="wizardModule.handleInputChange()">`;
             } 
             else if (f.type === 'radio') {
                 const gridClass = f.cols === 2 ? 'opts-2' : f.cols === 3 ? 'opts-3' : '';
@@ -442,8 +637,8 @@ const wizardModule = {
                         <input type="radio" name="${f.id}" value="${opt.val}" ${checked} onchange="wizardModule.handleInputChange()">
                         <div class="radio-card-content">
                             ${opt.icon ? `<i class="fa-solid ${opt.icon}"></i>` : ''}
-                            <span class="radio-label">${opt.label}</span>
-                            ${opt.subtext ? `<span class="radio-subtext">${opt.subtext}</span>` : ''}
+                            <span class="radio-label">${langModule.t(opt.label)}</span>
+                            ${opt.subtext ? `<span class="radio-subtext">${langModule.t(opt.subtext)}</span>` : ''}
                         </div>
                     </label>`;
                 });
@@ -455,9 +650,9 @@ const wizardModule = {
                 <div class="slider-container">
                     <input type="range" id="inp-${f.id}" class="range-slider" min="${f.min}" max="${f.max}" value="${val}" oninput="document.getElementById('out-${f.id}').innerText=this.value; wizardModule.handleInputChange()">
                     <div class="flex-between text-[0.65rem] text-muted font-bold font-mono tracking-widest uppercase mt-2">
-                        <span>MIN: ${f.min}</span>
+                        <span>${langModule.t('MIN')}: ${f.min}</span>
                         <span class="text-primary text-xl font-bold" id="out-${f.id}">${val}</span>
-                        <span>MAX: ${f.max}</span>
+                        <span>${langModule.t('MAX')}: ${f.max}</span>
                     </div>
                 </div>`;
             }
@@ -469,7 +664,7 @@ const wizardModule = {
                     html += `
                     <label class="chip-checkbox">
                         <input type="checkbox" name="${f.id}" value="${opt}" ${checked} onchange="wizardModule.handleInputChange()">
-                        <div class="chip-content">${opt}</div>
+                        <div class="chip-content">${langModule.t(opt)}</div>
                     </label>`;
                 });
                 html += `</div>`;
@@ -480,7 +675,7 @@ const wizardModule = {
         form.innerHTML = html;
 
         document.getElementById('btn-prev-step').style.visibility = wizardModule.current === 0 ? 'hidden' : 'visible';
-        document.getElementById('btn-next-step').innerHTML = wizardModule.current === questions.length - 1 ? 'Create Plan <i class="fa-solid fa-microchip ml-2"></i>' : 'Next Step <i class="fa-solid fa-angle-right ml-2"></i>';
+        document.getElementById('btn-next-step').innerHTML = wizardModule.current === questions.length - 1 ? `${langModule.t('Create Plan')} <i class="fa-solid fa-microchip ml-2"></i>` : `${langModule.t('Next Step')} <i class="fa-solid fa-angle-right ml-2"></i>`;
     },
 
     handleInputChange: () => {
@@ -528,7 +723,7 @@ const wizardModule = {
 
     next: () => {
         if (!wizardModule.captureStep()) {
-            alert('Please complete all visible fields to proceed.'); return;
+            alert(langModule.t('Please complete all visible fields to proceed.')); return;
         }
 
         if (wizardModule.current < questions.length - 1) {
@@ -560,7 +755,7 @@ const algorithm = {
         let p = 0;
         const bar = document.getElementById('cyber-progress-bar');
         const txt = document.getElementById('loading-text');
-        const logs = ["Analyzing your profile...", "Calculating nutrition targets...", "Building your workout plan...", "Finalizing your personal plan..."];
+        const logs = [langModule.t("Analyzing your profile..."), langModule.t("Calculating nutrition targets..."), langModule.t("Building your workout plan..."), langModule.t("Finalizing your personal plan...")];
         let l = 0;
 
         const int = setInterval(() => {
@@ -607,23 +802,24 @@ const algorithm = {
 
         // Build Training Arrays
         let numDays = parseInt(a.days);
-        const dayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-        const types = { strength: "Strength Focus", hybrid: "HIIT & Conditioning", bodyweight: "Bodyweight Focus", endurance: "Cardio & Endurance Phase" };
+        const dayNames = [langModule.t('Mon'), langModule.t('Tue'), langModule.t('Wed'), langModule.t('Thu'), langModule.t('Fri'), langModule.t('Sat')];
+        const types = { strength: langModule.t("Strength Focus"), hybrid: langModule.t("HIIT & Conditioning"), bodyweight: langModule.t("Bodyweight Focus"), endurance: langModule.t("Cardio & Endurance Phase") };
         
         for(let i=0; i<numDays; i++) {
-            let n = i%2===0 ? types[a.style] : 'Active Recovery / Mobility';
+            let n = i%2===0 ? types[a.style] : langModule.t('Active Recovery / Mobility');
             protocol.training.push({
                 day: dayNames[i],
                 name: n,
-                desc: i===0 ? `Focus on your main goal, especially [${a.weakness ? a.weakness[0] : 'core fitness'}].` : "Build up your fitness and track progress."
+                desc: i===0 ? `${langModule.t('Focus on your main goal, especially')} [${a.weakness ? langModule.t(a.weakness[0]) : langModule.t('core fitness')}].` : langModule.t("Build up your fitness and track progress.")
             });
         }
 
         // Build Recovery Arrays
-        const sleep = a.stress > 7 ? '8.5 hours' : '7.5 hours';
-        protocol.recovery.push(`Aim for ${sleep} of quality sleep.`);
+        const sleep = a.stress > 7 ? '8.5' : '7.5';
+        protocol.recovery.push(`${langModule.t('Aim for')} ${sleep} ${langModule.t('hours of quality sleep.')}`);
         if(a.injuries && !a.injuries.includes('None')) {
-            protocol.recovery.push(`Daily mobility: 10 mins dedicated stretching/rehab for [${a.injuries.join(', ')}].`);
+            const translatedInjuries = a.injuries.map(i => langModule.t(i)).join(', ');
+            protocol.recovery.push(`${langModule.t('Daily mobility: 10 mins dedicated stretching/rehab for')} [${translatedInjuries}].`);
         }
         
         return protocol;
@@ -641,9 +837,14 @@ const dashModule = {
         // Render Resume logic in Onboarding view
         const obSlot = document.getElementById('resume-assessment-slot');
         if (user.assessment_state && user.assessment_state.step > 0) {
-            obSlot.innerHTML = `<button class="btn btn-outline btn-large w-full mt-4 font-mono uppercase text-xs tracking-widest" onclick="app.navigate('assessment')">Resume Step ${user.assessment_state.step + 1}</button>`;
+            obSlot.innerHTML = `<button class="btn btn-outline btn-large w-full mt-4 font-mono uppercase text-xs tracking-widest" onclick="app.navigate('assessment')"><span data-i18n="Resume Step">Resume Step</span> ${user.assessment_state.step + 1}</button>`;
         } else {
             obSlot.innerHTML = '';
+        }
+        
+        // Ensure new dynamically added translations are processed
+        if (langModule && langModule.applyTranslations) {
+            langModule.applyTranslations();
         }
 
         // Dashboard Sidebar Header
@@ -654,16 +855,16 @@ const dashModule = {
             const p = user.active_protocol;
             
             // Populate Protocol Context
-            const titleMap = { fat_loss: "PLAN: FAT LOSS", muscle_gain: "PLAN: BUILD MUSCLE", recomp: "PLAN: BODY RECOMPOSITION", military: "PLAN: OVERALL FITNESS" };
+            const titleMap = { fat_loss: langModule.t("PLAN: FAT LOSS"), muscle_gain: langModule.t("PLAN: BUILD MUSCLE"), recomp: langModule.t("PLAN: BODY RECOMPOSITION"), military: langModule.t("PLAN: OVERALL FITNESS") };
             document.getElementById('dash-mission-type').textContent = titleMap[p.meta.goal];
-            document.getElementById('dash-tier').textContent = p.meta.tier + " LEVEL";
-            document.getElementById('res-training-style').textContent = p.meta.style;
+            document.getElementById('dash-tier').textContent = langModule.t(p.meta.tier) + " " + langModule.t("LEVEL");
+            document.getElementById('res-training-style').textContent = langModule.t(p.meta.style);
 
             // Profile Stats
             document.getElementById('res-profile-stats').innerHTML = `
-                <div class="stat-item"><span class="stat-label">Frequency</span><span class="stat-value"><i class="fa-solid fa-calendar-day text-primary mr-1 text-xs"></i> ${p.meta.days} Days / Wk</span></div>
-                <div class="stat-item"><span class="stat-label">Status</span><span class="stat-value text-success"><i class="fa-solid fa-check text-success mr-1 text-xs"></i> Active</span></div>
-                <div class="stat-item"><span class="stat-label">Deploy Date</span><span class="stat-value">${p.created_at}</span></div>
+                <div class="stat-item"><span class="stat-label" data-i18n="Frequency">${langModule.t("Frequency")}</span><span class="stat-value"><i class="fa-solid fa-calendar-day text-primary mr-1 text-xs"></i> ${p.meta.days} ${langModule.t("Days / Wk")}</span></div>
+                <div class="stat-item"><span class="stat-label" data-i18n="Status">${langModule.t("Status")}</span><span class="stat-value text-success"><i class="fa-solid fa-check text-success mr-1 text-xs"></i> ${langModule.t("Active")}</span></div>
+                <div class="stat-item"><span class="stat-label" data-i18n="Deploy Date">${langModule.t("Deploy Date")}</span><span class="stat-value">${p.created_at}</span></div>
             `;
 
             // Nutrition
@@ -674,11 +875,11 @@ const dashModule = {
                 <div class="macro-box"><div class="val">${p.nutrition.fats}g</div><div class="lbl">FAT</div></div>
             `;
             
-            const dietTitles = {balanced: "Balanced Nutrition", keto: "Keto Diet", fasting: "Intermittent Fasting"};
-            const structTitles = {strict: "Strict Tracking", flexible: "Flexible/Intuitive"};
+            const dietTitles = {balanced: langModule.t("Balanced Nutrition"), keto: langModule.t("Keto Diet"), fasting: langModule.t("Intermittent Fasting")};
+            const structTitles = {strict: langModule.t("Strict Tracking"), flexible: langModule.t("Flexible/Intuitive")};
             document.getElementById('res-nutrition-plan').innerHTML = `
-                <li><i class="fa-solid fa-check"></i> Diet: ${dietTitles[p.nutrition.diet] || p.nutrition.diet}</li>
-                <li><i class="fa-solid fa-check"></i> Style: ${structTitles[p.nutrition.structure] || p.nutrition.structure}</li>
+                <li><i class="fa-solid fa-check"></i> ${langModule.t("Diet")}: ${dietTitles[p.nutrition.diet] || langModule.t(p.nutrition.diet)}</li>
+                <li><i class="fa-solid fa-check"></i> ${langModule.t("Style")}: ${structTitles[p.nutrition.structure] || langModule.t(p.nutrition.structure)}</li>
             `;
 
             // Recovery
@@ -695,7 +896,7 @@ const dashModule = {
                             <strong class="text-primary tracking-widest uppercase">${t.name}</strong><br>
                             <span class="text-xs uppercase mt-2 block opacity-80">${t.desc}</span>
                         </div>
-                        <div class="mt-4"><span class="day-stat-chip"><i class="fa-solid fa-circle text-primary text-[0.45rem]"></i> To Do</span></div>
+                        <div class="mt-4"><span class="day-stat-chip"><i class="fa-solid fa-circle text-primary text-[0.45rem]"></i> ${langModule.t("To Do")}</span></div>
                     </div>
                 </div>`;
             });
@@ -733,7 +934,7 @@ const dashModule = {
             
             html += `<tr>
                 <td>${t.date}</td>
-                <td>${t.weight} kg</td>
+                <td>${t.weight} ${langModule.t("kg")}</td>
                 <td>${waistStr}</td>
                 <td>${t.adherence}%</td>
                 <td>${workStr}</td>
@@ -771,8 +972,8 @@ const dashModule = {
             document.querySelector('.border-dashed').innerHTML = `
                 <div>
                     <i class="fa-solid fa-radar text-primary text-3xl mb-2"></i>
-                    <h4 class="text-xs font-bold uppercase text-primary font-mono tracking-widest mt-2">Overall Consistency: ${Math.round((realA + realWC)/2) || realA}%</h4>
-                    <p class="text-[0.65rem] text-muted mt-1 uppercase font-mono tracking-widest">Diet: ${realA}% | Training: ${realWC}%</p>
+                    <h4 class="text-xs font-bold uppercase text-primary font-mono tracking-widest mt-2" data-i18n="Overall Consistency">${langModule.t("Overall Consistency")}: ${Math.round((realA + realWC)/2) || realA}%</h4>
+                    <p class="text-[0.65rem] text-muted mt-1 uppercase font-mono tracking-widest"><span data-i18n="Diet">${langModule.t("Diet")}</span>: ${realA}% | <span data-i18n="Training">${langModule.t("Training")}</span>: ${realWC}%</p>
                 </div>
             `;
         } else {
@@ -784,17 +985,17 @@ const dashModule = {
     renderHistory: (user) => {
         let html = '';
         user.history.forEach((h, i) => {
-            const titleMap = { fat_loss: "PLAN: FAT LOSS", muscle_gain: "PLAN: BUILD MUSCLE", recomp: "PLAN: BODY RECOMPOSITION", military: "PLAN: OVERALL FITNESS" };
+            const titleMap = { fat_loss: langModule.t("PLAN: FAT LOSS"), muscle_gain: langModule.t("PLAN: BUILD MUSCLE"), recomp: langModule.t("PLAN: BODY RECOMPOSITION"), military: langModule.t("PLAN: OVERALL FITNESS") };
             html += `
             <div class="history-card">
                 <div>
-                    <span class="badge mb-2">ARCHIVED</span>
+                    <span class="badge mb-2">${langModule.t("ARCHIVED")}</span>
                     <h4 class="text-xl font-heading font-black tracking-widest">${titleMap[h.meta.goal]}</h4>
-                    <p class="text-secondary text-xs uppercase font-mono mt-1">Deployed: ${h.created_at}</p>
+                    <p class="text-secondary text-xs uppercase font-mono mt-1">${langModule.t("Deployed")}: ${h.created_at}</p>
                 </div>
                 <div class="flex gap-2 flex-wrap">
-                    <span class="day-stat-chip">Level: ${h.meta.tier}</span>
-                    <span class="day-stat-chip">${h.nutrition.cals} kcal limit</span>
+                    <span class="day-stat-chip">${langModule.t("Level")}: ${langModule.t(h.meta.tier)}</span>
+                    <span class="day-stat-chip">${h.nutrition.cals} ${langModule.t("kcal limit")}</span>
                 </div>
             </div>`;
         });
@@ -862,6 +1063,11 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     db.init();
+    langModule.init();
+
+    // Set active class on initial loader
+    const activeBtn = document.getElementById(`lang-btn-${langModule.currentLanguage}`);
+    if(activeBtn) activeBtn.classList.add('text-primary', 'font-bold');
 
     // Modals Close handlers
     document.querySelectorAll('.modal-close').forEach(btn => {

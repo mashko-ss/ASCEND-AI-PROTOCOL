@@ -20,18 +20,24 @@
         <!-- Navigation -->
         <nav class="navbar" id="main-nav">
             <div class="brand cursor-pointer" onclick="app.navigate('landing')">
-                <i class="fa-solid fa-server"></i>
+                <i class="fa-solid fa-layer-group"></i>
                 <span>ASCEND AI <strong>PROTOCOL</strong></span>
             </div>
             
+            <div class="lang-switcher font-mono text-xs tracking-widest uppercase flex items-center gap-2 ml-auto mr-4 md:mr-0 z-50">
+                <span id="lang-btn-en" class="lang-btn cursor-pointer transition-colors hover:text-primary" onclick="langModule.setLanguage('en')">EN</span>
+                <span class="text-muted">|</span>
+                <span id="lang-btn-bg" class="lang-btn cursor-pointer transition-colors hover:text-primary" onclick="langModule.setLanguage('bg')">BG</span>
+            </div>
+
             <button class="btn-icon mobile-menu-toggle" id="mobile-menu-btn" onclick="app.toggleMobileMenu()">
                 <i class="fa-solid fa-bars" id="mobile-menu-icon"></i>
             </button>
 
             <div class="nav-content" id="nav-content">
                 <div class="nav-actions" id="nav-unauth">
-                    <button class="btn btn-ghost w-full" onclick="app.navigate('auth', 'login')">Login</button>
-                    <button class="btn btn-primary w-full" onclick="app.navigate('auth', 'signup')">Create Account</button>
+                    <button class="btn btn-ghost w-full" onclick="app.navigate('auth', 'login')" data-i18n="Login">Login</button>
+                    <button class="btn btn-primary w-full" onclick="app.navigate('auth', 'signup')" data-i18n="Create Account">Create Account</button>
                 </div>
                 
                 <div class="nav-user hidden" id="nav-auth">
@@ -43,13 +49,13 @@
                     
                     <div class="user-dropdown hidden" id="user-dropdown">
                         <div class="dropdown-header">
-                            <p class="text-xs font-mono text-muted uppercase tracking-widest">Logged In As</p>
+                            <p class="text-xs font-mono text-muted uppercase tracking-widest" data-i18n="Logged In As">Logged In As</p>
                             <p class="font-bold truncate font-mono mt-1" id="dropdown-email"></p>
                         </div>
-                        <a href="#" onclick="app.navigate('dashboard')" class="dropdown-item"><i class="fa-solid fa-tower-broadcast"></i> Dashboard</a>
-                        <a href="#" onclick="app.navigate('assessment')" class="dropdown-item"><i class="fa-solid fa-microchip"></i> Start Assessment</a>
+                        <a href="#" onclick="app.navigate('dashboard')" class="dropdown-item"><i class="fa-solid fa-tower-broadcast"></i> <span data-i18n="Dashboard">Dashboard</span></a>
+                        <a href="#" onclick="app.navigate('assessment')" class="dropdown-item"><i class="fa-solid fa-microchip"></i> <span data-i18n="Start Assessment">Start Assessment</span></a>
                         <div class="dropdown-divider"></div>
-                        <a href="#" onclick="app.logout()" class="dropdown-item text-danger"><i class="fa-solid fa-power-off"></i> Logout</a>
+                        <a href="#" onclick="app.logout()" class="dropdown-item text-danger"><i class="fa-solid fa-power-off"></i> <span data-i18n="Logout">Logout</span></a>
                     </div>
                 </div>
             </div>
@@ -60,14 +66,14 @@
             <section id="view-landing" class="view">
                 <div class="hero">
                     <div class="hero-content">
-                        <div class="badge glow-badge">PREMIUM AI FITNESS SYSTEM</div>
-                        <h1 class="glitch uppercase" data-text="Adaptive System for Conditioning, Endurance & Natural Development">Adaptive System for Conditioning, Endurance & Natural Development</h1>
-                        <p class="subtitle font-mono">A premium AI fitness system optimized for strength, health, longevity, and body recomposition.</p>
+                        <div class="badge glow-badge" data-i18n="PREMIUM AI FITNESS SYSTEM">PREMIUM AI FITNESS SYSTEM</div>
+                        <h1 class="glitch uppercase" data-text="Adaptive System for Conditioning, Endurance & Natural Development" data-i18n="Adaptive System">Adaptive System for Conditioning, Endurance & Natural Development</h1>
+                        <p class="subtitle font-mono" data-i18n="Hero Subtitle">A premium AI fitness system optimized for strength, health, longevity, and body recomposition.</p>
                         <div class="hero-actions mt-6">
                             <button class="btn btn-primary btn-large font-mono tracking-widest uppercase" onclick="app.navigate('auth', 'signup')">
-                                Start Assessment <i class="fa-solid fa-terminal ml-2"></i>
+                                <span data-i18n="Start Assessment">Start Assessment</span> <i class="fa-solid fa-terminal ml-2"></i>
                             </button>
-                            <button class="btn btn-outline btn-large font-mono uppercase" onclick="app.navigate('auth', 'login')">
+                            <button class="btn btn-outline btn-large font-mono uppercase" onclick="app.navigate('auth', 'login')" data-i18n="Login">
                                 Login
                             </button>
                         </div>
@@ -77,24 +83,24 @@
 
                 <div class="section-container bg-surface">
                     <div class="section-header text-center max-w-2xl mx-auto">
-                        <h2 class="section-title tracking-widest uppercase text-2xl font-black">Features</h2>
-                        <p class="text-secondary text-sm font-mono mt-2 uppercase tracking-widest">Designed for your success. No cookie-cutter plans.</p>
+                        <h2 class="section-title tracking-widest uppercase text-2xl font-black" data-i18n="Features">Features</h2>
+                        <p class="text-secondary text-sm font-mono mt-2 uppercase tracking-widest" data-i18n="Features Subtitle">Designed for your success. No cookie-cutter plans.</p>
                     </div>
                     <div class="features-grid mt-8">
                         <div class="feature-card">
                             <div class="feature-icon"><i class="fa-solid fa-network-wired"></i></div>
-                            <h3 class="font-mono uppercase font-bold text-lg mb-2">Comprehensive Assessment</h3>
-                            <p class="text-secondary text-sm">Detailed analysis mapping your current fitness level, health history, and schedule.</p>
+                            <h3 class="font-mono uppercase font-bold text-lg mb-2" data-i18n="Comprehensive Assessment">Comprehensive Assessment</h3>
+                            <p class="text-secondary text-sm" data-i18n="Assessment Desc">Detailed analysis mapping your current fitness level, health history, and schedule.</p>
                         </div>
                         <div class="feature-card">
                             <div class="feature-icon"><i class="fa-solid fa-microchip"></i></div>
-                            <h3 class="font-mono uppercase font-bold text-lg mb-2">Smart Training Plans</h3>
-                            <p class="text-secondary text-sm">Personalized workouts that adapt to your progress and consistency.</p>
+                            <h3 class="font-mono uppercase font-bold text-lg mb-2" data-i18n="Smart Training Plans">Smart Training Plans</h3>
+                            <p class="text-secondary text-sm" data-i18n="Training Desc">Personalized workouts that adapt to your progress and consistency.</p>
                         </div>
                         <div class="feature-card">
                             <div class="feature-icon"><i class="fa-solid fa-radar"></i></div>
-                            <h3 class="font-mono uppercase font-bold text-lg mb-2">Weekly Check-ins</h3>
-                            <p class="text-secondary text-sm">Weekly tracking ensures your plan stays optimized for your current level.</p>
+                            <h3 class="font-mono uppercase font-bold text-lg mb-2" data-i18n="Weekly Check-ins">Weekly Check-ins</h3>
+                            <p class="text-secondary text-sm" data-i18n="Check-in Desc">Weekly tracking ensures your plan stays optimized for your current level.</p>
                         </div>
                     </div>
                 </div>
@@ -106,26 +112,26 @@
                     <div class="auth-card">
                         <div class="auth-header text-center mb-6">
                             <i class="fa-solid fa-fingerprint text-primary text-4xl mb-4"></i>
-                            <h2 id="auth-title" class="uppercase font-black tracking-widest">Login</h2>
-                            <p class="text-secondary text-xs font-mono uppercase mt-1">Access your personalized dashboard.</p>
+                            <h2 id="auth-title" class="uppercase font-black tracking-widest" data-i18n="Login">Login</h2>
+                            <p class="text-secondary text-xs font-mono uppercase mt-1" id="auth-subtitle" data-i18n="Access Dashboard">Access your personalized dashboard.</p>
                         </div>
                         
                         <div class="auth-error hidden font-mono text-center" id="auth-error"></div>
                         
                         <form id="auth-form" class="form-col" onsubmit="event.preventDefault(); authModule.submit();">
                             <div class="form-group">
-                                <label class="font-mono tracking-widest text-xs uppercase">Email Address</label>
+                                <label class="font-mono tracking-widest text-xs uppercase" data-i18n="Email Address">Email Address</label>
                                 <input type="email" id="auth-email" class="input-modern font-mono" placeholder="user@domain.com" required>
                             </div>
                             <div class="form-group">
-                                <label class="font-mono tracking-widest text-xs uppercase">Password</label>
+                                <label class="font-mono tracking-widest text-xs uppercase" data-i18n="Password">Password</label>
                                 <input type="password" id="auth-pass" class="input-modern font-mono" placeholder="••••••••" required>
                             </div>
-                            <button type="submit" class="btn btn-primary btn-large w-full mt-4 font-mono uppercase tracking-widest text-sm" id="btn-auth-submit">Login</button>
+                            <button type="submit" class="btn btn-primary btn-large w-full mt-4 font-mono uppercase tracking-widest text-sm" id="btn-auth-submit" data-i18n="Login">Login</button>
                         </form>
                         
                         <p class="text-center text-xs font-mono text-muted mt-6 uppercase" id="auth-toggle-text">
-                            No account yet? <span class="text-primary hover-underline cursor-pointer font-bold" onclick="authModule.toggleMode()">Create Account</span>
+                            <span data-i18n="No account yet?">No account yet?</span> <span class="text-primary hover-underline cursor-pointer font-bold" onclick="authModule.toggleMode()" data-i18n="Create Account">Create Account</span>
                         </p>
                     </div>
                 </div>
@@ -135,14 +141,14 @@
             <section id="view-onboarding" class="view">
                 <div class="onboarding-container text-center">
                     <div class="icon-ring pulse mb-6">
-                        <i class="fa-solid fa-satellite-dish text-3xl text-primary"></i>
+                        <i class="fa-solid fa-wave-square text-3xl text-primary"></i>
                     </div>
-                    <h2 class="text-2xl font-heading font-black mb-2 uppercase tracking-widest">Welcome to ASCEND AI PROTOCOL</h2>
-                    <p class="text-secondary text-sm font-mono max-w-xl mx-auto mb-8 uppercase">Initialize your assessment to generate a precision protocol for strength, health, longevity, and body recomposition.</p>
+                    <h2 class="text-2xl font-heading font-black mb-2 uppercase tracking-widest" data-i18n="Welcome to ASCEND AI PROTOCOL">Welcome to ASCEND AI PROTOCOL</h2>
+                    <p class="text-secondary text-sm font-mono max-w-xl mx-auto mb-8 uppercase" data-i18n="Initialize text">Initialize your assessment to generate a precision protocol for strength, health, longevity, and body recomposition.</p>
                     
                     <div class="flex-center gap-4">
                         <button class="btn btn-primary btn-large font-mono tracking-widest text-sm uppercase" onclick="app.navigate('assessment')">
-                            Start Assessment <i class="fa-solid fa-terminal ml-2"></i>
+                            <span data-i18n="Start Assessment">Start Assessment</span> <i class="fa-solid fa-terminal ml-2"></i>
                         </button>
                         <div id="resume-assessment-slot"></div>
                     </div>
@@ -174,8 +180,8 @@
                     </div>
 
                     <div class="wizard-actions">
-                        <button class="btn btn-ghost font-mono uppercase text-xs tracking-widest" id="btn-prev-step" onclick="wizardModule.prev()"><i class="fa-solid fa-angle-left mr-1"></i> Back</button>
-                        <button class="btn btn-primary font-mono uppercase text-xs tracking-widest" id="btn-next-step" onclick="wizardModule.next()">Next Step <i class="fa-solid fa-angle-right ml-1"></i></button>
+                        <button class="btn btn-ghost font-mono uppercase text-xs tracking-widest" id="btn-prev-step" onclick="wizardModule.prev()"><i class="fa-solid fa-angle-left mr-1"></i> <span data-i18n="Back">Back</span></button>
+                        <button class="btn btn-primary font-mono uppercase text-xs tracking-widest" id="btn-next-step" onclick="wizardModule.next()"><span data-i18n="Next Step">Next Step</span> <i class="fa-solid fa-angle-right ml-1"></i></button>
                     </div>
                 </div>
             </section>
@@ -194,14 +200,14 @@
                         </div>
                         
                         <nav class="sidebar-nav mt-8">
-                            <a href="#" class="sidebar-link active" onclick="dashModule.switchTab('active-protocol', event)"><i class="fa-solid fa-crosshairs w-5 text-center"></i> Your Plan</a>
-                            <a href="#" class="sidebar-link" onclick="dashModule.switchTab('progress-tracker', event)"><i class="fa-solid fa-chart-line w-5 text-center"></i> Your Progress</a>
-                            <a href="#" class="sidebar-link" onclick="dashModule.switchTab('history', event)"><i class="fa-solid fa-database w-5 text-center"></i> Plan History</a>
+                            <a href="#" class="sidebar-link active" onclick="dashModule.switchTab('active-protocol', event)"><i class="fa-solid fa-crosshairs w-5 text-center"></i> <span data-i18n="Your Plan">Your Plan</span></a>
+                            <a href="#" class="sidebar-link" onclick="dashModule.switchTab('progress-tracker', event)"><i class="fa-solid fa-chart-line w-5 text-center"></i> <span data-i18n="Your Progress">Your Progress</span></a>
+                            <a href="#" class="sidebar-link" onclick="dashModule.switchTab('history', event)"><i class="fa-solid fa-database w-5 text-center"></i> <span data-i18n="Plan History">Plan History</span></a>
                         </nav>
 
                         <div class="sidebar-footer">
                             <button class="btn btn-outline w-full font-mono text-xs uppercase tracking-widest" onclick="app.navigate('assessment')">
-                                <i class="fa-solid fa-rotate-right mr-1"></i> Retake Assessment
+                                <i class="fa-solid fa-rotate-right mr-1"></i> <span data-i18n="Retake Assessment">Retake Assessment</span>
                             </button>
                         </div>
                     </aside>
@@ -213,10 +219,10 @@
                         <div class="dash-tab active" id="tab-active-protocol">
                             <div class="dashboard-header mb-6 flex-between">
                                 <div>
-                                    <h2 class="dashboard-title uppercase font-black tracking-widest" id="dash-mission-type">YOUR TRAINING PLAN</h2>
-                                    <p class="text-secondary mt-1 font-mono text-xs uppercase">Pending your assessment.</p>
+                                    <h2 class="dashboard-title uppercase font-black tracking-widest" id="dash-mission-type" data-i18n="YOUR TRAINING PLAN">YOUR TRAINING PLAN</h2>
+                                    <p class="text-secondary mt-1 font-mono text-xs uppercase" data-i18n="Pending Assessment">Pending your assessment.</p>
                                 </div>
-                                <button class="btn btn-outline font-mono text-xs uppercase" onclick="dashModule.switchTab('progress-tracker', event)"><i class="fa-solid fa-pen-to-square mr-1"></i> Log Progress</button>
+                                <button class="btn btn-outline font-mono text-xs uppercase" onclick="dashModule.switchTab('progress-tracker', event)"><i class="fa-solid fa-pen-to-square mr-1"></i> <span data-i18n="Log Progress">Log Progress</span></button>
                             </div>
 
                             <div class="dashboard-grid">
@@ -235,7 +241,7 @@
                                 <!-- Nutrition Protocol -->
                                 <div class="dashboard-card card-span-1">
                                     <div class="card-header highlight-header">
-                                        <h3><i class="fa-solid fa-flask"></i> Nutrition Plan</h3>
+                                        <h3><i class="fa-solid fa-flask"></i> <span data-i18n="Nutrition Plan">Nutrition Plan</span></h3>
                                     </div>
                                     <div class="card-body">
                                         <div class="macro-display flex gap-2 mb-6" id="res-macros">
@@ -250,7 +256,7 @@
                                 <!-- Recovery Protocol -->
                                 <div class="dashboard-card card-span-1">
                                     <div class="card-header">
-                                        <h3><i class="fa-solid fa-shield-heart"></i> Recovery Plan</h3>
+                                        <h3><i class="fa-solid fa-shield-heart"></i> <span data-i18n="Recovery Plan">Recovery Plan</span></h3>
                                     </div>
                                     <div class="card-body">
                                         <ul class="protocol-list font-mono text-sm" id="res-recovery-plan">
@@ -258,8 +264,8 @@
                                         </ul>
                                         
                                         <div class="alert-box mt-6 bg-surface-hover p-4 border border-border-light text-center">
-                                            <p class="text-[0.65rem] text-primary tracking-widest uppercase font-bold mb-1">Friendly Reminder</p>
-                                            <p class="text-xs font-mono text-secondary" id="res-adherence-note">Getting enough sleep is crucial for your recovery and progress.</p>
+                                            <p class="text-[0.65rem] text-primary tracking-widest uppercase font-bold mb-1" data-i18n="Friendly Reminder">Friendly Reminder</p>
+                                            <p class="text-xs font-mono text-secondary" id="res-adherence-note" data-i18n="Recovery Note">Getting enough sleep is crucial for your recovery and progress.</p>
                                         </div>
                                     </div>
                                 </div>
@@ -267,16 +273,16 @@
                                 <!-- Placeholder Analytics -->
                                 <div class="dashboard-card card-span-1 bg-surface-hover flex-center text-center p-6 border-dashed">
                                     <div>
-                                        <i class="fa-solid fa-satellite-dish text-secondary text-2xl mb-3"></i>
-                                        <h4 class="text-xs font-bold uppercase tracking-widest text-secondary font-mono">No Data Yet</h4>
-                                        <p class="text-xs text-muted mt-2 font-mono">Log your weekly progress to track your improvements.</p>
+                                        <i class="fa-solid fa-wave-square text-secondary text-2xl mb-3"></i>
+                                        <h4 class="text-xs font-bold uppercase tracking-widest text-secondary font-mono" data-i18n="No Data Yet">No Data Yet</h4>
+                                        <p class="text-xs text-muted mt-2 font-mono" data-i18n="Log Progress Desc">Log your weekly progress to track your improvements.</p>
                                     </div>
                                 </div>
 
                                 <!-- Training Protocol -->
                                 <div class="dashboard-card card-span-3 mt-2">
                                     <div class="card-header flex-between items-center">
-                                        <h3><i class="fa-solid fa-diagram-project"></i> Workout Plan</h3>
+                                        <h3><i class="fa-solid fa-diagram-project"></i> <span data-i18n="Workout Plan">Workout Plan</span></h3>
                                         <span class="badge badge-outline font-mono bg-base" id="res-training-style">HYBRID</span>
                                     </div>
                                     <div class="card-body p-0">
@@ -294,27 +300,27 @@
                         <div class="dash-tab" id="tab-progress-tracker">
                             <div class="dashboard-header mb-6 flex-between">
                                 <div>
-                                    <h2 class="dashboard-title uppercase font-black tracking-widest">Your Progress</h2>
-                                    <p class="text-secondary mt-1 font-mono text-xs uppercase">Your track record of results.</p>
+                                    <h2 class="dashboard-title uppercase font-black tracking-widest" data-i18n="Your Progress Title">Your Progress</h2>
+                                    <p class="text-secondary mt-1 font-mono text-xs uppercase" data-i18n="Your track record">Your track record of results.</p>
                                 </div>
-                                <button class="btn btn-primary font-mono text-xs tracking-widest uppercase" onclick="toggleModal('modal-checkin', true)"><i class="fa-solid fa-upload mr-1"></i> Log Progress</button>
+                                <button class="btn btn-primary font-mono text-xs tracking-widest uppercase" onclick="toggleModal('modal-checkin', true)"><i class="fa-solid fa-upload mr-1"></i> <span data-i18n="Log Progress">Log Progress</span></button>
                             </div>
 
                             <!-- KPIs -->
                             <div class="grid grid-cols-3 gap-4 mb-6 mobile-grid-1">
                                 <div class="metric-card">
                                     <div class="metric-header">
-                                        <span class="metric-label font-mono">Body Weight</span>
+                                        <span class="metric-label font-mono" data-i18n="Body Weight">Body Weight</span>
                                         <i class="fa-solid fa-weight-scale text-muted"></i>
                                     </div>
                                     <div class="metric-value-container">
                                         <span class="metric-value font-mono" id="tracker-weight">--</span>
-                                        <span class="metric-unit font-mono">kg</span>
+                                        <span class="metric-unit font-mono" data-i18n="kg">kg</span>
                                     </div>
                                 </div>
                                 <div class="metric-card">
                                     <div class="metric-header">
-                                        <span class="metric-label font-mono">Consistency</span>
+                                        <span class="metric-label font-mono" data-i18n="Consistency">Consistency</span>
                                         <i class="fa-solid fa-bullseye text-muted"></i>
                                     </div>
                                     <div class="metric-value-container">
@@ -327,7 +333,7 @@
                                 </div>
                                 <div class="metric-card">
                                     <div class="metric-header">
-                                        <span class="metric-label font-mono">Energy Level</span>
+                                        <span class="metric-label font-mono" data-i18n="Energy Level">Energy Level</span>
                                         <i class="fa-solid fa-bolt text-muted"></i>
                                     </div>
                                     <div class="metric-value-container">
@@ -343,28 +349,28 @@
                             <!-- Table -->
                             <div class="dashboard-card">
                                 <div class="card-header highlight-header">
-                                    <h3><i class="fa-solid fa-table-list"></i> History Log</h3>
+                                    <h3><i class="fa-solid fa-table-list"></i> <span data-i18n="History Log">History Log</span></h3>
                                 </div>
                                 <div class="card-body p-0">
                                     <div class="table-outer">
                                         <table class="data-table font-mono text-sm">
                                             <thead>
                                                 <tr>
-                                                    <th>Timestamp</th>
-                                                    <th>Weight (kg)</th>
-                                                    <th>Waist (cm)</th>
-                                                    <th>Consistency</th>
-                                                    <th>Workouts</th>
-                                                    <th>Energy</th>
-                                                    <th>Sleep</th>
-                                                    <th>Notes</th>
+                                                    <th data-i18n="Timestamp">Timestamp</th>
+                                                    <th data-i18n="Weight (kg)">Weight (kg)</th>
+                                                    <th data-i18n="Waist (cm)">Waist (cm)</th>
+                                                    <th data-i18n="Consistency">Consistency</th>
+                                                    <th data-i18n="Workouts">Workouts</th>
+                                                    <th data-i18n="Energy">Energy</th>
+                                                    <th data-i18n="Sleep">Sleep</th>
+                                                    <th data-i18n="Notes">Notes</th>
                                                 </tr>
                                             </thead>
                                             <tbody id="checkin-tbody">
                                                 <!-- Dynamic Rows -->
                                             </tbody>
                                         </table>
-                                        <div id="checkin-empty" class="hidden p-8 text-center text-muted font-mono text-sm uppercase">
+                                        <div id="checkin-empty" class="hidden p-8 text-center text-muted font-mono text-sm uppercase" data-i18n="[ No progress logged yet ]">
                                             [ No progress logged yet ]
                                         </div>
                                     </div>
@@ -375,8 +381,8 @@
                         <!-- TAB: HISTORY (Archived Plans) -->
                         <div class="dash-tab" id="tab-history">
                             <div class="dashboard-header mb-6">
-                                <h2 class="dashboard-title uppercase font-black tracking-widest">Plan History</h2>
-                                <p class="text-secondary mt-1 font-mono text-xs uppercase">Your previous training plans.</p>
+                                <h2 class="dashboard-title uppercase font-black tracking-widest" data-i18n="Plan History">Plan History</h2>
+                                <p class="text-secondary mt-1 font-mono text-xs uppercase" data-i18n="Your previous plans">Your previous training plans.</p>
                             </div>
                             <div class="history-grid" id="history-grid">
                                 <!-- Dynamic history cards -->
@@ -392,56 +398,56 @@
     <div class="modal-overlay" id="modal-checkin">
         <div class="modal border-t-4" style="border-top-color: var(--accent-primary)">
             <div class="modal-header">
-                <h3 class="font-bold tracking-widest uppercase text-sm"><i class="fa-solid fa-terminal text-primary mr-2"></i> Log Progress</h3>
+                <h3 class="font-bold tracking-widest uppercase text-sm"><i class="fa-solid fa-terminal text-primary mr-2"></i> <span data-i18n="Log Progress">Log Progress</span></h3>
                 <button class="btn-icon modal-close"><i class="fa-solid fa-xmark"></i></button>
             </div>
             <div class="modal-body form-grid gap-y-6">
                 <div class="form-group">
-                    <label class="font-mono text-xs uppercase">Current Weight (kg)</label>
+                    <label class="font-mono text-xs uppercase" data-i18n="Current Weight (kg)">Current Weight (kg)</label>
                     <input type="number" step="0.1" id="checkin-val-weight" class="input-modern font-mono" placeholder="82">
                 </div>
                 <div class="form-group">
-                    <label class="font-mono text-xs uppercase">Waist (cm)</label>
+                    <label class="font-mono text-xs uppercase" data-i18n="Waist (cm)">Waist (cm)</label>
                     <input type="number" step="0.1" id="checkin-val-waist" class="input-modern font-mono" placeholder="92">
                 </div>
                 <div class="form-group">
-                    <label class="font-mono text-xs uppercase">Diet Consistency (%)</label>
+                    <label class="font-mono text-xs uppercase" data-i18n="Diet Consistency (%)">Diet Consistency (%)</label>
                     <input type="number" min="0" max="100" id="checkin-val-adherence" class="input-modern font-mono" placeholder="90">
                 </div>
                 <div class="form-group">
-                    <label class="font-mono text-xs uppercase">Workouts Completed (%)</label>
+                    <label class="font-mono text-xs uppercase" data-i18n="Workouts Completed (%)">Workouts Completed (%)</label>
                     <input type="number" min="0" max="100" id="checkin-val-workouts" class="input-modern font-mono" placeholder="100">
                 </div>
                 <div class="form-group">
-                    <label class="font-mono text-xs uppercase">Energy Level (1-10)</label>
+                    <label class="font-mono text-xs uppercase" data-i18n="Energy Level (1-10)">Energy Level (1-10)</label>
                     <div class="slider-container mt-2">
                         <input type="range" min="1" max="10" id="checkin-val-energy" class="range-slider max-w-full" value="7" oninput="document.getElementById('energy-out').innerText=this.value">
                         <div class="flex-between text-[0.65rem] text-muted mt-2 font-mono uppercase tracking-widest font-bold">
-                            <span>Low [1]</span>
+                            <span data-i18n="Low [1]">Low [1]</span>
                             <span class="text-primary text-xl" id="energy-out">7</span>
-                            <span>High [10]</span>
+                            <span data-i18n="High [10]">High [10]</span>
                         </div>
                     </div>
                 </div>
                 <div class="form-group">
-                    <label class="font-mono text-xs uppercase">Sleep Quality (1-10)</label>
+                    <label class="font-mono text-xs uppercase" data-i18n="Sleep Quality (1-10)">Sleep Quality (1-10)</label>
                     <div class="slider-container mt-2">
                         <input type="range" min="1" max="10" id="checkin-val-sleep" class="range-slider max-w-full" value="7" oninput="document.getElementById('sleep-out').innerText=this.value">
                         <div class="flex-between text-[0.65rem] text-muted mt-2 font-mono uppercase tracking-widest font-bold">
-                            <span>Poor [1]</span>
+                            <span data-i18n="Poor [1]">Poor [1]</span>
                             <span class="text-primary text-xl" id="sleep-out">7</span>
-                            <span>Great [10]</span>
+                            <span data-i18n="Great [10]">Great [10]</span>
                         </div>
                     </div>
                 </div>
                 <div class="form-group span-2">
-                    <label class="font-mono text-xs uppercase">Notes</label>
-                    <textarea id="checkin-val-notes" class="input-modern font-mono text-sm" rows="3" placeholder="How did you feel this week?"></textarea>
+                    <label class="font-mono text-xs uppercase" data-i18n="Notes">Notes</label>
+                    <textarea id="checkin-val-notes" class="input-modern font-mono text-sm" rows="3" placeholder="How did you feel this week?" data-i18n-placeholder="How did you feel this week?"></textarea>
                 </div>
             </div>
             <div class="modal-footer">
-                <button class="btn btn-ghost modal-close font-mono text-xs uppercase">Cancel</button>
-                <button class="btn btn-primary font-mono text-xs uppercase" onclick="dashModule.submitCheckin()"><i class="fa-solid fa-paper-plane mr-2"></i> Save Log</button>
+                <button class="btn btn-ghost modal-close font-mono text-xs uppercase" data-i18n="Cancel">Cancel</button>
+                <button class="btn btn-primary font-mono text-xs uppercase" onclick="dashModule.submitCheckin()"><i class="fa-solid fa-paper-plane mr-2"></i> <span data-i18n="Save Log">Save Log</span></button>
             </div>
         </div>
     </div>
@@ -450,8 +456,8 @@
     <div class="overlay bg-base" id="loading-overlay">
         <div class="loader-container text-center">
             <div class="spinner mb-6 mx-auto"></div>
-            <h2 class="font-heading font-black text-3xl tracking-widest uppercase text-primary mb-2" id="loading-title">GENERATING PLAN</h2>
-            <p class="text-secondary text-sm font-mono tracking-widest uppercase mb-8" id="loading-text">Analyzing your profile...</p>
+            <h2 class="font-heading font-black text-3xl tracking-widest uppercase text-primary mb-2" id="loading-title" data-i18n="GENERATING PLAN">GENERATING PLAN</h2>
+            <p class="text-secondary text-sm font-mono tracking-widest uppercase mb-8" id="loading-text" data-i18n="Analyzing status...">Analyzing your profile...</p>
             <div class="cyber-progress mx-auto">
                 <div class="cyber-progress-bar" id="cyber-progress-bar"></div>
             </div>
