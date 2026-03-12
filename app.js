@@ -254,7 +254,8 @@ const questions = [
         fields: [
             { id: 'age', type: 'number', label: 'Age', placeholder: 'e.g. 30' },
             { id: 'sex', type: 'radio', cols: 2, label: 'Biological Sex', options: [{val:'m', label:'Male', icon:'fa-mars'}, {val:'f', label:'Female', icon:'fa-venus'}] },
-            { id: 'weight', type: 'number', label: 'Current Weight (lbs)', placeholder: 'e.g. 185' },
+            { id: 'weight', type: 'number', label: 'Weight (kg)', placeholder: 'e.g. 82' },
+            { id: 'height', type: 'number', label: 'Height (cm)', placeholder: 'e.g. 178' },
             { id: 'activity', type: 'radio', cols: 1, label: 'Activity Level', options: [{val:'sedentary', label:'Sedentary', subtext:'Desk job, little to no exercise'}, {val:'active', label:'Active', subtext:'Physical job or very active lifestyle'}] }
         ]
     },
@@ -573,13 +574,17 @@ const algorithm = {
     },
 
     compile: (a) => {
-        // Advanced Math Matrix
-        const bmr = a.sex === 'm' ? (10 * a.weight * 0.45) + (6.25 * 180) - (5 * a.age) + 5 : (10 * a.weight * 0.45) + (6.25 * 160) - (5 * a.age) - 161; 
+        // Advanced Math Matrix (Mifflin-St Jeor Metric)
+        const bmr = a.sex === 'm' 
+            ? (10 * a.weight) + (6.25 * a.height) - (5 * a.age) + 5 
+            : (10 * a.weight) + (6.25 * a.height) - (5 * a.age) - 161; 
+            
         let tdee = a.activity === 'active' ? bmr * 1.55 : bmr * 1.2;
         let calories = a.primary_goal === 'fat_loss' ? tdee - 500 : (a.primary_goal === 'muscle_gain' ? tdee + 300 : tdee);
         calories = Math.round(calories);
         
-        const protein = Math.round(a.primary_goal === 'fat_loss' ? (a.weight * 1.2) : (a.weight * 1.0));
+        // Protein (g/kg): ~2.2g for fat loss, 2.0g otherwise
+        const protein = Math.round(a.primary_goal === 'fat_loss' ? (a.weight * 2.2) : (a.weight * 2.0));
 
         const protocol = {
             meta: { goal: a.primary_goal, tier: a.experience.toUpperCase(), days: a.days, style: a.style.toUpperCase() },
@@ -702,15 +707,31 @@ const dashModule = {
     },
 
     renderTelemetry: (user) => {
-        let avgW=0, avgA=0, avgE=0;
+        let avgW=0, avgA=0, avgE=0, avgS=0, avgWC=0;
         let html = '';
         const len = user.telemetry.length;
 
         user.telemetry.forEach(t => {
             if(html === '') avgW = t.weight; // latest weight
-            avgA += parseInt(t.adherence);
-            avgE += parseInt(t.energy);
-            html += `<tr><td>${t.date}</td><td>${t.weight} lbs</td><td>${t.adherence}%</td><td>${t.energy}/10</td><td>${t.notes || '-'}</td></tr>`;
+            avgA += parseInt(t.adherence) || 0;
+            avgE += parseInt(t.energy) || 0;
+            avgS += parseInt(t.sleep) || 0;
+            avgWC += parseInt(t.workouts) || 0;
+            
+            const waistStr = t.waist ? `${t.waist} cm` : '-';
+            const sleepStr = t.sleep ? `${t.sleep}/10` : '-';
+            const workStr = t.workouts ? `${t.workouts}%` : '-';
+            
+            html += `<tr>
+                <td>${t.date}</td>
+                <td>${t.weight} kg</td>
+                <td>${waistStr}</td>
+                <td>${t.adherence}%</td>
+                <td>${workStr}</td>
+                <td>${t.energy}/10</td>
+                <td>${sleepStr}</td>
+                <td>${t.notes || '-'}</td>
+            </tr>`;
         });
 
         const tb = document.getElementById('checkin-tbody');
@@ -722,6 +743,8 @@ const dashModule = {
             
             const realA = Math.round(avgA/len);
             const realE = (avgE/len).toFixed(1);
+            const realS = (avgS/len).toFixed(1);
+            const realWC = Math.round(avgWC/len);
 
             document.getElementById('tracker-weight').textContent = avgW;
             document.getElementById('tracker-adherence').textContent = realA;
@@ -739,8 +762,8 @@ const dashModule = {
             document.querySelector('.border-dashed').innerHTML = `
                 <div>
                     <i class="fa-solid fa-radar text-primary text-3xl mb-2"></i>
-                    <h4 class="text-xs font-bold uppercase text-primary font-mono tracking-widest mt-2">Consistency: ${realA}%</h4>
-                    <p class="text-[0.65rem] text-muted mt-1 uppercase font-mono tracking-widest">You're on track!</p>
+                    <h4 class="text-xs font-bold uppercase text-primary font-mono tracking-widest mt-2">Overall Consistency: ${Math.round((realA + realWC)/2) || realA}%</h4>
+                    <p class="text-[0.65rem] text-muted mt-1 uppercase font-mono tracking-widest">Diet: ${realA}% | Training: ${realWC}%</p>
                 </div>
             `;
         } else {
@@ -782,17 +805,33 @@ const dashModule = {
 
     submitCheckin: () => {
         const w = document.getElementById('checkin-val-weight').value;
-        const a = document.getElementById('checkin-val-adherence').value;
-        const e = document.getElementById('checkin-val-energy').value;
-        const n = document.getElementById('checkin-val-notes').value;
+        const waist = document.getElementById('checkin-val-waist').value;
+        const adherence = document.getElementById('checkin-val-adherence').value;
+        const workouts = document.getElementById('checkin-val-workouts').value;
+        const energy = document.getElementById('checkin-val-energy').value;
+        const sleep = document.getElementById('checkin-val-sleep').value;
+        const notes = document.getElementById('checkin-val-notes').value;
 
-        if(!w || !a || !e) { alert('Core telemetry indices required for submission.'); return; }
+        if(!w || !adherence || !workouts || !energy || !sleep) { 
+            alert('Core telemetry indices required for submission.'); 
+            return; 
+        }
         
-        db.saveTelemetry({ weight: w, adherence: a, energy: e, notes: n });
+        db.saveTelemetry({ 
+            weight: w, 
+            waist: waist,
+            adherence: adherence, 
+            workouts: workouts,
+            energy: energy, 
+            sleep: sleep,
+            notes: notes 
+        });
         
         // Reset and close
         document.getElementById('checkin-val-weight').value = '';
+        document.getElementById('checkin-val-waist').value = '';
         document.getElementById('checkin-val-adherence').value = '';
+        document.getElementById('checkin-val-workouts').value = '';
         document.getElementById('checkin-val-notes').value = '';
         document.getElementById('modal-checkin').classList.remove('active');
         
