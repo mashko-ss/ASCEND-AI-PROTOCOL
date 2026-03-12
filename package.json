@@ -1,0 +1,11 @@
+{
+  "name": "iron-protocol",
+  "version": "1.0.0",
+  "description": "Personal Training & Nutrition Planner",
+  "scripts": {
+    "build": "node build.js"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

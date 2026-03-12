@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#040406">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="icon-192.png">
+    <title>IRON PROTOCOL | Personal Training & Nutrition Planner</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Navigation -->
+        <nav class="navbar" id="main-nav">
+            <div class="brand cursor-pointer" onclick="app.navigate('landing')">
+                <i class="fa-solid fa-server"></i>
+                <span>IRON <strong>PROTOCOL</strong></span>
+            </div>
+            
+            <button class="btn-icon mobile-menu-toggle" id="mobile-menu-btn" onclick="app.toggleMobileMenu()">
+                <i class="fa-solid fa-bars" id="mobile-menu-icon"></i>
+            </button>
+
+            <div class="nav-content" id="nav-content">
+                <div class="nav-actions" id="nav-unauth">
+                    <button class="btn btn-ghost w-full" onclick="app.navigate('auth', 'login')">Login</button>
+                    <button class="btn btn-primary w-full" onclick="app.navigate('auth', 'signup')">Create Account</button>
+                </div>
+                
+                <div class="nav-user hidden" id="nav-auth">
+                    <div class="user-menu-trigger" id="user-menu-btn">
+                        <span class="avatar-sm" id="nav-avatar">US</span>
+                        <span class="user-email font-mono" id="nav-user-email"></span>
+                        <i class="fa-solid fa-chevron-down text-muted ml-2" style="font-size: 0.8rem;"></i>
+                    </div>
+                    
+                    <div class="user-dropdown hidden" id="user-dropdown">
+                        <div class="dropdown-header">
+                            <p class="text-xs font-mono text-muted uppercase tracking-widest">Logged In As</p>
+                            <p class="font-bold truncate font-mono mt-1" id="dropdown-email"></p>
+                        </div>
+                        <a href="#" onclick="app.navigate('dashboard')" class="dropdown-item"><i class="fa-solid fa-tower-broadcast"></i> Dashboard</a>
+                        <a href="#" onclick="app.navigate('assessment')" class="dropdown-item"><i class="fa-solid fa-microchip"></i> Start Assessment</a>
+                        <div class="dropdown-divider"></div>
+                        <a href="#" onclick="app.logout()" class="dropdown-item text-danger"><i class="fa-solid fa-power-off"></i> Logout</a>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <main id="app-root">
+            <!-- 1. LANDING PAGE -->
+            <section id="view-landing" class="view">
+                <div class="hero">
+                    <div class="hero-content">
+                        <div class="badge glow-badge">V4.0 PERSONAL TRAINER</div>
+                        <h1 class="glitch uppercase" data-text="Personal Training & Nutrition Planner">Personal Training & Nutrition Planner</h1>
+                        <p class="subtitle font-mono">A data-driven assessment that creates your personalized fitness and nutrition plan. Get ready to transform.</p>
+                        <div class="hero-actions mt-6">
+                            <button class="btn btn-primary btn-large font-mono tracking-widest uppercase" onclick="app.navigate('auth', 'signup')">
+                                Start Assessment <i class="fa-solid fa-terminal ml-2"></i>
+                            </button>
+                            <button class="btn btn-outline btn-large font-mono uppercase" onclick="app.navigate('auth', 'login')">
+                                Login
+                            </button>
+                        </div>
+                    </div>
+                    <div class="hero-background-graph"></div>
+                </div>
+
+                <div class="section-container bg-surface">
+                    <div class="section-header text-center max-w-2xl mx-auto">
+                        <h2 class="section-title tracking-widest uppercase text-2xl font-black">Features</h2>
+                        <p class="text-secondary text-sm font-mono mt-2 uppercase tracking-widest">Designed for your success. No cookie-cutter plans.</p>
+                    </div>
+                    <div class="features-grid mt-8">
+                        <div class="feature-card">
+                            <div class="feature-icon"><i class="fa-solid fa-network-wired"></i></div>
+                            <h3 class="font-mono uppercase font-bold text-lg mb-2">Comprehensive Assessment</h3>
+                            <p class="text-secondary text-sm">Detailed analysis mapping your current fitness level, health history, and schedule.</p>
+                        </div>
+                        <div class="feature-card">
+                            <div class="feature-icon"><i class="fa-solid fa-microchip"></i></div>
+                            <h3 class="font-mono uppercase font-bold text-lg mb-2">Smart Training Plans</h3>
+                            <p class="text-secondary text-sm">Personalized workouts that adapt to your progress and consistency.</p>
+                        </div>
+                        <div class="feature-card">
+                            <div class="feature-icon"><i class="fa-solid fa-radar"></i></div>
+                            <h3 class="font-mono uppercase font-bold text-lg mb-2">Weekly Check-ins</h3>
+                            <p class="text-secondary text-sm">Weekly tracking ensures your plan stays optimized for your current level.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 2. AUTHENTICATION VIEW -->
+            <section id="view-auth" class="view">
+                <div class="auth-container">
+                    <div class="auth-card">
+                        <div class="auth-header text-center mb-6">
+                            <i class="fa-solid fa-fingerprint text-primary text-4xl mb-4"></i>
+                            <h2 id="auth-title" class="uppercase font-black tracking-widest">Login</h2>
+                            <p class="text-secondary text-xs font-mono uppercase mt-1">Access your personalized dashboard.</p>
+                        </div>
+                        
+                        <div class="auth-error hidden font-mono text-center" id="auth-error"></div>
+                        
+                        <form id="auth-form" class="form-col" onsubmit="event.preventDefault(); authModule.submit();">
+                            <div class="form-group">
+                                <label class="font-mono tracking-widest text-xs uppercase">Email Address</label>
+                                <input type="email" id="auth-email" class="input-modern font-mono" placeholder="user@domain.com" required>
+                            </div>
+                            <div class="form-group">
+                                <label class="font-mono tracking-widest text-xs uppercase">Password</label>
+                                <input type="password" id="auth-pass" class="input-modern font-mono" placeholder="••••••••" required>
+                            </div>
+                            <button type="submit" class="btn btn-primary btn-large w-full mt-4 font-mono uppercase tracking-widest text-sm" id="btn-auth-submit">Login</button>
+                        </form>
+                        
+                        <p class="text-center text-xs font-mono text-muted mt-6 uppercase" id="auth-toggle-text">
+                            No account yet? <span class="text-primary hover-underline cursor-pointer font-bold" onclick="authModule.toggleMode()">Create Account</span>
+                        </p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 3. ONBOARDING / EMPTY DASHBOARD STATE -->
+            <section id="view-onboarding" class="view">
+                <div class="onboarding-container text-center">
+                    <div class="icon-ring pulse mb-6">
+                        <i class="fa-solid fa-satellite-dish text-3xl text-primary"></i>
+                    </div>
+                    <h2 class="text-2xl font-heading font-black mb-2 uppercase tracking-widest">Welcome to Iron Protocol</h2>
+                    <p class="text-secondary text-sm font-mono max-w-xl mx-auto mb-8 uppercase">We need some basic information to create your personalized fitness and nutrition plan. Let's get started!</p>
+                    
+                    <div class="flex-center gap-4">
+                        <button class="btn btn-primary btn-large font-mono tracking-widest text-sm uppercase" onclick="app.navigate('assessment')">
+                            Start Assessment <i class="fa-solid fa-terminal ml-2"></i>
+                        </button>
+                        <div id="resume-assessment-slot"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 4. ASSESSMENT WIZARD (State preserved) -->
+            <section id="view-assessment" class="view bg-base flex-center">
+                <div class="wizard-container">
+                    <div class="wizard-header">
+                        <div class="flex items-center gap-4 w-full">
+                            <button class="btn-icon" onclick="app.navigate('dashboard')" title="Pause Assessment"><i class="fa-solid fa-pause"></i></button>
+                            <div class="progress-bar flex-grow">
+                                <div class="progress-fill" id="wizard-progress"></div>
+                            </div>
+                            <span class="step-counter font-mono text-sm font-bold" id="step-counter">1 / 8</span>
+                        </div>
+                    </div>
+
+                    <div class="wizard-scroll-area">
+                        <div class="step-indicator mb-6">
+                            <span id="step-label" class="text-primary font-mono font-bold tracking-widest text-xs uppercase">Step 1</span>
+                            <h2 id="step-title" class="text-2xl font-heading font-black mt-2 uppercase tracking-widest">Personal Stats</h2>
+                        </div>
+
+                        <div id="wizard-form" class="wizard-form-group">
+                            <!-- Dynamic Inputs -->
+                        </div>
+                    </div>
+
+                    <div class="wizard-actions">
+                        <button class="btn btn-ghost font-mono uppercase text-xs tracking-widest" id="btn-prev-step" onclick="wizardModule.prev()"><i class="fa-solid fa-angle-left mr-1"></i> Back</button>
+                        <button class="btn btn-primary font-mono uppercase text-xs tracking-widest" id="btn-next-step" onclick="wizardModule.next()">Next Step <i class="fa-solid fa-angle-right ml-1"></i></button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 5. DASHBOARD VIEW -->
+            <section id="view-dashboard" class="view">
+                <div class="dashboard-layout">
+                    <!-- Sidebar -->
+                    <aside class="dashboard-sidebar">
+                        <div class="user-profile-summary">
+                            <div class="avatar-circle" id="dash-avatar">US</div>
+                            <div class="user-meta">
+                                <h3 id="dash-username" class="truncate uppercase font-black text-lg tracking-widest">USER</h3>
+                                <span class="badge tier-badge mt-1" id="dash-tier">YOUR TRAINING PLAN</span>
+                            </div>
+                        </div>
+                        
+                        <nav class="sidebar-nav mt-8">
+                            <a href="#" class="sidebar-link active" onclick="dashModule.switchTab('active-protocol', event)"><i class="fa-solid fa-crosshairs w-5 text-center"></i> Your Plan</a>
+                            <a href="#" class="sidebar-link" onclick="dashModule.switchTab('progress-tracker', event)"><i class="fa-solid fa-chart-line w-5 text-center"></i> Your Progress</a>
+                            <a href="#" class="sidebar-link" onclick="dashModule.switchTab('history', event)"><i class="fa-solid fa-database w-5 text-center"></i> Plan History</a>
+                        </nav>
+
+                        <div class="sidebar-footer">
+                            <button class="btn btn-outline w-full font-mono text-xs uppercase tracking-widest" onclick="app.navigate('assessment')">
+                                <i class="fa-solid fa-rotate-right mr-1"></i> Retake Assessment
+                            </button>
+                        </div>
+                    </aside>
+
+                    <!-- Main Content -->
+                    <main class="dashboard-main">
+                        
+                        <!-- TAB: ACTIVE PROTOCOL -->
+                        <div class="dash-tab active" id="tab-active-protocol">
+                            <div class="dashboard-header mb-6 flex-between">
+                                <div>
+                                    <h2 class="dashboard-title uppercase font-black tracking-widest" id="dash-mission-type">YOUR TRAINING PLAN</h2>
+                                    <p class="text-secondary mt-1 font-mono text-xs uppercase">Pending your assessment.</p>
+                                </div>
+                                <button class="btn btn-outline font-mono text-xs uppercase" onclick="dashModule.switchTab('progress-tracker', event)"><i class="fa-solid fa-pen-to-square mr-1"></i> Log Progress</button>
+                            </div>
+
+                            <div class="dashboard-grid">
+                                <!-- Operator Stats Box -->
+                                <div class="dashboard-card card-span-3 gradient-border">
+                                    <div class="card-body flex gap-6 items-center mobile-col">
+                                        <div class="mission-icon">
+                                            <i class="fa-solid fa-microchip text-4xl text-primary opacity-80"></i>
+                                        </div>
+                                        <div class="flex-grow grid grid-cols-4 gap-4 mobile-grid-2" id="res-profile-stats">
+                                            <!-- Dynamics -->
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Nutrition Protocol -->
+                                <div class="dashboard-card card-span-1">
+                                    <div class="card-header highlight-header">
+                                        <h3><i class="fa-solid fa-flask"></i> Nutrition Plan</h3>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="macro-display flex gap-2 mb-6" id="res-macros">
+                                            <!-- Dynamic -->
+                                        </div>
+                                        <ul class="protocol-list font-mono text-sm" id="res-nutrition-plan">
+                                            <!-- Dynamic -->
+                                        </ul>
+                                    </div>
+                                </div>
+
+                                <!-- Recovery Protocol -->
+                                <div class="dashboard-card card-span-1">
+                                    <div class="card-header">
+                                        <h3><i class="fa-solid fa-shield-heart"></i> Recovery Plan</h3>
+                                    </div>
+                                    <div class="card-body">
+                                        <ul class="protocol-list font-mono text-sm" id="res-recovery-plan">
+                                            <!-- Dynamic -->
+                                        </ul>
+                                        
+                                        <div class="alert-box mt-6 bg-surface-hover p-4 border border-border-light text-center">
+                                            <p class="text-[0.65rem] text-primary tracking-widest uppercase font-bold mb-1">Friendly Reminder</p>
+                                            <p class="text-xs font-mono text-secondary" id="res-adherence-note">Getting enough sleep is crucial for your recovery and progress.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Placeholder Analytics -->
+                                <div class="dashboard-card card-span-1 bg-surface-hover flex-center text-center p-6 border-dashed">
+                                    <div>
+                                        <i class="fa-solid fa-satellite-dish text-secondary text-2xl mb-3"></i>
+                                        <h4 class="text-xs font-bold uppercase tracking-widest text-secondary font-mono">No Data Yet</h4>
+                                        <p class="text-xs text-muted mt-2 font-mono">Log your weekly progress to track your improvements.</p>
+                                    </div>
+                                </div>
+
+                                <!-- Training Protocol -->
+                                <div class="dashboard-card card-span-3 mt-2">
+                                    <div class="card-header flex-between items-center">
+                                        <h3><i class="fa-solid fa-diagram-project"></i> Workout Plan</h3>
+                                        <span class="badge badge-outline font-mono bg-base" id="res-training-style">HYBRID</span>
+                                    </div>
+                                    <div class="card-body p-0">
+                                        <div class="scrolling-modules-container border-t border-border-color">
+                                            <div class="module-cards-grid" id="res-training-plan">
+                                                <!-- Dynamic Day Cards -->
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- TAB: PROGRESS TRACKER -->
+                        <div class="dash-tab" id="tab-progress-tracker">
+                            <div class="dashboard-header mb-6 flex-between">
+                                <div>
+                                    <h2 class="dashboard-title uppercase font-black tracking-widest">Your Progress</h2>
+                                    <p class="text-secondary mt-1 font-mono text-xs uppercase">Your track record of results.</p>
+                                </div>
+                                <button class="btn btn-primary font-mono text-xs tracking-widest uppercase" onclick="toggleModal('modal-checkin', true)"><i class="fa-solid fa-upload mr-1"></i> Log Progress</button>
+                            </div>
+
+                            <!-- KPIs -->
+                            <div class="grid grid-cols-3 gap-4 mb-6 mobile-grid-1">
+                                <div class="metric-card">
+                                    <div class="metric-header">
+                                        <span class="metric-label font-mono">Body Weight</span>
+                                        <i class="fa-solid fa-weight-scale text-muted"></i>
+                                    </div>
+                                    <div class="metric-value-container">
+                                        <span class="metric-value font-mono" id="tracker-weight">--</span>
+                                        <span class="metric-unit font-mono">lbs</span>
+                                    </div>
+                                </div>
+                                <div class="metric-card">
+                                    <div class="metric-header">
+                                        <span class="metric-label font-mono">Consistency</span>
+                                        <i class="fa-solid fa-bullseye text-muted"></i>
+                                    </div>
+                                    <div class="metric-value-container">
+                                        <span class="metric-value font-mono text-primary" id="tracker-adherence">--</span>
+                                        <span class="metric-unit font-mono">%</span>
+                                    </div>
+                                    <div class="mini-bar-chart mt-3">
+                                        <div class="bar-fill bg-primary" id="tracker-adh-bar" style="width: 0%"></div>
+                                    </div>
+                                </div>
+                                <div class="metric-card">
+                                    <div class="metric-header">
+                                        <span class="metric-label font-mono">Energy Level</span>
+                                        <i class="fa-solid fa-bolt text-muted"></i>
+                                    </div>
+                                    <div class="metric-value-container">
+                                        <span class="metric-value font-mono" id="tracker-energy">--</span>
+                                        <span class="metric-unit font-mono">/10</span>
+                                    </div>
+                                    <div class="mini-bar-chart mt-3">
+                                        <div class="bar-fill bg-success" id="tracker-eng-bar" style="width: 0%"></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Table -->
+                            <div class="dashboard-card">
+                                <div class="card-header highlight-header">
+                                    <h3><i class="fa-solid fa-table-list"></i> History Log</h3>
+                                </div>
+                                <div class="card-body p-0">
+                                    <div class="table-outer">
+                                        <table class="data-table font-mono text-sm">
+                                            <thead>
+                                                <tr>
+                                                    <th>Timestamp</th>
+                                                    <th>Weight (lbs)</th>
+                                                    <th>Consistency</th>
+                                                    <th>Energy Level</th>
+                                                    <th>Notes</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="checkin-tbody">
+                                                <!-- Dynamic Rows -->
+                                            </tbody>
+                                        </table>
+                                        <div id="checkin-empty" class="hidden p-8 text-center text-muted font-mono text-sm uppercase">
+                                            [ No progress logged yet ]
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- TAB: HISTORY (Archived Plans) -->
+                        <div class="dash-tab" id="tab-history">
+                            <div class="dashboard-header mb-6">
+                                <h2 class="dashboard-title uppercase font-black tracking-widest">Plan History</h2>
+                                <p class="text-secondary mt-1 font-mono text-xs uppercase">Your previous training plans.</p>
+                            </div>
+                            <div class="history-grid" id="history-grid">
+                                <!-- Dynamic history cards -->
+                            </div>
+                        </div>
+                    </main>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Check-in Modal -->
+    <div class="modal-overlay" id="modal-checkin">
+        <div class="modal border-t-4" style="border-top-color: var(--accent-primary)">
+            <div class="modal-header">
+                <h3 class="font-bold tracking-widest uppercase text-sm"><i class="fa-solid fa-terminal text-primary mr-2"></i> Log Progress</h3>
+                <button class="btn-icon modal-close"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="modal-body form-grid gap-y-6">
+                <div class="form-group">
+                    <label class="font-mono text-xs uppercase">Current Weight (lbs)</label>
+                    <input type="number" id="checkin-val-weight" class="input-modern font-mono" placeholder="185">
+                </div>
+                <div class="form-group">
+                    <label class="font-mono text-xs uppercase">Plan Consistency (%)</label>
+                    <input type="number" min="0" max="100" id="checkin-val-adherence" class="input-modern font-mono" placeholder="90">
+                </div>
+                <div class="form-group span-2">
+                    <label class="font-mono text-xs uppercase">Energy Level (1-10)</label>
+                    <div class="slider-container mt-2">
+                        <input type="range" min="1" max="10" id="checkin-val-energy" class="range-slider max-w-full" value="7" oninput="document.getElementById('energy-out').innerText=this.value">
+                        <div class="flex-between text-[0.65rem] text-muted mt-2 font-mono uppercase tracking-widest font-bold">
+                            <span>Low [1]</span>
+                            <span class="text-primary text-xl" id="energy-out">7</span>
+                            <span>High [10]</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group span-2">
+                    <label class="font-mono text-xs uppercase">Notes</label>
+                    <textarea id="checkin-val-notes" class="input-modern font-mono text-sm" rows="3" placeholder="How did you feel this week?"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-ghost modal-close font-mono text-xs uppercase">Cancel</button>
+                <button class="btn btn-primary font-mono text-xs uppercase" onclick="dashModule.submitCheckin()"><i class="fa-solid fa-paper-plane mr-2"></i> Save Log</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Generating Algorithm Overlay -->
+    <div class="overlay bg-base" id="loading-overlay">
+        <div class="loader-container text-center">
+            <div class="spinner mb-6 mx-auto"></div>
+            <h2 class="font-heading font-black text-3xl tracking-widest uppercase text-primary mb-2" id="loading-title">GENERATING PLAN</h2>
+            <p class="text-secondary text-sm font-mono tracking-widest uppercase mb-8" id="loading-text">Analyzing your profile...</p>
+            <div class="cyber-progress mx-auto">
+                <div class="cyber-progress-bar" id="cyber-progress-bar"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="config.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
