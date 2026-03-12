@@ -1,12 +1,12 @@
 /**
- * IRON PROTOCOL v4.0 - Advanced Tactical SaaS Engine
+ * ASCEND AI PROTOCOL - Premium AI Fitness System
  * Architecture: Vanilla JS + Robust LocalStorage Simulation
  */
 
 // ==========================================
 // 1. DATABASE & PERSISTENCE
 // ==========================================
-const DB_KEY = 'iron_protocol_v4_db';
+const DB_KEY = 'ascend_protocol_v4_db';
 
 const db = {
     init: () => {
