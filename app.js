@@ -253,10 +253,15 @@ const questions = [
         step: 0, id: 'profile', title: 'Basic Information',
         fields: [
             { id: 'age', type: 'number', label: 'Age', placeholder: 'e.g. 30' },
-            { id: 'sex', type: 'radio', cols: 2, label: 'Biological Sex', options: [{val:'m', label:'Male', icon:'fa-mars'}, {val:'f', label:'Female', icon:'fa-venus'}] },
+            { id: 'sex', type: 'radio', cols: 2, label: 'Gender', options: [{val:'m', label:'Male', icon:'fa-mars'}, {val:'f', label:'Female', icon:'fa-venus'}] },
             { id: 'weight', type: 'number', label: 'Weight (kg)', placeholder: 'e.g. 82' },
             { id: 'height', type: 'number', label: 'Height (cm)', placeholder: 'e.g. 178' },
-            { id: 'activity', type: 'radio', cols: 1, label: 'Activity Level', options: [{val:'sedentary', label:'Sedentary', subtext:'Desk job, little to no exercise'}, {val:'active', label:'Active', subtext:'Physical job or very active lifestyle'}] }
+            { id: 'activity', type: 'radio', cols: 1, label: 'Activity Level', options: [
+                {val:'sedentary', label:'Mostly sitting / little movement'}, 
+                {val:'light', label:'Light activity (walking, light workouts)'},
+                {val:'moderate', label:'Regular workouts or active job'},
+                {val:'active', label:'Hard training or physical work'}
+            ]}
         ]
     },
     {
@@ -269,9 +274,13 @@ const questions = [
                 {val:'longevity', label:'Health & Longevity', subtext:'Optimize healthspan and vitality.', icon:'fa-heart-pulse'}
             ]},
             { id: 'secondary_goal', type: 'chips', label: 'Secondary Objectives', options: [
-                'Absolute Strength', 'Cardio Endurance', 'Mobility & Flexibility', 'Mental Toughness', 'Aesthetics'
+                'Raw Strength', 'Better Stamina', 'Power & Speed', 'Move Better', 'Mental Toughness', 'Aesthetics'
             ]},
-            { id: 'seriousness', type: 'slider', label: 'Commitment Level (1-10)', min: 1, max: 10, default: 8 }
+            { id: 'seriousness', type: 'radio', cols: 1, label: 'How Dedicated Are You?', options: [
+                {val:'low', label:'Just getting started'},
+                {val:'medium', label:'I can train regularly'},
+                {val:'high', label:'Very serious about my results'}
+            ]}
         ]
     },
     {
@@ -284,7 +293,7 @@ const questions = [
             ]},
             { id: 'fitness_level', type: 'slider', label: 'Current Fitness Level (1-10)', min: 1, max: 10, default: 5 },
             { id: 'weakness', type: 'chips', label: 'Areas for Improvement', options: [
-                'Cardiovascular Output', 'Strength', 'Work Capacity', 'Joint Integrity', 'Core Stabilization'
+                'Lose Body Fat', 'Build Muscle', 'Increase Strength', 'Improve Energy', 'Better Sleep', 'Reduce Stress', 'Improve Posture', 'Move With Less Pain'
             ]}
         ]
     },
@@ -299,9 +308,9 @@ const questions = [
             ]},
             { id: 'stress', type: 'slider', label: 'Daily Stress Level (1-10)', min: 1, max: 10, default: 5 },
             { id: 'recovery_ability', type: 'radio', cols: 3, label: 'Recovery Capacity', options: [
-                {val:'poor', label:'Poor', subtext:'Often sore/tired'},
-                {val:'average', label:'Average', subtext:'Normal recovery'},
-                {val:'excellent', label:'Excellent', subtext:'Bounce back fast'}
+                {val:'poor', label:'Poor', subtext:'I often feel sore or tired'},
+                {val:'average', label:'Average', subtext:'I recover normally'},
+                {val:'excellent', label:'Excellent', subtext:'I bounce back fast'}
             ]}
         ]
     },
@@ -316,9 +325,9 @@ const questions = [
                 {val:'90', label:'90+ Minutes', icon:'fa-hourglass'}
             ]},
             { id: 'equipment', type: 'radio', cols: 1, label: 'Equipment Access', options: [
-                {val:'full', label:'Full Gym', subtext:'Access to a fully equipped gym.', icon:'fa-building'},
-                {val:'garage', label:'Home Gym', subtext:'Basic equipment like barbell and dumbbells.', icon:'fa-warehouse'},
-                {val:'minimal', label:'Bodyweight/Minimal', subtext:'Little to no equipment.', icon:'fa-suitcase'}
+                {val:'full', label:'Full Gym', subtext:'A proper gym with machines and free weights.', icon:'fa-building'},
+                {val:'garage', label:'Home Gym', subtext:'Basic setup with dumbbells or a barbell.', icon:'fa-warehouse'},
+                {val:'minimal', label:'Bodyweight/Minimal', subtext:'No equipment, just your body.', icon:'fa-suitcase'}
             ]}
         ]
     },
@@ -326,10 +335,10 @@ const questions = [
         step: 5, id: 'training_style', title: 'Training Style Preference',
         fields: [
             { id: 'style', type: 'radio', cols: 2, label: 'Preferred Style', options: [
-                {val:'strength', label:'Strength Training', subtext:'Heavy lifting and strength.', icon:'fa-anchor'},
-                {val:'hybrid', label:'HIIT & Conditioning', subtext:'High intensity and circuits.', icon:'fa-stopwatch'},
-                {val:'bodyweight', label:'Calisthenics', subtext:'Bodyweight mastery.', icon:'fa-street-view'},
-                {val:'longevity', label:'Health & Longevity', subtext:'Functional movement.', icon:'fa-heart-circle-check'}
+                {val:'strength', label:'Strength Training', subtext:'Lifting heavy weights to build strength and muscle.', icon:'fa-anchor'},
+                {val:'hybrid', label:'HIIT & Conditioning', subtext:'Fast-paced workouts to burn fat and get your heart pumping.', icon:'fa-stopwatch'},
+                {val:'bodyweight', label:'Calisthenics', subtext:'Using your own bodyweight to get strong and lean.', icon:'fa-street-view'},
+                {val:'longevity', label:'Health & Longevity', subtext:'Workouts focused on moving well and living longer.', icon:'fa-heart-circle-check'}
             ]}
         ]
     },
@@ -337,9 +346,9 @@ const questions = [
         step: 6, id: 'nutrition', title: 'Nutrition Profile',
         fields: [
             { id: 'diet', type: 'radio', cols: 1, label: 'Diet Type', options: [
-                {val:'balanced', label:'Balanced Nutritional Plan', subtext:'Mix of proteins, carbs, and fats.', icon:'fa-scale-balanced'},
-                {val:'keto', label:'Keto / Low Carb', subtext:'High fat, low carb emphasis.', icon:'fa-temperature-arrow-down'},
-                {val:'plant_based', label:'Plant-Based / Vegan', subtext:'No animal products.', icon:'fa-leaf'}
+                {val:'balanced', label:'Balanced Nutritional Plan', subtext:'A normal diet with a good mix of protein, carbs, and fats.', icon:'fa-scale-balanced'},
+                {val:'keto', label:'Keto / Low Carb', subtext:'Eating mostly fats and protein with very few carbs.', icon:'fa-temperature-arrow-down'},
+                {val:'plant_based', label:'Plant-Based / Vegan', subtext:'Eating only foods that come from plants.', icon:'fa-leaf'}
             ]},
             { id: 'has_allergies', type: 'radio', cols: 2, label: 'Any food allergies or intolerances?', options: [
                 {val:'no', label:'No', icon:'fa-check'}, {val:'yes', label:'Yes', icon:'fa-triangle-exclamation'}
@@ -354,20 +363,20 @@ const questions = [
         step: 7, id: 'lifestyle', title: 'Lifestyle & Habits',
         fields: [
             { id: 'cooking', type: 'radio', cols: 3, label: 'Cooking Ability', options: [
-                {val:'novice', label:'Novice', subtext:'Simple meals'},
-                {val:'intermediate', label:'Average', subtext:'Basic recipes'},
-                {val:'expert', label:'Expert', subtext:'Advanced prep'}
+                {val:'novice', label:'Novice', subtext:'I can make simple meals'},
+                {val:'intermediate', label:'Average', subtext:'I can follow basic recipes'},
+                {val:'expert', label:'Expert', subtext:'I am great at cooking and prepping'}
             ]},
             { id: 'budget', type: 'radio', cols: 3, label: 'Food Budget', options: [
-                {val:'low', label:'Budget', icon:'fa-coins'},
-                {val:'medium', label:'Standard', icon:'fa-wallet'},
-                {val:'high', label:'Premium', icon:'fa-money-bill-wave'}
+                {val:'low', label:'Budget', subtext:'Trying to save money', icon:'fa-coins'},
+                {val:'medium', label:'Standard', subtext:'Normal grocery budget', icon:'fa-wallet'},
+                {val:'high', label:'Premium', subtext:'Willing to spend more on quality', icon:'fa-money-bill-wave'}
             ]},
             { id: 'hydration', type: 'slider', label: 'Daily Water Intake (Liters)', min: 1, max: 5, default: 2 },
             { id: 'supplements', type: 'radio', cols: 3, label: 'Supplement Use', options: [
-                {val:'none', label:'None', subtext:'Whole foods only'},
-                {val:'basic', label:'Basic', subtext:'Protein, Vitamins'},
-                {val:'advanced', label:'Advanced', subtext:'Full stack'}
+                {val:'none', label:'None', subtext:'I only eat whole foods'},
+                {val:'basic', label:'Basic', subtext:'Just protein and vitamins'},
+                {val:'advanced', label:'Advanced', subtext:'I use a full range of supplements'}
             ]}
         ]
     },
@@ -379,8 +388,8 @@ const questions = [
                 {val:'shift', label:'Shift / Night', icon:'fa-moon'}
             ]},
             { id: 'structure', type: 'radio', cols: 1, label: 'Nutrition Tracking Style', options: [
-                {val:'strict', label:'Strict Tracking', subtext:'Counting every calorie and macro.', icon:'fa-lock'},
-                {val:'flexible', label:'Flexible/Intuitive', subtext:'Rough guidelines, listen to body.', icon:'fa-compass'}
+                {val:'strict', label:'Strict Tracking', subtext:'I want to track every calorie and macro.', icon:'fa-lock'},
+                {val:'flexible', label:'Flexible / Intuitive', subtext:'I just want simple guidelines to follow.', icon:'fa-compass'}
             ]}
         ]
     }
