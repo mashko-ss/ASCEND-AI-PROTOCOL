@@ -245,7 +245,8 @@ const authModule = {
 };
 
 // ==========================================
-// 4. THE 8-STEP MATRIX MODULE
+// ==========================================
+// 4. THE 9-STEP MATRIX MODULE
 // ==========================================
 const questions = [
     {
@@ -260,41 +261,59 @@ const questions = [
     {
         step: 1, id: 'goal', title: 'Your Goal',
         fields: [
-            { id: 'primary_goal', type: 'radio', cols: 2, label: 'Primary Goal', options: [
+            { id: 'primary_goal', type: 'radio', cols: 2, label: 'Primary Focus', options: [
                 {val:'fat_loss', label:'Fat Loss', subtext:'Lose fat while preserving muscle.', icon:'fa-temperature-arrow-down'},
                 {val:'muscle_gain', label:'Build Muscle', subtext:'Gain muscle and strength.', icon:'fa-cubes'},
-                {val:'recomp', label:'Body Recomposition', subtext:'Lose fat and gain muscle at the same time.', icon:'fa-scale-unbalanced'},
-                {val:'military', label:'Overall Fitness', subtext:'Improve general fitness and conditioning.', icon:'fa-person-military-pointing'}
+                {val:'recomp', label:'Recomposition', subtext:'Lose fat and gain muscle at the same time.', icon:'fa-scale-unbalanced'},
+                {val:'longevity', label:'Health & Longevity', subtext:'Optimize healthspan and vitality.', icon:'fa-heart-pulse'}
+            ]},
+            { id: 'secondary_goal', type: 'chips', label: 'Secondary Objectives', options: [
+                'Absolute Strength', 'Cardio Endurance', 'Mobility & Flexibility', 'Mental Toughness', 'Aesthetics'
             ]},
             { id: 'seriousness', type: 'slider', label: 'Commitment Level (1-10)', min: 1, max: 10, default: 8 }
         ]
     },
     {
-        step: 2, id: 'background', title: 'Training Experience',
+        step: 2, id: 'background', title: 'Experience & Capability',
         fields: [
             { id: 'experience', type: 'radio', cols: 1, label: 'Training Experience', options: [
-                {val:'recruit', label:'Beginner', subtext:'New to training, learning the basics.', icon:'fa-chevron-up'},
-                {val:'operator', label:'Intermediate', subtext:'Consistent training for a few months.', icon:'fa-angles-up'},
-                {val:'elite', label:'Advanced', subtext:'Several years of training experience.', icon:'fa-star'}
+                {val:'beginner', label:'Beginner', subtext:'New to training, learning the basics.', icon:'fa-chevron-up'},
+                {val:'intermediate', label:'Intermediate', subtext:'Consistent training for a few months.', icon:'fa-angles-up'},
+                {val:'advanced', label:'Advanced', subtext:'Several years of training experience.', icon:'fa-star'}
             ]},
+            { id: 'fitness_level', type: 'slider', label: 'Current Fitness Level (1-10)', min: 1, max: 10, default: 5 },
             { id: 'weakness', type: 'chips', label: 'Areas for Improvement', options: [
-                'Cardiovascular Output', 'Absolute Strength', 'Work Capacity', 'Joint Integrity', 'Core Stabilization'
+                'Cardiovascular Output', 'Strength', 'Work Capacity', 'Joint Integrity', 'Core Stabilization'
             ]}
         ]
     },
     {
-        step: 3, id: 'limitations', title: 'Injury History',
+        step: 3, id: 'limitations', title: 'Recovery & Limitations',
         fields: [
-            { id: 'injuries', type: 'chips', label: 'Current Injuries/Limitations', options: [
-                'None', 'Lower Back / Spine', 'Knees', 'Shoulders', 'Wrist/Elbow'
+            { id: 'has_injuries', type: 'radio', cols: 2, label: 'Do you have any current injuries?', options: [
+                {val:'no', label:'No', icon:'fa-check'}, {val:'yes', label:'Yes', icon:'fa-triangle-exclamation'}
             ]},
-            { id: 'stress', type: 'slider', label: 'Stress Level (1-10)', min: 1, max: 10, default: 5 }
+            { id: 'injuries', type: 'chips', label: 'Select Injuries/Limitations', condition: (d) => d.has_injuries === 'yes', options: [
+                'Lower Back / Spine', 'Knees', 'Shoulders', 'Wrist/Elbow', 'Hips', 'Ankles'
+            ]},
+            { id: 'stress', type: 'slider', label: 'Daily Stress Level (1-10)', min: 1, max: 10, default: 5 },
+            { id: 'recovery_ability', type: 'radio', cols: 3, label: 'Recovery Capacity', options: [
+                {val:'poor', label:'Poor', subtext:'Often sore/tired'},
+                {val:'average', label:'Average', subtext:'Normal recovery'},
+                {val:'excellent', label:'Excellent', subtext:'Bounce back fast'}
+            ]}
         ]
     },
     {
         step: 4, id: 'logistics', title: 'Logistics',
         fields: [
             { id: 'days', type: 'slider', label: 'Training Days Per Week', min: 2, max: 6, default: 4 },
+            { id: 'session_duration', type: 'radio', cols: 2, label: 'Available Session Duration', options: [
+                {val:'30', label:'30 Minutes', icon:'fa-stopwatch-20'},
+                {val:'45', label:'45 Minutes', icon:'fa-stopwatch'},
+                {val:'60', label:'60 Minutes', icon:'fa-clock'},
+                {val:'90', label:'90+ Minutes', icon:'fa-hourglass'}
+            ]},
             { id: 'equipment', type: 'radio', cols: 1, label: 'Equipment Access', options: [
                 {val:'full', label:'Full Gym', subtext:'Access to a fully equipped gym.', icon:'fa-building'},
                 {val:'garage', label:'Home Gym', subtext:'Basic equipment like barbell and dumbbells.', icon:'fa-warehouse'},
@@ -303,36 +322,64 @@ const questions = [
         ]
     },
     {
-        step: 5, id: 'training_style', title: 'Training Style',
+        step: 5, id: 'training_style', title: 'Training Style Preference',
         fields: [
-            { id: 'style', type: 'radio', cols: 2, label: 'Training Style', options: [
-                {val:'strength', label:'Strength Training', subtext:'Focus on heavy lifting and getting stronger.', icon:'fa-anchor'},
-                {val:'hybrid', label:'HIIT & Conditioning', subtext:'High intensity intervals and circuit training.', icon:'fa-stopwatch'},
-                {val:'bodyweight', label:'Calisthenics', subtext:'Master bodyweight movements.', icon:'fa-street-view'},
-                {val:'endurance', label:'Endurance', subtext:'Focus on cardio and stamina.', icon:'fa-wind'}
+            { id: 'style', type: 'radio', cols: 2, label: 'Preferred Style', options: [
+                {val:'strength', label:'Strength Training', subtext:'Heavy lifting and strength.', icon:'fa-anchor'},
+                {val:'hybrid', label:'HIIT & Conditioning', subtext:'High intensity and circuits.', icon:'fa-stopwatch'},
+                {val:'bodyweight', label:'Calisthenics', subtext:'Bodyweight mastery.', icon:'fa-street-view'},
+                {val:'longevity', label:'Health & Longevity', subtext:'Functional movement.', icon:'fa-heart-circle-check'}
             ]}
         ]
     },
     {
-        step: 6, id: 'nutrition', title: 'Nutrition Approach',
+        step: 6, id: 'nutrition', title: 'Nutrition Profile',
         fields: [
             { id: 'diet', type: 'radio', cols: 1, label: 'Diet Type', options: [
-                {val:'balanced', label:'Balanced Nutritional Plan', subtext:'Healthy mix of proteins, carbs, and fats.', icon:'fa-scale-balanced'},
-                {val:'keto', label:'Keto Diet', subtext:'High fat, very low carb.', icon:'fa-temperature-arrow-down'},
-                {val:'fasting', label:'Intermittent Fasting', subtext:'Eating within specific time windows.', icon:'fa-clock'}
+                {val:'balanced', label:'Balanced Nutritional Plan', subtext:'Mix of proteins, carbs, and fats.', icon:'fa-scale-balanced'},
+                {val:'keto', label:'Keto / Low Carb', subtext:'High fat, low carb emphasis.', icon:'fa-temperature-arrow-down'},
+                {val:'plant_based', label:'Plant-Based / Vegan', subtext:'No animal products.', icon:'fa-leaf'}
             ]},
-            { id: 'cooking', type: 'radio', cols: 2, label: 'Meal Prep', options: [
-                {val:'prep', label:'Meal Prep', subtext:'Cooking meals in advance.', icon:'fa-box'},
-                {val:'fast', label:'Quick Meals', subtext:'Fast and easy recipes.', icon:'fa-bolt'}
+            { id: 'has_allergies', type: 'radio', cols: 2, label: 'Any food allergies or intolerances?', options: [
+                {val:'no', label:'No', icon:'fa-check'}, {val:'yes', label:'Yes', icon:'fa-triangle-exclamation'}
+            ]},
+            { id: 'allergies', type: 'chips', label: 'Select Restrictions / Avoid', condition: (d) => d.has_allergies === 'yes', options: [
+                'Dairy', 'Gluten', 'Nuts', 'Shellfish', 'Soy', 'Eggs'
+            ]},
+            { id: 'meals_per_day', type: 'slider', label: 'Preferred Meals Per Day', min: 2, max: 6, default: 3 }
+        ]
+    },
+    {
+        step: 7, id: 'lifestyle', title: 'Lifestyle & Habits',
+        fields: [
+            { id: 'cooking', type: 'radio', cols: 3, label: 'Cooking Ability', options: [
+                {val:'novice', label:'Novice', subtext:'Simple meals'},
+                {val:'intermediate', label:'Average', subtext:'Basic recipes'},
+                {val:'expert', label:'Expert', subtext:'Advanced prep'}
+            ]},
+            { id: 'budget', type: 'radio', cols: 3, label: 'Food Budget', options: [
+                {val:'low', label:'Budget', icon:'fa-coins'},
+                {val:'medium', label:'Standard', icon:'fa-wallet'},
+                {val:'high', label:'Premium', icon:'fa-money-bill-wave'}
+            ]},
+            { id: 'hydration', type: 'slider', label: 'Daily Water Intake (Liters)', min: 1, max: 5, default: 2 },
+            { id: 'supplements', type: 'radio', cols: 3, label: 'Supplement Use', options: [
+                {val:'none', label:'None', subtext:'Whole foods only'},
+                {val:'basic', label:'Basic', subtext:'Protein, Vitamins'},
+                {val:'advanced', label:'Advanced', subtext:'Full stack'}
             ]}
         ]
     },
     {
-        step: 7, id: 'mindset', title: 'Mindset',
+        step: 8, id: 'mindset', title: 'Mindset & Tracking',
         fields: [
-            { id: 'structure', type: 'radio', cols: 1, label: 'Tracking Style', options: [
+            { id: 'work_schedule', type: 'radio', cols: 2, label: 'Work Schedule', options: [
+                {val:'standard', label:'Standard (9-5)', icon:'fa-sun'},
+                {val:'shift', label:'Shift / Night', icon:'fa-moon'}
+            ]},
+            { id: 'structure', type: 'radio', cols: 1, label: 'Nutrition Tracking Style', options: [
                 {val:'strict', label:'Strict Tracking', subtext:'Counting every calorie and macro.', icon:'fa-lock'},
-                {val:'flexible', label:'Flexible/Intuitive', subtext:'Following rough guidelines and listening to your body.', icon:'fa-compass'}
+                {val:'flexible', label:'Flexible/Intuitive', subtext:'Rough guidelines, listen to body.', icon:'fa-compass'}
             ]}
         ]
     }
@@ -365,11 +412,15 @@ const wizardModule = {
         let html = '';
 
         q.fields.forEach(f => {
-            html += `<div class="question-block"><span class="question-label">${f.label}</span>`;
+            const isVisible = f.condition ? f.condition(wizardModule.data) : true;
+            const displayStyle = isVisible ? '' : 'display: none;';
+            
+            html += `<div class="question-block" id="block-${f.id}" style="${displayStyle}">
+                        <span class="question-label">${f.label}</span>`;
             
             if (f.type === 'number') {
                 const val = wizardModule.data[f.id] || '';
-                html += `<input type="number" id="inp-${f.id}" class="input-modern w-full font-mono" placeholder="${f.placeholder}" value="${val}">`;
+                html += `<input type="number" id="inp-${f.id}" class="input-modern w-full font-mono" placeholder="${f.placeholder}" value="${val}" oninput="wizardModule.handleInputChange()">`;
             } 
             else if (f.type === 'radio') {
                 const gridClass = f.cols === 2 ? 'opts-2' : f.cols === 3 ? 'opts-3' : '';
@@ -378,7 +429,7 @@ const wizardModule = {
                     const checked = wizardModule.data[f.id] === opt.val ? 'checked' : '';
                     html += `
                     <label class="radio-card">
-                        <input type="radio" name="${f.id}" value="${opt.val}" ${checked}>
+                        <input type="radio" name="${f.id}" value="${opt.val}" ${checked} onchange="wizardModule.handleInputChange()">
                         <div class="radio-card-content">
                             ${opt.icon ? `<i class="fa-solid ${opt.icon}"></i>` : ''}
                             <span class="radio-label">${opt.label}</span>
@@ -392,7 +443,7 @@ const wizardModule = {
                 const val = wizardModule.data[f.id] || f.default;
                 html += `
                 <div class="slider-container">
-                    <input type="range" id="inp-${f.id}" class="range-slider" min="${f.min}" max="${f.max}" value="${val}" oninput="document.getElementById('out-${f.id}').innerText=this.value">
+                    <input type="range" id="inp-${f.id}" class="range-slider" min="${f.min}" max="${f.max}" value="${val}" oninput="document.getElementById('out-${f.id}').innerText=this.value; wizardModule.handleInputChange()">
                     <div class="flex-between text-[0.65rem] text-muted font-bold font-mono tracking-widest uppercase mt-2">
                         <span>MIN: ${f.min}</span>
                         <span class="text-primary text-xl font-bold" id="out-${f.id}">${val}</span>
@@ -407,7 +458,7 @@ const wizardModule = {
                     const checked = selected.includes(opt) ? 'checked' : '';
                     html += `
                     <label class="chip-checkbox">
-                        <input type="checkbox" name="${f.id}" value="${opt}" ${checked}>
+                        <input type="checkbox" name="${f.id}" value="${opt}" ${checked} onchange="wizardModule.handleInputChange()">
                         <div class="chip-content">${opt}</div>
                     </label>`;
                 });
@@ -422,21 +473,43 @@ const wizardModule = {
         document.getElementById('btn-next-step').innerHTML = wizardModule.current === questions.length - 1 ? 'Create Plan <i class="fa-solid fa-microchip ml-2"></i>' : 'Next Step <i class="fa-solid fa-angle-right ml-2"></i>';
     },
 
-    captureStep: () => {
+    handleInputChange: () => {
+        wizardModule.captureStep(true);
+        const q = questions[wizardModule.current];
+        q.fields.forEach(f => {
+            if (f.condition) {
+                const block = document.getElementById(`block-${f.id}`);
+                if (block) {
+                    if (f.condition(wizardModule.data)) {
+                        block.style.display = 'block';
+                    } else {
+                        block.style.display = 'none';
+                    }
+                }
+            }
+        });
+    },
+
+    captureStep: (skipValidation = false) => {
         const stepData = questions[wizardModule.current].fields;
         let valid = true;
 
         stepData.forEach(f => {
+            // Only validate elements that are currently visible/active according to their condition
+            const isVisible = f.condition ? f.condition(wizardModule.data) : true;
+            
             if (f.type === 'radio') {
                 const checked = document.querySelector(`input[name="${f.id}"]:checked`);
-                if(checked) wizardModule.data[f.id] = checked.value; else valid = false;
+                if(checked) wizardModule.data[f.id] = checked.value; 
+                else if(isVisible) valid = false;
             } else if (f.type === 'slider' || f.type === 'number') {
-                const val = document.getElementById(`inp-${f.id}`).value;
-                if(val) wizardModule.data[f.id] = val; else valid = false;
+                const el = document.getElementById(`inp-${f.id}`);
+                if(el && el.value) wizardModule.data[f.id] = el.value; 
+                else if(isVisible) valid = false;
             } else if (f.type === 'chips') {
                 const checks = Array.from(document.querySelectorAll(`input[name="${f.id}"]:checked`)).map(c => c.value);
                 wizardModule.data[f.id] = checks;
-                if(checks.length === 0 && !f.options.includes('None')) valid = false; // pseudo-validation
+                if(isVisible && checks.length === 0 && !f.options.includes('None')) valid = false; // pseudo-validation
             }
         });
 
@@ -445,7 +518,7 @@ const wizardModule = {
 
     next: () => {
         if (!wizardModule.captureStep()) {
-            alert('Please complete all fields to proceed.'); return;
+            alert('Please complete all visible fields to proceed.'); return;
         }
 
         if (wizardModule.current < questions.length - 1) {
@@ -458,7 +531,7 @@ const wizardModule = {
     },
 
     prev: () => {
-        wizardModule.captureStep(); // Optionally save before going back
+        wizardModule.captureStep(true); // Don't block backward navigation with validation
         if(wizardModule.current > 0) { 
             wizardModule.current--; 
             wizardModule.render(); 
