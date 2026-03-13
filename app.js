@@ -139,6 +139,9 @@ const langModule = {
             "Log Progress": "Log Progress",
             "Nutrition Plan": "Nutrition Plan",
             "Recovery Plan": "Recovery Plan",
+            "Poor": "Poor",
+            "Average": "Average",
+            "Excellent": "Excellent",
             "Friendly Reminder": "Friendly Reminder",
             "Recovery Note": "Getting enough sleep is crucial for your recovery and progress.",
             "No Data Yet": "No Data Yet",
@@ -175,6 +178,47 @@ const langModule = {
             "Save Log": "Save Log",
             "GENERATING PLAN": "GENERATING PLAN",
             "Analyzing status...": "Analyzing your profile...",
+            "Mon": "Mon",
+            "Tue": "Tue",
+            "Wed": "Wed",
+            "Thu": "Thu",
+            "Fri": "Fri",
+            "Sat": "Sat",
+            "Sun": "Sun",
+            "Strength Focus": "Strength Focus",
+            "Bodyweight Focus": "Bodyweight Focus",
+            "Cardio & Endurance Phase": "Cardio & Endurance Phase",
+            "Active Recovery / Mobility": "Active Recovery / Mobility",
+            "Focus on your main goal, especially": "Focus on your main goal, especially",
+            "core fitness": "core fitness",
+            "Build up your fitness and track progress.": "Build up your fitness and track progress.",
+            "Aim for": "Aim for",
+            "hours of quality sleep.": "hours of quality sleep.",
+            "Daily mobility: 10 mins dedicated stretching/rehab for": "Daily mobility: 10 mins dedicated stretching/rehab for",
+            "PLAN: FAT LOSS": "PLAN: FAT LOSS",
+            "PLAN: BUILD MUSCLE": "PLAN: BUILD MUSCLE",
+            "PLAN: BODY RECOMPOSITION": "PLAN: BODY RECOMPOSITION",
+            "PLAN: OVERALL FITNESS": "PLAN: OVERALL FITNESS",
+            "LEVEL": "LEVEL",
+            "Frequency": "Frequency",
+            "Days / Wk": "Days / Wk",
+            "Status": "Status",
+            "Active": "Active",
+            "Deploy Date": "Deploy Date",
+            "Balanced Nutrition": "Balanced Nutrition",
+            "Keto Diet": "Keto Diet",
+            "Intermittent Fasting": "Intermittent Fasting",
+            "Style": "Style",
+            "To Do": "To Do",
+            "Overall Consistency": "Overall Consistency",
+            "Training": "Training",
+            "ARCHIVED": "ARCHIVED",
+            "Deployed": "Deployed",
+            "Level": "Level",
+            "kcal limit": "kcal limit",
+            "[ No previous plans found ]": "[ No previous plans found ]",
+            "Core telemetry indices required for submission.": "Core telemetry indices required for submission.",
+            "Diet": "Diet",
             "Basic Information": "Basic Information",
             "Age": "Age",
             "e.g. 30": "e.g. 30",
@@ -353,6 +397,9 @@ const langModule = {
             "Log Progress": "Въведи прогрес",
             "Nutrition Plan": "Хранителен план",
             "Recovery Plan": "План за възстановяване",
+            "Poor": "Слабо",
+            "Average": "Средно",
+            "Excellent": "Отлично",
             "Friendly Reminder": "Приятелско напомняне",
             "Recovery Note": "Достатъчният сън е критичен фактор за вашето възстановяване и напредък.",
             "No Data Yet": "Няма данни",
@@ -389,6 +436,47 @@ const langModule = {
             "Save Log": "Запази отчета",
             "GENERATING PLAN": "ГЕНЕРИРАНЕ НА ПЛАН",
             "Analyzing status...": "Анализиране на профила...",
+            "Mon": "Пон",
+            "Tue": "Вто",
+            "Wed": "Сря",
+            "Thu": "Чет",
+            "Fri": "Пет",
+            "Sat": "Съб",
+            "Sun": "Нед",
+            "Strength Focus": "Фокус върху сила",
+            "Bodyweight Focus": "Собствено тегло",
+            "Cardio & Endurance Phase": "Кардио и издръжливост",
+            "Active Recovery / Mobility": "Активно възстановяване / Подвижност",
+            "Focus on your main goal, especially": "Фокусирайте се върху основната цел, особено",
+            "core fitness": "базова фитнес подготовка",
+            "Build up your fitness and track progress.": "Изграждайте формата си и следете прогреса.",
+            "Aim for": "Стремете се към",
+            "hours of quality sleep.": "часа качествен сън.",
+            "Daily mobility: 10 mins dedicated stretching/rehab for": "Дневна мобилност: 10 мин. стречинг/рехабилитация за",
+            "PLAN: FAT LOSS": "ПЛАН: ИЗЧИСТВАНЕ НА МАЗНИНИ",
+            "PLAN: BUILD MUSCLE": "ПЛАН: ПОКАЧВАНЕ НА МУСКУЛИ",
+            "PLAN: BODY RECOMPOSITION": "ПЛАН: РЕКОМПОЗИЦИЯ",
+            "PLAN: OVERALL FITNESS": "ПЛАН: ОБЩА КОНДИЦИЯ",
+            "LEVEL": "НИВО",
+            "Frequency": "Честота",
+            "Days / Wk": "Дни / Седм",
+            "Status": "Статус",
+            "Active": "Активен",
+            "Deploy Date": "Дата на стартиране",
+            "Balanced Nutrition": "Балансирано хранене",
+            "Keto Diet": "Кето диета",
+            "Intermittent Fasting": "Периодично гладуване",
+            "Style": "Стил",
+            "To Do": "Да се направи",
+            "Overall Consistency": "Общо постоянство",
+            "Training": "Тренировки",
+            "ARCHIVED": "АРХИВИРАН",
+            "Deployed": "Стартиран",
+            "Level": "Ниво",
+            "kcal limit": "ккал лимит",
+            "[ No previous plans found ]": "[ Не са намерени предишни планове ]",
+            "Core telemetry indices required for submission.": "Основните телеметрични данни са задължителни за запис.",
+            "Diet": "Диета",
             "Basic Information": "Основна информация",
             "Age": "Възраст",
             "e.g. 30": "напр. 30",
@@ -475,7 +563,7 @@ const langModule = {
             "Preferred Style": "Стил",
             "Strength Training": "Силови тренировки",
             "Lifting heavy weights to build strength and muscle.": "Тренировки с тежести за сила и мускулна маса.",
-            "HIIT & Conditioning": "HIIT и Кондициране",
+            "HIIT & Conditioning": "Високоинтензивни интервални тренировки",
             "Fast-paced workouts to burn fat and get your heart pumping.": "Бързи тренировки за изчистване и сърдечна дейност.",
             "Calisthenics": "Калистеника",
             "Using your own bodyweight to get strong and lean.": "Използване на собствено тегло за сила и релеф.",
@@ -532,7 +620,22 @@ const langModule = {
             "Create Plan": "Създай план",
             "Please complete all visible fields to proceed.": "Моля, попълнете всички видими полета, за да продължите.",
             "MIN": "МИН",
-            "MAX": "МАКС"
+            "MAX": "МАКС",
+            "STRENGTH": "СИЛА",
+            "HYBRID": "ХИБРИД",
+            "BODYWEIGHT": "СОБСТВЕНО ТЕГЛО",
+            "LONGEVITY": "ДЪЛГОЛЕТИЕ",
+            "BEGINNER": "НАЧИНАЕЩ",
+            "INTERMEDIATE": "СРЕДНО НАПРЕДНАЛ",
+            "ADVANCED": "НАПРЕДНАЛ",
+            "plant_based": "Растителна / Веган",
+            "HIIT": "Високоинтензивни интервални тренировки",
+            "Mobility": "Подвижност",
+            "Active Recovery": "Активно възстановяване",
+            "Endurance": "Кардио и издръжливост",
+            "poor": "Слабо",
+            "average": "Средно",
+            "excellent": "Отлично"
         }
     },
     
@@ -561,10 +664,28 @@ const langModule = {
         if (typeof wizardModule !== 'undefined' && document.getElementById('view-assessment')?.classList.contains('active')) {
             wizardModule.render();
         }
+        
+        // Re-render dashboard if active
+        if (typeof dashModule !== 'undefined' && document.getElementById('view-dashboard')?.classList.contains('active')) {
+            dashModule.render();
+        }
     },
 
     t: (key) => {
-        return langModule.translations[langModule.currentLanguage][key] || key;
+        if (!key) return key;
+        const dict = langModule.translations[langModule.currentLanguage];
+        if (dict[key]) return dict[key];
+        
+        const lowerKey = String(key).toLowerCase();
+        for (const [k, v] of Object.entries(dict)) {
+            if (k.toLowerCase() === lowerKey) {
+                if (key === String(key).toUpperCase()) {
+                    return String(v).toUpperCase();
+                }
+                return v;
+            }
+        }
+        return key;
     },
 
     applyTranslations: () => {
@@ -822,8 +943,8 @@ const questions = [
         step: 5, id: 'training_style', title: 'Training Style Preference',
         fields: [
             { id: 'style', type: 'radio', cols: 2, label: 'Preferred Style', options: [
-                {val:'strength', label:'Strength Training', subtext:'Lifting heavy weights to build strength and muscle.', icon:'fa-anchor'},
-                {val:'hybrid', label:'HIIT & Conditioning', subtext:'Fast-paced workouts to burn fat and get your heart pumping.', icon:'fa-stopwatch'},
+                {val:'strength', label:'Strength Focus', subtext:'Lifting heavy weights to build strength and muscle.', icon:'fa-anchor'},
+                {val:'hybrid', label:'HIIT', subtext:'Fast-paced workouts to burn fat and get your heart pumping.', icon:'fa-stopwatch'},
                 {val:'bodyweight', label:'Calisthenics', subtext:'Using your own bodyweight to get strong and lean.', icon:'fa-street-view'},
                 {val:'longevity', label:'Health & Longevity', subtext:'Workouts focused on moving well and living longer.', icon:'fa-heart-circle-check'}
             ]}
@@ -1095,24 +1216,34 @@ const algorithm = {
 
         // Build Training Arrays
         let numDays = parseInt(a.days);
-        const dayNames = [langModule.t('Mon'), langModule.t('Tue'), langModule.t('Wed'), langModule.t('Thu'), langModule.t('Fri'), langModule.t('Sat')];
-        const types = { strength: langModule.t("Strength Focus"), hybrid: langModule.t("HIIT & Conditioning"), bodyweight: langModule.t("Bodyweight Focus"), endurance: langModule.t("Cardio & Endurance Phase") };
+        const dayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+        const types = { strength: "Strength Focus", hybrid: "HIIT", bodyweight: "Bodyweight Focus", endurance: "Endurance" };
         
         for(let i=0; i<numDays; i++) {
-            let n = i%2===0 ? types[a.style] : langModule.t('Active Recovery / Mobility');
+            let n = i%2===0 ? types[a.style] : 'Active Recovery';
+            
+            // Generate description keys
+            let descKey = '';
+            if (i === 0) {
+                let w = a.weakness ? a.weakness[0] : 'core fitness';
+                descKey = `Focus on your main goal, especially [${w}].`;
+            } else {
+                descKey = "Build up your fitness and track progress.";
+            }
+
             protocol.training.push({
                 day: dayNames[i],
                 name: n,
-                desc: i===0 ? `${langModule.t('Focus on your main goal, especially')} [${a.weakness ? langModule.t(a.weakness[0]) : langModule.t('core fitness')}].` : langModule.t("Build up your fitness and track progress.")
+                desc: descKey
             });
         }
 
         // Build Recovery Arrays
         const sleep = a.stress > 7 ? '8.5' : '7.5';
-        protocol.recovery.push(`${langModule.t('Aim for')} ${sleep} ${langModule.t('hours of quality sleep.')}`);
+        protocol.recovery.push(`Aim for ${sleep} hours of quality sleep.`);
         if(a.injuries && !a.injuries.includes('None')) {
-            const translatedInjuries = a.injuries.map(i => langModule.t(i)).join(', ');
-            protocol.recovery.push(`${langModule.t('Daily mobility: 10 mins dedicated stretching/rehab for')} [${translatedInjuries}].`);
+            const injuriesList = a.injuries.join(', ');
+            protocol.recovery.push(`Daily mobility: 10 mins dedicated stretching/rehab for [${injuriesList}].`);
         }
         
         return protocol;
@@ -1169,25 +1300,43 @@ const dashModule = {
             `;
             
             const dietTitles = {balanced: langModule.t("Balanced Nutrition"), keto: langModule.t("Keto Diet"), fasting: langModule.t("Intermittent Fasting")};
-            const structTitles = {strict: langModule.t("Strict Tracking"), flexible: langModule.t("Flexible/Intuitive")};
+            const structTitles = {strict: langModule.t("Strict Tracking"), flexible: langModule.t("Flexible / Intuitive")};
             document.getElementById('res-nutrition-plan').innerHTML = `
                 <li><i class="fa-solid fa-check"></i> ${langModule.t("Diet")}: ${dietTitles[p.nutrition.diet] || langModule.t(p.nutrition.diet)}</li>
                 <li><i class="fa-solid fa-check"></i> ${langModule.t("Style")}: ${structTitles[p.nutrition.structure] || langModule.t(p.nutrition.structure)}</li>
             `;
 
             // Recovery
-            document.getElementById('res-recovery-plan').innerHTML = p.recovery.map(r => `<li><i class="fa-solid fa-droplet"></i> ${r}</li>`).join('');
+            document.getElementById('res-recovery-plan').innerHTML = p.recovery.map(r => {
+                // Try to parse out the dynamic parts to translate the generic string
+                let text = r;
+                if (r.startsWith('Aim for')) {
+                    const hrs = r.match(/Aim for (.*?) hours/)?.[1] || '7.5';
+                    text = `${langModule.t('Aim for')} ${hrs} ${langModule.t('hours of quality sleep.')}`;
+                } else if (r.startsWith('Daily mobility:')) {
+                    const inj = r.match(/\[(.*?)\]/)?.[1] || '';
+                    const translatedInj = inj.split(', ').map(i => langModule.t(i)).join(', ');
+                    text = `${langModule.t('Daily mobility: 10 mins dedicated stretching/rehab for')} [${translatedInj}].`;
+                }
+                return `<li><i class="fa-solid fa-droplet"></i> ${text}</li>`;
+            }).join('');
 
             // Training Modules (Scroller)
             let modulesHtml = "";
             p.training.forEach((t) => {
+                let translatedDesc = langModule.t(t.desc) || t.desc;
+                if (t.desc.startsWith('Focus on your main goal')) {
+                    const weak = t.desc.match(/\[(.*?)\]/)?.[1] || 'core fitness';
+                    translatedDesc = `${langModule.t('Focus on your main goal, especially')} [${langModule.t(weak)}].`;
+                }
+                
                 modulesHtml += `
                 <div class="day-card">
-                    <div class="day-header">${t.day}</div>
+                    <div class="day-header">${langModule.t(t.day)}</div>
                     <div class="day-body">
                         <div class="day-desc font-mono">
-                            <strong class="text-primary tracking-widest uppercase">${t.name}</strong><br>
-                            <span class="text-xs uppercase mt-2 block opacity-80">${t.desc}</span>
+                            <strong class="text-primary tracking-widest uppercase">${langModule.t(t.name)}</strong><br>
+                            <span class="text-xs uppercase mt-2 block opacity-80">${translatedDesc}</span>
                         </div>
                         <div class="mt-4"><span class="day-stat-chip"><i class="fa-solid fa-circle text-primary text-[0.45rem]"></i> ${langModule.t("To Do")}</span></div>
                     </div>
@@ -1316,7 +1465,7 @@ const dashModule = {
         const notes = document.getElementById('checkin-val-notes').value;
 
         if(!w || !adherence || !workouts || !energy || !sleep) { 
-            alert('Core telemetry indices required for submission.'); 
+            alert(langModule.t('Core telemetry indices required for submission.')); 
             return; 
         }
         
