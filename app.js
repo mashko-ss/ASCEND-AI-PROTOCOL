@@ -19,7 +19,7 @@ const db = {
     },
     get: () => JSON.parse(localStorage.getItem(DB_KEY)),
     save: (data) => localStorage.setItem(DB_KEY, JSON.stringify(data)),
-    
+
     // User Operations
     getUser: (email) => {
         return db.get().users[email] || null;
@@ -31,7 +31,7 @@ const db = {
     createUser: (email, pass) => {
         const state = db.get();
         if (state.users[email]) return false; // exists
-        
+
         state.users[email] = {
             email,
             pass,
@@ -76,23 +76,23 @@ const db = {
     saveNewProtocol: (protocol) => {
         const state = db.get();
         if (!state.currentUser) return;
-        
+
         const user = state.users[state.currentUser];
         protocol.id = 'PRT-' + Date.now().toString().slice(-6);
         protocol.created_at = new Date().toLocaleDateString();
-        
+
         // Push old to history if one exists
-        if(user.active_protocol) {
+        if (user.active_protocol) {
             user.history.unshift(user.active_protocol);
         }
-        
+
         user.active_protocol = protocol;
         db.save(state);
     },
     saveTelemetry: (log) => {
         const state = db.get();
         if (!state.currentUser) return;
-        
+
         log.id = 'CHK-' + Date.now().toString().slice(-6);
         log.date = new Date().toLocaleDateString();
         state.users[state.currentUser].telemetry.unshift(log); // newest first
@@ -640,7 +640,7 @@ const langModule = {
             "Recovery": "Възстановяване"
         }
     },
-    
+
     init: () => {
         const savedLang = localStorage.getItem('ascend_lang');
         if (savedLang && (savedLang === 'en' || savedLang === 'bg')) {
@@ -656,22 +656,22 @@ const langModule = {
         langModule.currentLanguage = lang;
         localStorage.setItem('ascend_lang', lang);
         langModule.applyTranslations();
-        
+
         // Add active state to switcher if it exists
         document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('text-primary', 'font-bold'));
         const activeBtn = document.getElementById(`lang-btn-${lang}`);
-        if(activeBtn) activeBtn.classList.add('text-primary', 'font-bold');
-        
+        if (activeBtn) activeBtn.classList.add('text-primary', 'font-bold');
+
         // Trigger the new safe i18n system for STEP 1 dashboard texts
         if (window.safeI18nSetLanguage) {
             window.safeI18nSetLanguage(lang);
         }
-        
+
         // Re-render wizard if active
         if (typeof wizardModule !== 'undefined' && document.getElementById('view-assessment')?.classList.contains('active')) {
             wizardModule.render();
         }
-        
+
         // Re-render dashboard if active
         if (typeof dashModule !== 'undefined' && document.getElementById('view-dashboard')?.classList.contains('active')) {
             dashModule.render();
@@ -689,7 +689,7 @@ const langModule = {
 
         const dict = langModule.translations[langModule.currentLanguage];
         if (dict && dict[key]) return dict[key];
-        
+
         if (dict) {
             const lowerKey = String(key).toLowerCase();
             for (const [k, v] of Object.entries(dict)) {
@@ -713,7 +713,7 @@ const langModule = {
                 el.innerText = dict[key];
             }
         });
-        
+
         // Translate placeholders
         document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
             const key = el.getAttribute('data-i18n-placeholder');
@@ -729,11 +729,11 @@ const langModule = {
 // ==========================================
 const app = {
     views: ['landing', 'auth', 'onboarding', 'assessment', 'dashboard'],
-    
+
     navigate: (viewId, context = null) => {
         // Handle logic before view switch
         const user = db.getCurrentUser();
-        
+
         // Protected routes logic
         const protectedRoutes = ['onboarding', 'assessment', 'dashboard'];
         if (protectedRoutes.includes(viewId) && !user) {
@@ -746,7 +746,7 @@ const app = {
             if (user) return app.navigate('dashboard'); // Already logged in
             authModule.setMode(context || 'login');
         }
-        
+
         if (viewId === 'dashboard' && user && !user.active_protocol) {
             viewId = 'onboarding'; // No plan = force onboarding
         }
@@ -762,7 +762,7 @@ const app = {
         // DOM Update
         app.views.forEach(v => document.getElementById(`view-${v}`).classList.remove('active'));
         document.getElementById(`view-${viewId}`).classList.add('active');
-        
+
         // NEW LOGIC: Lock body scroll during assessment
         if (viewId === 'assessment') {
             document.body.classList.add('no-scroll');
@@ -770,8 +770,8 @@ const app = {
             document.body.classList.remove('no-scroll');
         }
 
-        window.scrollTo(0,0);
-        
+        window.scrollTo(0, 0);
+
         // Auto close mobile menu
         document.getElementById('nav-content').classList.remove('active');
         const icon = document.getElementById('mobile-menu-icon');
@@ -787,14 +787,14 @@ const app = {
         const user = db.getCurrentUser();
         const navAuth = document.getElementById('nav-auth');
         const navUnauth = document.getElementById('nav-unauth');
-        
+
         if (user) {
             navUnauth.classList.add('hidden');
             navAuth.classList.remove('hidden');
             document.getElementById('nav-user-email').textContent = user.email.split('@')[0].toUpperCase();
-            document.getElementById('nav-avatar').textContent = user.email.substring(0,2).toUpperCase();
+            document.getElementById('nav-avatar').textContent = user.email.substring(0, 2).toUpperCase();
             document.getElementById('dropdown-email').textContent = user.email;
-            
+
             // Setup Dropdown listener
             document.getElementById('user-menu-btn').onclick = (e) => {
                 e.stopPropagation();
@@ -831,21 +831,21 @@ const app = {
 // ==========================================
 const authModule = {
     isSignup: false,
-    
+
     setMode: (mode) => {
         authModule.isSignup = (mode === 'signup');
         document.getElementById('auth-title').textContent = authModule.isSignup ? langModule.t('Create Account') : langModule.t('Login');
         document.getElementById('btn-auth-submit').textContent = authModule.isSignup ? langModule.t('Create Account') : langModule.t('Login');
         document.getElementById('auth-error').classList.add('hidden');
-        
+
         const toggleTxt = document.getElementById('auth-toggle-text');
-        if(authModule.isSignup) {
+        if (authModule.isSignup) {
             toggleTxt.innerHTML = `<span data-i18n="Already have an account?">${langModule.t('Already have an account?')}</span> <span class="text-primary hover-underline cursor-pointer font-bold" onclick="authModule.toggleMode()" data-i18n="Login">${langModule.t('Login')}</span>`;
         } else {
             toggleTxt.innerHTML = `<span data-i18n="No account yet?">${langModule.t('No account yet?')}</span> <span class="text-primary hover-underline cursor-pointer font-bold" onclick="authModule.toggleMode()" data-i18n="Create Account">${langModule.t('Create Account')}</span>`;
         }
     },
-    
+
     toggleMode: () => {
         authModule.setMode(authModule.isSignup ? 'login' : 'signup');
     },
@@ -882,147 +882,104 @@ const authModule = {
 // ==========================================
 const questions = [
     {
-        step: 0, id: 'profile', title: 'Basic Information',
+        step: 0, id: 'training_goal', title: 'Training Goal',
         fields: [
-            { id: 'age', type: 'number', label: 'Age', placeholder: 'e.g. 30' },
-            { id: 'sex', type: 'radio', cols: 2, label: 'Gender', options: [{val:'m', label:'Male', icon:'fa-mars'}, {val:'f', label:'Female', icon:'fa-venus'}] },
-            { id: 'weight', type: 'number', label: 'Weight (kg)', placeholder: 'e.g. 82' },
-            { id: 'height', type: 'number', label: 'Height (cm)', placeholder: 'e.g. 178' },
-            { id: 'activity', type: 'radio', cols: 1, label: 'Activity Level', options: [
-                {val:'sedentary', label:'Mostly sitting / little movement'}, 
-                {val:'light', label:'Light activity (walking, light workouts)'},
-                {val:'moderate', label:'Regular workouts or active job'},
-                {val:'active', label:'Hard training or physical work'}
-            ]}
+            {
+                id: 'primary_goal', type: 'radio', cols: 2, label: 'Primary Focus', options: [
+                    { val: 'fat_loss', label: 'Fat Loss', subtext: 'Lose fat while preserving muscle.', icon: 'fa-fire' },
+                    { val: 'muscle_gain', label: 'Build Muscle', subtext: 'Gain muscle and strength.', icon: 'fa-dumbbell' },
+                    { val: 'recomp', label: 'Recomposition', subtext: 'Lose fat and gain muscle at the same time.', icon: 'fa-scale-unbalanced' },
+                    { val: 'longevity', label: 'Health & Longevity', subtext: 'Optimize healthspan and vitality.', icon: 'fa-heart-pulse' }
+                ]
+            }
         ]
     },
     {
-        step: 1, id: 'goal', title: 'Your Goal',
+        step: 1, id: 'experience_level', title: 'Experience Level',
         fields: [
-            { id: 'primary_goal', type: 'radio', cols: 2, label: 'Primary Focus', options: [
-                {val:'fat_loss', label:'Fat Loss', subtext:'Lose fat while preserving muscle.', icon:'fa-temperature-arrow-down'},
-                {val:'muscle_gain', label:'Build Muscle', subtext:'Gain muscle and strength.', icon:'fa-cubes'},
-                {val:'recomp', label:'Recomposition', subtext:'Lose fat and gain muscle at the same time.', icon:'fa-scale-unbalanced'},
-                {val:'longevity', label:'Health & Longevity', subtext:'Optimize healthspan and vitality.', icon:'fa-heart-pulse'}
-            ]},
-            { id: 'secondary_goal', type: 'chips', label: 'Secondary Objectives', options: [
-                'Raw Strength', 'Better Stamina', 'Power & Speed', 'Move Better', 'Mental Toughness', 'Aesthetics'
-            ]},
-            { id: 'seriousness', type: 'radio', cols: 1, label: 'How Dedicated Are You?', options: [
-                {val:'low', label:'Just getting started'},
-                {val:'medium', label:'I can train regularly'},
-                {val:'high', label:'Very serious about my results'}
-            ]}
+            {
+                id: 'experience', type: 'radio', cols: 1, label: 'Training Experience', options: [
+                    { val: 'beginner', label: 'Beginner', subtext: 'New to training, learning the basics.', icon: 'fa-seedling' },
+                    { val: 'intermediate', label: 'Intermediate', subtext: 'Consistent training for a few months.', icon: 'fa-bolt' },
+                    { val: 'advanced', label: 'Advanced', subtext: 'Several years of training experience.', icon: 'fa-fire-flame-curved' }
+                ]
+            }
         ]
     },
     {
-        step: 2, id: 'background', title: 'Experience & Capability',
+        step: 2, id: 'equipment', title: 'Available Equipment',
         fields: [
-            { id: 'experience', type: 'radio', cols: 1, label: 'Training Experience', options: [
-                {val:'beginner', label:'Beginner', subtext:'New to training, learning the basics.', icon:'fa-chevron-up'},
-                {val:'intermediate', label:'Intermediate', subtext:'Consistent training for a few months.', icon:'fa-angles-up'},
-                {val:'advanced', label:'Advanced', subtext:'Several years of training experience.', icon:'fa-star'}
-            ]},
-            { id: 'fitness_level', type: 'slider', label: 'Current Fitness Level (1-10)', min: 1, max: 10, default: 5 },
-            { id: 'weakness', type: 'chips', label: 'Areas for Improvement', options: [
-                'Lose Body Fat', 'Build Muscle', 'Increase Strength', 'Improve Energy', 'Better Sleep', 'Reduce Stress', 'Improve Posture', 'Move With Less Pain'
-            ]}
+            {
+                id: 'equipment', type: 'radio', cols: 1, label: 'Equipment Access', options: [
+                    { val: 'full', label: 'Full Gym', subtext: 'A proper gym with machines and free weights.', icon: 'fa-building' },
+                    { val: 'home', label: 'Home Gym', subtext: 'Basic setup with dumbbells or a barbell.', icon: 'fa-warehouse' },
+                    { val: 'bodyweight', label: 'Bodyweight/Minimal', subtext: 'No equipment, just your body.', icon: 'fa-child-reaching' }
+                ]
+            }
         ]
     },
     {
-        step: 3, id: 'limitations', title: 'Recovery & Limitations',
+        step: 3, id: 'days_per_week', title: 'Days per Week',
         fields: [
-            { id: 'has_injuries', type: 'radio', cols: 2, label: 'Do you have any current injuries?', options: [
-                {val:'no', label:'No', icon:'fa-check'}, {val:'yes', label:'Yes', icon:'fa-triangle-exclamation'}
-            ]},
-            { id: 'injuries', type: 'chips', label: 'Select Injuries/Limitations', condition: (d) => d.has_injuries === 'yes', options: [
-                'Lower Back / Spine', 'Knees', 'Shoulders', 'Wrist/Elbow', 'Hips', 'Ankles'
-            ]},
-            { id: 'stress', type: 'slider', label: 'Daily Stress Level (1-10)', min: 1, max: 10, default: 5 },
-            { id: 'recovery_ability', type: 'radio', cols: 3, label: 'Recovery Capacity', options: [
-                {val:'poor', label:'Poor', subtext:'I often feel sore or tired'},
-                {val:'average', label:'Average', subtext:'I recover normally'},
-                {val:'excellent', label:'Excellent', subtext:'I bounce back fast'}
-            ]}
+            {
+                id: 'days', type: 'radio', cols: 2, label: 'Training Days Per Week', options: [
+                    { val: '2', label: '2 Days', icon: 'fa-calendar-day' },
+                    { val: '3', label: '3 Days', icon: 'fa-calendar-days' },
+                    { val: '4', label: '4 Days', icon: 'fa-calendar' },
+                    { val: '5', label: '5 Days', icon: 'fa-calendar-week' },
+                    { val: '6', label: '6 Days', icon: 'fa-calendar-check' }
+                ]
+            }
         ]
     },
     {
-        step: 4, id: 'logistics', title: 'Logistics',
+        step: 4, id: 'session_duration', title: 'Session Duration',
         fields: [
-            { id: 'days', type: 'slider', label: 'Training Days Per Week', min: 2, max: 6, default: 4 },
-            { id: 'session_duration', type: 'radio', cols: 2, label: 'Available Session Duration', options: [
-                {val:'30', label:'30 Minutes', icon:'fa-stopwatch-20'},
-                {val:'45', label:'45 Minutes', icon:'fa-stopwatch'},
-                {val:'60', label:'60 Minutes', icon:'fa-clock'},
-                {val:'90', label:'90+ Minutes', icon:'fa-hourglass'}
-            ]},
-            { id: 'equipment', type: 'radio', cols: 1, label: 'Equipment Access', options: [
-                {val:'full', label:'Full Gym', subtext:'A proper gym with machines and free weights.', icon:'fa-building'},
-                {val:'garage', label:'Home Gym', subtext:'Basic setup with dumbbells or a barbell.', icon:'fa-warehouse'},
-                {val:'minimal', label:'Bodyweight/Minimal', subtext:'No equipment, just your body.', icon:'fa-suitcase'}
-            ]}
+            {
+                id: 'duration', type: 'radio', cols: 2, label: 'Available Session Duration', options: [
+                    { val: '30', label: '30 Minutes', icon: 'fa-stopwatch-20' },
+                    { val: '45', label: '45 Minutes', icon: 'fa-stopwatch' },
+                    { val: '60', label: '60 Minutes', icon: 'fa-clock' },
+                    { val: '90', label: '90+ Minutes', icon: 'fa-hourglass' }
+                ]
+            }
         ]
     },
     {
-        step: 5, id: 'training_style', title: 'Training Style Preference',
+        step: 5, id: 'weight_goal', title: 'Weight Goal',
         fields: [
-            { id: 'style', type: 'radio', cols: 2, label: 'Preferred Style', options: [
-                {val:'strength', label:'Strength Focus', subtext:'Lifting heavy weights to build strength and muscle.', icon:'fa-anchor'},
-                {val:'hybrid', label:'HIIT', subtext:'Fast-paced workouts to burn fat and get your heart pumping.', icon:'fa-stopwatch'},
-                {val:'bodyweight', label:'Calisthenics', subtext:'Using your own bodyweight to get strong and lean.', icon:'fa-street-view'},
-                {val:'longevity', label:'Health & Longevity', subtext:'Workouts focused on moving well and living longer.', icon:'fa-heart-circle-check'}
-            ]}
+            {
+                id: 'weight_goal', type: 'radio', cols: 1, label: 'Bodyweight Focus', options: [
+                    { val: 'lose', label: 'Lose Fat', subtext: 'Drop bodyweight and lean out.', icon: 'fa-arrow-down' },
+                    { val: 'maintain', label: 'Maintain', subtext: 'Stay around my current weight.', icon: 'fa-equals' },
+                    { val: 'gain', label: 'Build Muscle', subtext: 'Increase bodyweight and size.', icon: 'fa-arrow-up' }
+                ]
+            }
         ]
     },
     {
-        step: 6, id: 'nutrition', title: 'Nutrition Profile',
+        step: 6, id: 'dietary_preference', title: 'Dietary Preference',
         fields: [
-            { id: 'diet', type: 'radio', cols: 1, label: 'Diet Type', options: [
-                {val:'balanced', label:'Balanced Nutritional Plan', subtext:'A normal diet with a good mix of protein, carbs, and fats.', icon:'fa-scale-balanced'},
-                {val:'keto', label:'Keto / Low Carb', subtext:'Eating mostly fats and protein with very few carbs.', icon:'fa-temperature-arrow-down'},
-                {val:'plant_based', label:'Plant-Based / Vegan', subtext:'Eating only foods that come from plants.', icon:'fa-leaf'}
-            ]},
-            { id: 'has_allergies', type: 'radio', cols: 2, label: 'Any food allergies or intolerances?', options: [
-                {val:'no', label:'No', icon:'fa-check'}, {val:'yes', label:'Yes', icon:'fa-triangle-exclamation'}
-            ]},
-            { id: 'allergies', type: 'chips', label: 'Select Restrictions / Avoid', condition: (d) => d.has_allergies === 'yes', options: [
-                'Dairy', 'Gluten', 'Nuts', 'Shellfish', 'Soy', 'Eggs'
-            ]},
-            { id: 'meals_per_day', type: 'slider', label: 'Preferred Meals Per Day', min: 2, max: 6, default: 3 }
+            {
+                id: 'diet', type: 'radio', cols: 1, label: 'Nutrition Style', options: [
+                    { val: 'standard', label: 'Standard / Balanced', subtext: 'A balanced mix of everything.', icon: 'fa-utensils' },
+                    { val: 'vegetarian', label: 'Vegetarian', subtext: 'No meat, but dairy and eggs are okay.', icon: 'fa-carrot' },
+                    { val: 'vegan', label: 'Vegan', subtext: 'Strictly plant-based.', icon: 'fa-leaf' },
+                    { val: 'keto', label: 'Keto', subtext: 'Very low carb, high fat.', icon: 'fa-bacon' }
+                ]
+            }
         ]
     },
     {
-        step: 7, id: 'lifestyle', title: 'Lifestyle & Habits',
+        step: 7, id: 'activity_level', title: 'Daily Activity Level',
         fields: [
-            { id: 'cooking', type: 'radio', cols: 3, label: 'Cooking Ability', options: [
-                {val:'novice', label:'Novice', subtext:'I can make simple meals'},
-                {val:'intermediate', label:'Average', subtext:'I can follow basic recipes'},
-                {val:'expert', label:'Expert', subtext:'I am great at cooking and prepping'}
-            ]},
-            { id: 'budget', type: 'radio', cols: 3, label: 'Food Budget', options: [
-                {val:'low', label:'Budget', subtext:'Trying to save money', icon:'fa-coins'},
-                {val:'medium', label:'Standard', subtext:'Normal grocery budget', icon:'fa-wallet'},
-                {val:'high', label:'Premium', subtext:'Willing to spend more on quality', icon:'fa-money-bill-wave'}
-            ]},
-            { id: 'hydration', type: 'slider', label: 'Daily Water Intake (Liters)', min: 1, max: 5, default: 2 },
-            { id: 'supplements', type: 'radio', cols: 3, label: 'Supplement Use', options: [
-                {val:'none', label:'None', subtext:'I only eat whole foods'},
-                {val:'basic', label:'Basic', subtext:'Just protein and vitamins'},
-                {val:'advanced', label:'Advanced', subtext:'I use a full range of supplements'}
-            ]}
-        ]
-    },
-    {
-        step: 8, id: 'mindset', title: 'Mindset & Tracking',
-        fields: [
-            { id: 'work_schedule', type: 'radio', cols: 2, label: 'Work Schedule', options: [
-                {val:'standard', label:'Standard (9-5)', icon:'fa-sun'},
-                {val:'shift', label:'Shift / Night', icon:'fa-moon'}
-            ]},
-            { id: 'structure', type: 'radio', cols: 1, label: 'Nutrition Tracking Style', options: [
-                {val:'strict', label:'Strict Tracking', subtext:'I want to track every calorie and macro.', icon:'fa-lock'},
-                {val:'flexible', label:'Flexible / Intuitive', subtext:'I just want simple guidelines to follow.', icon:'fa-compass'}
-            ]}
+            {
+                id: 'activity', type: 'radio', cols: 1, label: 'Activity Outside of Training', options: [
+                    { val: 'sedentary', label: 'Sedentary', subtext: 'Mostly sitting / little movement', icon: 'fa-chair' },
+                    { val: 'moderate', label: 'Moderately Active', subtext: 'Regular movement or active job', icon: 'fa-person-walking' },
+                    { val: 'highly', label: 'Highly Active', subtext: 'Hard physical work or intense daily activity', icon: 'fa-person-running' }
+                ]
+            }
         ]
     }
 ];
@@ -1056,15 +1013,15 @@ const wizardModule = {
         q.fields.forEach(f => {
             const isVisible = f.condition ? f.condition(wizardModule.data) : true;
             const displayStyle = isVisible ? '' : 'display: none;';
-            
+
             html += `<div class="question-block" id="block-${f.id}" style="${displayStyle}">
                         <span class="question-label">${langModule.t(f.label)}</span>`;
-            
+
             if (f.type === 'number') {
                 const val = wizardModule.data[f.id] || '';
                 const placeholder = f.placeholder ? langModule.t(f.placeholder) : '';
                 html += `<input type="number" id="inp-${f.id}" class="input-modern w-full font-mono" placeholder="${placeholder}" value="${val}" oninput="wizardModule.handleInputChange()">`;
-            } 
+            }
             else if (f.type === 'radio') {
                 const gridClass = f.cols === 2 ? 'opts-2' : f.cols === 3 ? 'opts-3' : '';
                 html += `<div class="options-grid ${gridClass}">`;
@@ -1114,7 +1071,7 @@ const wizardModule = {
 
         document.getElementById('btn-prev-step').style.visibility = wizardModule.current === 0 ? 'hidden' : 'visible';
         document.getElementById('btn-next-step').innerHTML = wizardModule.current === questions.length - 1 ? `${langModule.t('Create Plan')} <i class="fa-solid fa-microchip ml-2"></i>` : `${langModule.t('Next Step')} <i class="fa-solid fa-angle-right ml-2"></i>`;
-        
+
         // Re-apply static translations to dynamic elements
         if (window.safeI18nApply) { window.safeI18nApply(); }
     },
@@ -1143,19 +1100,19 @@ const wizardModule = {
         stepData.forEach(f => {
             // Only validate elements that are currently visible/active according to their condition
             const isVisible = f.condition ? f.condition(wizardModule.data) : true;
-            
+
             if (f.type === 'radio') {
                 const checked = document.querySelector(`input[name="${f.id}"]:checked`);
-                if(checked) wizardModule.data[f.id] = checked.value; 
-                else if(isVisible) valid = false;
+                if (checked) wizardModule.data[f.id] = checked.value;
+                else if (isVisible) valid = false;
             } else if (f.type === 'slider' || f.type === 'number') {
                 const el = document.getElementById(`inp-${f.id}`);
-                if(el && el.value) wizardModule.data[f.id] = el.value; 
-                else if(isVisible) valid = false;
+                if (el && el.value) wizardModule.data[f.id] = el.value;
+                else if (isVisible) valid = false;
             } else if (f.type === 'chips') {
                 const checks = Array.from(document.querySelectorAll(`input[name="${f.id}"]:checked`)).map(c => c.value);
                 wizardModule.data[f.id] = checks;
-                if(isVisible && checks.length === 0 && !f.options.includes('None')) valid = false; // pseudo-validation
+                if (isVisible && checks.length === 0 && !f.options.includes('None')) valid = false; // pseudo-validation
             }
         });
 
@@ -1178,9 +1135,9 @@ const wizardModule = {
 
     prev: () => {
         wizardModule.captureStep(true); // Don't block backward navigation with validation
-        if(wizardModule.current > 0) { 
-            wizardModule.current--; 
-            wizardModule.render(); 
+        if (wizardModule.current > 0) {
+            wizardModule.current--;
+            wizardModule.render();
         }
     }
 };
@@ -1264,13 +1221,13 @@ The JSON MUST exactly follow this structure:
                         "day": "Monday",
                         "focus": "Upper Body Strength",
                         "exercises": [
-                            {"name": "Barbell Bench Press", "sets": "4", "reps": "5-8", "rest": "120s"}
+                            { "name": "Barbell Bench Press", "sets": "4", "reps": "5-8", "rest": "120s" }
                         ]
                     }
                 ],
                 "nutrition_plan": {
                     "daily_calories": "Calculating...",
-                    "macros": {"protein": "TBD", "carbs": "TBD", "fats": "TBD"},
+                    "macros": { "protein": "TBD", "carbs": "TBD", "fats": "TBD" },
                     "guidelines": ["Stay hydrated", "Focus on whole foods"]
                 }
             };
@@ -1288,7 +1245,7 @@ The JSON MUST exactly follow this structure:
         // NEW LOGIC: Await the AI prompt engine and log the strictly formatted JSON
         console.log("Gathering user profile data for AI:", JSON.stringify(data, null, 2));
         const aiResult = await algorithm.generateAIProtocol(data);
-        
+
         console.log("==========================================");
         console.log("🔥 FINAL AI GENERATED PROTOCOL (JSON) 🔥");
         console.log("==========================================");
@@ -1303,15 +1260,15 @@ The JSON MUST exactly follow this structure:
 
         const int = setInterval(() => {
             p += 2;
-            bar.style.width = p+'%';
-            if(p%25===0 && l<logs.length) { txt.textContent = logs[l]; l++; }
-            
+            bar.style.width = p + '%';
+            if (p % 25 === 0 && l < logs.length) { txt.textContent = logs[l]; l++; }
+
             if (p >= 100) {
                 clearInterval(int);
                 const protocol = algorithm.compile(data);
                 db.saveNewProtocol(protocol);
                 db.clearAssessmentState();
-                
+
                 setTimeout(() => {
                     overlay.classList.remove('active');
                     app.navigate('dashboard');
@@ -1321,67 +1278,45 @@ The JSON MUST exactly follow this structure:
     },
 
     compile: (a) => {
-        // Advanced Math Matrix (Mifflin-St Jeor Metric)
-        const bmr = a.sex === 'm' 
-            ? (10 * a.weight) + (6.25 * a.height) - (5 * a.age) + 5 
-            : (10 * a.weight) + (6.25 * a.height) - (5 * a.age) - 161; 
-            
-        let tdee = a.activity === 'active' ? bmr * 1.55 : bmr * 1.2;
-        let calories = a.primary_goal === 'fat_loss' ? tdee - 500 : (a.primary_goal === 'muscle_gain' ? tdee + 300 : tdee);
-        calories = Math.round(calories);
-        
-        // Protein (g/kg): ~2.2g for fat loss, 2.0g otherwise
-        const protein = Math.round(a.primary_goal === 'fat_loss' ? (a.weight * 2.2) : (a.weight * 2.0));
+        // Fallback generic values since text inputs (age/weight) are removed in favor of strict 8-step cards
+        let tdee = a.activity === 'highly' ? 3000 : (a.activity === 'moderate' ? 2500 : 2000);
+        let calories = a.weight_goal === 'lose' ? tdee - 500 : (a.weight_goal === 'gain' ? tdee + 300 : tdee);
+
+        const protein = a.weight_goal === 'lose' ? 180 : 160;
 
         const protocol = {
-            meta: { goal: a.primary_goal, tier: a.experience.toUpperCase(), days: a.days, style: a.style.toUpperCase() },
+            meta: { goal: a.primary_goal || 'recomp', tier: (a.experience || 'beginner').toUpperCase(), days: a.days || '3', style: (a.equipment || 'minimal').toUpperCase() },
             nutrition: {
                 cals: calories, pro: protein,
                 carbs: Math.round((calories * 0.4) / 4), fats: Math.round((calories * 0.25) / 9),
-                diet: a.diet, structure: a.structure
+                diet: a.diet || 'balanced', structure: 'Flexible'
             },
             training: [], recovery: []
         };
 
         // Build Training Arrays
-        let numDays = parseInt(a.days);
+        let numDays = parseInt(a.days || 3);
         const isBg = langModule.currentLanguage === 'bg';
         const dayNames = isBg ? ['ПОН', 'ВТО', 'СРЯ', 'ЧЕТ', 'ПЕТ', 'СЪБ'] : ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-        const types = { 
-            strength: isBg ? "Фокус върху сила" : "Strength Focus", 
-            hybrid: "HIIT", 
-            bodyweight: isBg ? "Собствено тегло" : "Bodyweight Focus", 
-            endurance: isBg ? "Кардио и издръжливост" : "Endurance" 
-        };
-        
-        for(let i=0; i<numDays; i++) {
-            let n = i%2===0 ? types[a.style] : (isBg ? 'Активно възстановяване / Подвижност' : 'Active Recovery / Mobility');
-            
-            // Generate description keys
-            let descKey = '';
-            if (i === 0) {
-                let w = a.weakness ? a.weakness[0] : (isBg ? 'базова фитнес подготовка' : 'core fitness');
-                let translatedW = isBg ? langModule.t(w) : w;
-                descKey = isBg ? `Фокус върху основната ви цел, особено [${translatedW}].` : `Focus on your main goal, especially [${translatedW}].`;
-            } else {
-                descKey = isBg ? "Подобрявайте формата си и следете напредъка." : "Build up your fitness and track progress.";
-            }
+
+        for (let i = 0; i < numDays; i++) {
+            let n = i % 2 === 0 ? (isBg ? "Тренировка" : "Training Session") : (isBg ? 'Активно възстановяване' : 'Active Recovery');
+            let descKey = i === 0
+                ? (isBg ? `Фокус: ${a.primary_goal}` : `Focusing on ${a.primary_goal}`)
+                : (isBg ? "Подобрявайте формата си." : "Build up your fitness.");
 
             protocol.training.push({
-                day: dayNames[i],
+                day: dayNames[i] || `Day ${i + 1}`,
                 name: n,
                 desc: descKey
             });
         }
 
         // Build Recovery Arrays
-        const sleep = a.stress > 7 ? '8.5' : '7.5';
+        const sleep = a.activity === 'highly' ? '8.5' : '7.5';
         protocol.recovery.push(isBg ? `Стремете се към ~${sleep} часа качествен сън.` : `Aim for ${sleep} hours of quality sleep.`);
-        if(a.injuries && !a.injuries.includes('None')) {
-            const injuriesList = isBg ? a.injuries.map(i => langModule.t(i)).join(', ') : a.injuries.join(', ');
-            protocol.recovery.push(isBg ? `Ежедневна подвижност: ~10 мин разтягане или рехабилитация за [${injuriesList}].` : `Daily mobility: 10 mins dedicated stretching/rehab for [${injuriesList}].`);
-        }
-        
+        protocol.recovery.push(isBg ? `Ежедневна подвижност: ~10 мин разтягане.` : `Daily mobility: 10 mins dedicated stretching.`);
+
         return protocol;
     }
 };
@@ -1401,7 +1336,7 @@ const dashModule = {
         } else {
             obSlot.innerHTML = '';
         }
-        
+
         // Ensure new dynamically added translations are processed
         if (langModule && langModule.applyTranslations) {
             langModule.applyTranslations();
@@ -1409,11 +1344,11 @@ const dashModule = {
 
         // Dashboard Sidebar Header
         document.getElementById('dash-username').textContent = user.email.split('@')[0];
-        document.getElementById('dash-avatar').textContent = user.email.substring(0,2).toUpperCase();
+        document.getElementById('dash-avatar').textContent = user.email.substring(0, 2).toUpperCase();
 
         if (user.active_protocol) {
             const p = user.active_protocol;
-            
+
             const safeT = window.safeI18nT || langModule.t;
             // Populate Protocol Context
             const titleMap = { fat_loss: safeT("PLAN: FAT LOSS"), muscle_gain: safeT("PLAN: BUILD MUSCLE"), recomp: safeT("PLAN: BODY RECOMPOSITION"), military: safeT("PLAN: OVERALL FITNESS") };
@@ -1435,8 +1370,8 @@ const dashModule = {
                 <div class="macro-box"><div class="val">${p.nutrition.carbs}g</div><div class="lbl">CARB</div></div>
                 <div class="macro-box"><div class="val">${p.nutrition.fats}g</div><div class="lbl">FAT</div></div>
             `;
-            const dietTitles = {balanced: safeT("Balanced Nutrition"), keto: safeT("Keto Diet"), fasting: safeT("Intermittent Fasting")};
-            const structTitles = {strict: safeT("Strict Tracking"), flexible: safeT("Flexible / Intuitive")};
+            const dietTitles = { balanced: safeT("Balanced Nutrition"), keto: safeT("Keto Diet"), fasting: safeT("Intermittent Fasting") };
+            const structTitles = { strict: safeT("Strict Tracking"), flexible: safeT("Flexible / Intuitive") };
             document.getElementById('res-nutrition-plan').innerHTML = `
                 <li><i class="fa-solid fa-check"></i> ${safeT("Diet")}: ${dietTitles[p.nutrition.diet] || safeT(p.nutrition.diet)}</li>
                 <li><i class="fa-solid fa-check"></i> ${safeT("Style")}: ${structTitles[p.nutrition.structure] || safeT(p.nutrition.structure)}</li>
@@ -1471,7 +1406,7 @@ const dashModule = {
                 } else if (t.desc.startsWith('Build up your fitness') || t.desc.includes('Подобрявайте формата си')) {
                     translatedDesc = safeT('Build up your fitness and track progress.');
                 }
-                
+
                 modulesHtml += `
                 <div class="day-card">
                     <div class="day-header">${safeT(t.day)}</div>
@@ -1489,10 +1424,10 @@ const dashModule = {
 
         // Populate Telemetry History
         dashModule.renderTelemetry(user);
-        
+
         // Populate Plan History
         dashModule.renderHistory(user);
-        
+
         // Reset tabs
         document.querySelectorAll('.sidebar-link').forEach(l => l.classList.remove('active'));
         document.querySelectorAll('.dash-tab').forEach(t => t.classList.remove('active'));
@@ -1501,21 +1436,21 @@ const dashModule = {
     },
 
     renderTelemetry: (user) => {
-        let avgW=0, avgA=0, avgE=0, avgS=0, avgWC=0;
+        let avgW = 0, avgA = 0, avgE = 0, avgS = 0, avgWC = 0;
         let html = '';
         const len = user.telemetry.length;
 
         user.telemetry.forEach(t => {
-            if(html === '') avgW = t.weight; // latest weight
+            if (html === '') avgW = t.weight; // latest weight
             avgA += parseInt(t.adherence) || 0;
             avgE += parseInt(t.energy) || 0;
             avgS += parseInt(t.sleep) || 0;
             avgWC += parseInt(t.workouts) || 0;
-            
+
             const waistStr = t.waist ? `${t.waist} cm` : '-';
             const sleepStr = t.sleep ? `${t.sleep}/10` : '-';
             const workStr = t.workouts ? `${t.workouts}%` : '-';
-            
+
             const safeT = window.safeI18nT || langModule.t;
             html += `<tr>
                 <td>${t.date}</td>
@@ -1531,15 +1466,15 @@ const dashModule = {
 
         const tb = document.getElementById('checkin-tbody');
         const empty = document.getElementById('checkin-empty');
-        
+
         if (len > 0) {
             tb.innerHTML = html;
             empty.classList.add('hidden');
-            
-            const realA = Math.round(avgA/len);
-            const realE = (avgE/len).toFixed(1);
-            const realS = (avgS/len).toFixed(1);
-            const realWC = Math.round(avgWC/len);
+
+            const realA = Math.round(avgA / len);
+            const realE = (avgE / len).toFixed(1);
+            const realS = (avgS / len).toFixed(1);
+            const realWC = Math.round(avgWC / len);
 
             document.getElementById('tracker-weight').textContent = avgW;
             document.getElementById('tracker-adherence').textContent = realA;
@@ -1548,7 +1483,7 @@ const dashModule = {
             // Trend bars visually simulated
             setTimeout(() => {
                 document.getElementById('tracker-adh-bar').style.width = `${realA}%`;
-                document.getElementById('tracker-eng-bar').style.width = `${(realE/10)*100}%`;
+                document.getElementById('tracker-eng-bar').style.width = `${(realE / 10) * 100}%`;
                 // Colors based on performance
                 document.getElementById('tracker-adh-bar').style.backgroundColor = realA > 85 ? 'var(--success)' : (realA > 70 ? 'var(--warning)' : 'var(--danger)');
             }, 500);
@@ -1558,7 +1493,7 @@ const dashModule = {
             document.querySelector('.border-dashed').innerHTML = `
                 <div>
                     <i class="fa-solid fa-radar text-primary text-3xl mb-2"></i>
-                    <h4 class="text-xs font-bold uppercase text-primary font-mono tracking-widest mt-2"><span data-safe-i18n="Overall Consistency">${safeT("Overall Consistency")}</span>: ${Math.round((realA + realWC)/2) || realA}%</h4>
+                    <h4 class="text-xs font-bold uppercase text-primary font-mono tracking-widest mt-2"><span data-safe-i18n="Overall Consistency">${safeT("Overall Consistency")}</span>: ${Math.round((realA + realWC) / 2) || realA}%</h4>
                     <p class="text-[0.65rem] text-muted mt-1 uppercase font-mono tracking-widest"><span data-safe-i18n="Diet">${safeT("Diet")}</span>: ${realA}% | <span data-safe-i18n="Training">${safeT("Training")}</span>: ${realWC}%</p>
                 </div>
             `;
@@ -1586,16 +1521,16 @@ const dashModule = {
                 </div>
             </div>`;
         });
-        
+
         const grid = document.getElementById('history-grid');
         grid.innerHTML = html || `<p class="text-muted font-mono uppercase text-sm" data-safe-i18n="[ No previous plans found ]">${safeT('[ No previous plans found ]')}</p>`;
     },
 
     switchTab: (tabId, event) => {
-        if(event) event.preventDefault();
+        if (event) event.preventDefault();
         document.querySelectorAll('.sidebar-link').forEach(l => l.classList.remove('active'));
-        if(event) event.currentTarget.classList.add('active');
-        
+        if (event) event.currentTarget.classList.add('active');
+
         document.querySelectorAll('.dash-tab').forEach(t => t.classList.remove('active'));
         document.getElementById(`tab-${tabId}`).classList.add('active');
     },
@@ -1609,21 +1544,21 @@ const dashModule = {
         const sleep = document.getElementById('checkin-val-sleep').value;
         const notes = document.getElementById('checkin-val-notes').value;
 
-        if(!w || !adherence || !workouts || !energy || !sleep) { 
-            alert(langModule.t('Core telemetry indices required for submission.')); 
-            return; 
+        if (!w || !adherence || !workouts || !energy || !sleep) {
+            alert(langModule.t('Core telemetry indices required for submission.'));
+            return;
         }
-        
-        db.saveTelemetry({ 
-            weight: w, 
+
+        db.saveTelemetry({
+            weight: w,
             waist: waist,
-            adherence: adherence, 
+            adherence: adherence,
             workouts: workouts,
-            energy: energy, 
+            energy: energy,
             sleep: sleep,
-            notes: notes 
+            notes: notes
         });
-        
+
         // Reset and close
         document.getElementById('checkin-val-weight').value = '';
         document.getElementById('checkin-val-waist').value = '';
@@ -1631,7 +1566,7 @@ const dashModule = {
         document.getElementById('checkin-val-workouts').value = '';
         document.getElementById('checkin-val-notes').value = '';
         document.getElementById('modal-checkin').classList.remove('active');
-        
+
         dashModule.render(); // re-render to plot trends
     }
 };
@@ -1654,7 +1589,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Set active class on initial loader
     const activeBtn = document.getElementById(`lang-btn-${langModule.currentLanguage}`);
-    if(activeBtn) activeBtn.classList.add('text-primary', 'font-bold');
+    if (activeBtn) activeBtn.classList.add('text-primary', 'font-bold');
 
     // Modals Close handlers
     document.querySelectorAll('.modal-close').forEach(btn => {
@@ -1663,10 +1598,27 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
+    // Wizard Navigation Listeners
+    const prevBtn = document.getElementById('btn-prev-step');
+    if (prevBtn) {
+        prevBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            wizardModule.prev();
+        });
+    }
+
+    const nextBtn = document.getElementById('btn-next-step');
+    if (nextBtn) {
+        nextBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            wizardModule.next();
+        });
+    }
+
     // Check auth to route properly
     const user = db.getCurrentUser();
-    if(user) {
-        if(user.active_protocol) app.navigate('dashboard');
+    if (user) {
+        if (user.active_protocol) app.navigate('dashboard');
         else app.navigate('onboarding');
     } else {
         app.navigate('landing');
@@ -1678,7 +1630,7 @@ document.addEventListener('DOMContentLoaded', () => {
 // ==========================================
 window.testAIProtocol = async () => {
     console.log("Starting AI Protocol Test...");
-    
+
     // Create a mock user profile representing the 8 steps
     const mockProfile = {
         goal: "recomp", // 1. Training Goal (Recomposition)
@@ -1706,12 +1658,12 @@ window.testAIProtocol = async () => {
 
     // Call the AI Engine
     const result = await algorithm.generateAIProtocol(mockProfile);
-    
+
     console.log("----------------------------------");
     console.log("AI SYSTEM RESPONSE (MOCK JSON):");
     console.log(JSON.stringify(result, null, 2));
     console.log("----------------------------------");
-    
+
     if (result && result.workout_plan && result.nutrition_plan) {
         console.log("✅ Test Passed: Valid JSON structure returned containing workout_plan and nutrition_plan.");
     } else {
