@@ -436,20 +436,20 @@ const langModule = {
             "Save Log": "Запази отчета",
             "GENERATING PLAN": "ГЕНЕРИРАНЕ НА ПЛАН",
             "Analyzing status...": "Анализиране на профила...",
-            "Mon": "Пон",
-            "Tue": "Вто",
-            "Wed": "Сря",
-            "Thu": "Чет",
-            "Fri": "Пет",
-            "Sat": "Съб",
-            "Sun": "Нед",
+            "Mon": "ПОН",
+            "Tue": "ВТО",
+            "Wed": "СРЯ",
+            "Thu": "ЧЕТ",
+            "Fri": "ПЕТ",
+            "Sat": "СЪБ",
+            "Sun": "НЕД",
             "Strength Focus": "Фокус върху сила",
             "Bodyweight Focus": "Собствено тегло",
             "Cardio & Endurance Phase": "Кардио и издръжливост",
             "Active Recovery / Mobility": "Активно възстановяване / Подвижност",
-            "Focus on your main goal, especially": "Фокусирайте се върху основната цел, особено",
+            "Focus on your main goal, especially": "Фокус върху основната ви цел, особено",
             "core fitness": "базова фитнес подготовка",
-            "Build up your fitness and track progress.": "Изграждайте формата си и следете прогреса.",
+            "Build up your fitness and track progress.": "Подобрявайте формата си и следете напредъка.",
             "Aim for": "Стремете се към",
             "hours of quality sleep.": "часа качествен сън.",
             "Daily mobility: 10 mins dedicated stretching/rehab for": "Дневна мобилност: 10 мин. стречинг/рехабилитация за",
@@ -463,11 +463,11 @@ const langModule = {
             "Status": "Статус",
             "Active": "Активен",
             "Deploy Date": "Дата на стартиране",
-            "Balanced Nutrition": "Балансирано хранене",
+            "Balanced Nutrition": "Балансирано",
             "Keto Diet": "Кето диета",
             "Intermittent Fasting": "Периодично гладуване",
             "Style": "Стил",
-            "To Do": "Да се направи",
+            "To Do": "Изпълни",
             "Overall Consistency": "Общо постоянство",
             "Training": "Тренировки",
             "ARCHIVED": "АРХИВИРАН",
@@ -476,7 +476,7 @@ const langModule = {
             "kcal limit": "ккал лимит",
             "[ No previous plans found ]": "[ Не са намерени предишни планове ]",
             "Core telemetry indices required for submission.": "Основните телеметрични данни са задължителни за запис.",
-            "Diet": "Диета",
+            "Diet": "Хранене",
             "Basic Information": "Основна информация",
             "Age": "Възраст",
             "e.g. 30": "напр. 30",
@@ -614,7 +614,7 @@ const langModule = {
             "Nutrition Tracking Style": "Стил на следене на храненето",
             "Strict Tracking": "Стриктно следене",
             "I want to track every calorie and macro.": "Искам да следя всяка калория и макронутриент.",
-            "Flexible / Intuitive": "Гъвкаво / Интуитивно",
+            "Flexible / Intuitive": "Гъвкав / Интуитивен",
             "I just want simple guidelines to follow.": "Искам просто ясни насоки, които да следвам.",
             "Step": "Стъпка",
             "Create Plan": "Създай план",
@@ -635,7 +635,9 @@ const langModule = {
             "Endurance": "Кардио и издръжливост",
             "poor": "Слабо",
             "average": "Средно",
-            "excellent": "Отлично"
+            "excellent": "Отлично",
+            "Strength": "Сила",
+            "Recovery": "Възстановяване"
         }
     },
     
@@ -1216,19 +1218,26 @@ const algorithm = {
 
         // Build Training Arrays
         let numDays = parseInt(a.days);
-        const dayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-        const types = { strength: "Strength Focus", hybrid: "HIIT", bodyweight: "Bodyweight Focus", endurance: "Endurance" };
+        const isBg = langModule.currentLanguage === 'bg';
+        const dayNames = isBg ? ['ПОН', 'ВТО', 'СРЯ', 'ЧЕТ', 'ПЕТ', 'СЪБ'] : ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+        const types = { 
+            strength: isBg ? "Фокус върху сила" : "Strength Focus", 
+            hybrid: "HIIT", 
+            bodyweight: isBg ? "Собствено тегло" : "Bodyweight Focus", 
+            endurance: isBg ? "Кардио и издръжливост" : "Endurance" 
+        };
         
         for(let i=0; i<numDays; i++) {
-            let n = i%2===0 ? types[a.style] : 'Active Recovery';
+            let n = i%2===0 ? types[a.style] : (isBg ? 'Активно възстановяване / Подвижност' : 'Active Recovery / Mobility');
             
             // Generate description keys
             let descKey = '';
             if (i === 0) {
-                let w = a.weakness ? a.weakness[0] : 'core fitness';
-                descKey = `Focus on your main goal, especially [${w}].`;
+                let w = a.weakness ? a.weakness[0] : (isBg ? 'базова фитнес подготовка' : 'core fitness');
+                let translatedW = isBg ? langModule.t(w) : w;
+                descKey = isBg ? `Фокус върху основната ви цел, особено [${translatedW}].` : `Focus on your main goal, especially [${translatedW}].`;
             } else {
-                descKey = "Build up your fitness and track progress.";
+                descKey = isBg ? "Подобрявайте формата си и следете напредъка." : "Build up your fitness and track progress.";
             }
 
             protocol.training.push({
@@ -1240,10 +1249,10 @@ const algorithm = {
 
         // Build Recovery Arrays
         const sleep = a.stress > 7 ? '8.5' : '7.5';
-        protocol.recovery.push(`Aim for ${sleep} hours of quality sleep.`);
+        protocol.recovery.push(isBg ? `Стремете се към ~${sleep} часа качествен сън.` : `Aim for ${sleep} hours of quality sleep.`);
         if(a.injuries && !a.injuries.includes('None')) {
-            const injuriesList = a.injuries.join(', ');
-            protocol.recovery.push(`Daily mobility: 10 mins dedicated stretching/rehab for [${injuriesList}].`);
+            const injuriesList = isBg ? a.injuries.map(i => langModule.t(i)).join(', ') : a.injuries.join(', ');
+            protocol.recovery.push(isBg ? `Ежедневна подвижност: ~10 мин разтягане или рехабилитация за [${injuriesList}].` : `Daily mobility: 10 mins dedicated stretching/rehab for [${injuriesList}].`);
         }
         
         return protocol;
