@@ -141,12 +141,12 @@
                     <div class="icon-ring pulse mb-6">
                         <i class="fa-solid fa-wave-square text-3xl text-primary"></i>
                     </div>
-                    <h2 class="text-2xl font-heading font-black mb-2 uppercase tracking-widest" data-i18n="Welcome to ASCEND AI PROTOCOL">Welcome to ASCEND AI PROTOCOL</h2>
-                    <p class="text-secondary text-sm font-mono max-w-xl mx-auto mb-8 uppercase" data-i18n="Initialize text">Initialize your assessment to generate a precision protocol for strength, health, longevity, and body recomposition.</p>
+                    <h2 class="text-2xl font-heading font-black mb-2 uppercase tracking-widest" data-safe-i18n="Welcome to ASCEND AI PROTOCOL">Welcome to ASCEND AI PROTOCOL</h2>
+                    <p class="text-secondary text-sm font-mono max-w-xl mx-auto mb-8 uppercase" data-safe-i18n="Initialize text">Initialize your assessment to generate a precision protocol for strength, health, longevity, and body recomposition.</p>
                     
                     <div class="flex-center gap-4">
                         <button class="btn btn-primary btn-large font-mono tracking-widest text-sm uppercase" onclick="app.navigate('assessment')">
-                            <span data-i18n="Start Assessment">Start Assessment</span> <i class="fa-solid fa-terminal ml-2"></i>
+                            <span data-safe-i18n="Start Assessment">Start Assessment</span> <i class="fa-solid fa-terminal ml-2"></i>
                         </button>
                         <div id="resume-assessment-slot"></div>
                     </div>
@@ -178,8 +178,8 @@
                     </div>
 
                     <div class="wizard-actions">
-                        <button class="btn btn-ghost font-mono uppercase text-xs tracking-widest" id="btn-prev-step" onclick="wizardModule.prev()"><i class="fa-solid fa-angle-left mr-1"></i> <span data-i18n="Back">Back</span></button>
-                        <button class="btn btn-primary font-mono uppercase text-xs tracking-widest" id="btn-next-step" onclick="wizardModule.next()"><span data-i18n="Next Step">Next Step</span> <i class="fa-solid fa-angle-right ml-1"></i></button>
+                        <button class="btn btn-ghost font-mono uppercase text-xs tracking-widest" id="btn-prev-step" onclick="wizardModule.prev()"><i class="fa-solid fa-angle-left mr-1"></i> <span data-safe-i18n="Back">Back</span></button>
+                        <button class="btn btn-primary font-mono uppercase text-xs tracking-widest" id="btn-next-step" onclick="wizardModule.next()"><span data-safe-i18n="Next Step">Next Step</span> <i class="fa-solid fa-angle-right ml-1"></i></button>
                     </div>
                 </div>
             </section>
@@ -198,14 +198,14 @@
                         </div>
                         
                         <nav class="sidebar-nav mt-8">
-                            <a href="#" class="sidebar-link active" onclick="dashModule.switchTab('active-protocol', event)"><i class="fa-solid fa-crosshairs w-5 text-center"></i> <span data-i18n="Your Plan">Your Plan</span></a>
-                            <a href="#" class="sidebar-link" onclick="dashModule.switchTab('progress-tracker', event)"><i class="fa-solid fa-chart-line w-5 text-center"></i> <span data-i18n="Your Progress">Your Progress</span></a>
-                            <a href="#" class="sidebar-link" onclick="dashModule.switchTab('history', event)"><i class="fa-solid fa-database w-5 text-center"></i> <span data-i18n="Plan History">Plan History</span></a>
+                            <a href="#" class="sidebar-link active" onclick="dashModule.switchTab('active-protocol', event)"><i class="fa-solid fa-crosshairs w-5 text-center"></i> <span data-safe-i18n="Your Plan">Your Plan</span></a>
+                            <a href="#" class="sidebar-link" onclick="dashModule.switchTab('progress-tracker', event)"><i class="fa-solid fa-chart-line w-5 text-center"></i> <span data-safe-i18n="Your Progress">Your Progress</span></a>
+                            <a href="#" class="sidebar-link" onclick="dashModule.switchTab('history', event)"><i class="fa-solid fa-database w-5 text-center"></i> <span data-safe-i18n="Plan History">Plan History</span></a>
                         </nav>
 
                         <div class="sidebar-footer">
                             <button class="btn btn-outline w-full font-mono text-xs uppercase tracking-widest" onclick="app.navigate('assessment')">
-                                <i class="fa-solid fa-rotate-right mr-1"></i> <span data-i18n="Retake Assessment">Retake Assessment</span>
+                                <i class="fa-solid fa-rotate-right mr-1"></i> <span data-safe-i18n="Retake Assessment">Retake Assessment</span>
                             </button>
                         </div>
                     </aside>
@@ -217,10 +217,10 @@
                         <div class="dash-tab active" id="tab-active-protocol">
                             <div class="dashboard-header mb-6 flex-between">
                                 <div>
-                                    <h2 class="dashboard-title uppercase font-black tracking-widest" id="dash-mission-type" data-i18n="Your Training Plan">YOUR TRAINING PLAN</h2>
+                                    <h2 class="dashboard-title uppercase font-black tracking-widest" id="dash-mission-type" data-safe-i18n="Your Training Plan">YOUR TRAINING PLAN</h2>
                                     <p class="text-secondary mt-1 font-mono text-xs uppercase" data-i18n="Pending Assessment">Pending your assessment.</p>
                                 </div>
-                                <button class="btn btn-outline font-mono text-xs uppercase" onclick="dashModule.switchTab('progress-tracker', event)"><i class="fa-solid fa-pen-to-square mr-1"></i> <span data-i18n="Enter Progress">Log Progress</span></button>
+                                <button class="btn btn-outline font-mono text-xs uppercase" onclick="dashModule.switchTab('progress-tracker', event)"><i class="fa-solid fa-pen-to-square mr-1"></i> <span data-safe-i18n="Enter Progress">Log Progress</span></button>
                             </div>
 
                             <div class="dashboard-grid">
@@ -239,7 +239,7 @@
                                 <!-- Nutrition Protocol -->
                                 <div class="dashboard-card card-span-1">
                                     <div class="card-header highlight-header">
-                                        <h3><i class="fa-solid fa-flask"></i> <span data-i18n="Nutrition Plan">Nutrition Plan</span></h3>
+                                        <h3><i class="fa-solid fa-flask"></i> <span data-safe-i18n="Nutrition Plan">Nutrition Plan</span></h3>
                                     </div>
                                     <div class="card-body">
                                         <div class="macro-display flex gap-2 mb-6" id="res-macros">
@@ -254,7 +254,7 @@
                                 <!-- Recovery Protocol -->
                                 <div class="dashboard-card card-span-1">
                                     <div class="card-header">
-                                        <h3><i class="fa-solid fa-shield-heart"></i> <span data-i18n="Recovery Plan">Recovery Plan</span></h3>
+                                        <h3><i class="fa-solid fa-shield-heart"></i> <span data-safe-i18n="Recovery Plan">Recovery Plan</span></h3>
                                     </div>
                                     <div class="card-body">
                                         <ul class="protocol-list font-mono text-sm" id="res-recovery-plan">
@@ -262,8 +262,8 @@
                                         </ul>
                                         
                                         <div class="alert-box mt-6 bg-surface-hover p-4 border border-border-light text-center">
-                                            <p class="text-[0.65rem] text-primary tracking-widest uppercase font-bold mb-1" data-i18n="Friendly Reminder">Friendly Reminder</p>
-                                            <p class="text-xs font-mono text-secondary" id="res-adherence-note" data-i18n="Recovery Note">Getting enough sleep is crucial for your recovery and progress.</p>
+                                            <p class="text-[0.65rem] text-primary tracking-widest uppercase font-bold mb-1" data-safe-i18n="Friendly Reminder">Friendly Reminder</p>
+                                            <p class="text-xs font-mono text-secondary" id="res-adherence-note" data-safe-i18n="Recovery Note">Getting enough sleep is crucial for your recovery and progress.</p>
                                         </div>
                                     </div>
                                 </div>
@@ -272,15 +272,15 @@
                                 <div class="dashboard-card card-span-1 bg-surface-hover flex-center text-center p-6 border-dashed">
                                     <div>
                                         <i class="fa-solid fa-wave-square text-secondary text-2xl mb-3"></i>
-                                        <h4 class="text-xs font-bold uppercase tracking-widest text-secondary font-mono" data-i18n="No Data">No Data Yet</h4>
-                                        <p class="text-xs text-muted mt-2 font-mono" data-i18n="Log Progress Desc">Log your weekly progress to track your improvements.</p>
+                                        <h4 class="text-xs font-bold uppercase tracking-widest text-secondary font-mono" data-safe-i18n="No Data">No Data Yet</h4>
+                                        <p class="text-xs text-muted mt-2 font-mono" data-safe-i18n="Enter your weekly progress to track results.">Log your weekly progress to track your improvements.</p>
                                     </div>
                                 </div>
 
                                 <!-- Training Protocol -->
                                 <div class="dashboard-card card-span-3 mt-2">
                                     <div class="card-header flex-between items-center">
-                                        <h3><i class="fa-solid fa-diagram-project"></i> <span data-i18n="Training Plan">Workout Plan</span></h3>
+                                        <h3><i class="fa-solid fa-diagram-project"></i> <span data-safe-i18n="Training Plan">Workout Plan</span></h3>
                                         <span class="badge badge-outline font-mono bg-base" id="res-training-style">HYBRID</span>
                                     </div>
                                     <div class="card-body p-0">
@@ -298,8 +298,8 @@
                         <div class="dash-tab" id="tab-progress-tracker">
                             <div class="dashboard-header mb-6 flex-between">
                                 <div>
-                                    <h2 class="dashboard-title uppercase font-black tracking-widest" data-i18n="Your Progress Title">Your Progress</h2>
-                                    <p class="text-secondary mt-1 font-mono text-xs uppercase" data-i18n="Your track record">Your track record of results.</p>
+                                    <h2 class="dashboard-title uppercase font-black tracking-widest" data-safe-i18n="Your Progress">Your Progress</h2>
+                                    <p class="text-secondary mt-1 font-mono text-xs uppercase" data-safe-i18n="Your track record">Your track record of results.</p>
                                 </div>
                                 <button class="btn btn-primary font-mono text-xs tracking-widest uppercase" onclick="toggleModal('modal-checkin', true)"><i class="fa-solid fa-upload mr-1"></i> <span data-i18n="Log Progress">Log Progress</span></button>
                             </div>
@@ -379,8 +379,8 @@
                         <!-- TAB: HISTORY (Archived Plans) -->
                         <div class="dash-tab" id="tab-history">
                             <div class="dashboard-header mb-6">
-                                <h2 class="dashboard-title uppercase font-black tracking-widest" data-i18n="Plan History">Plan History</h2>
-                                <p class="text-secondary mt-1 font-mono text-xs uppercase" data-i18n="Your previous plans">Your previous training plans.</p>
+                                <h2 class="dashboard-title uppercase font-black tracking-widest" data-safe-i18n="Plan History">Plan History</h2>
+                                <p class="text-secondary mt-1 font-mono text-xs uppercase" data-safe-i18n="Your previous plans">Your previous training plans.</p>
                             </div>
                             <div class="history-grid" id="history-grid">
                                 <!-- Dynamic history cards -->

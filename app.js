@@ -680,16 +680,25 @@ const langModule = {
 
     t: (key) => {
         if (!key) return key;
+
+        // STEP 3: Check the safe new module first
+        if (window.safeI18nT) {
+            const mapped = window.safeI18nT(key);
+            if (mapped !== key) return mapped;
+        }
+
         const dict = langModule.translations[langModule.currentLanguage];
-        if (dict[key]) return dict[key];
+        if (dict && dict[key]) return dict[key];
         
-        const lowerKey = String(key).toLowerCase();
-        for (const [k, v] of Object.entries(dict)) {
-            if (k.toLowerCase() === lowerKey) {
-                if (key === String(key).toUpperCase()) {
-                    return String(v).toUpperCase();
+        if (dict) {
+            const lowerKey = String(key).toLowerCase();
+            for (const [k, v] of Object.entries(dict)) {
+                if (k.toLowerCase() === lowerKey) {
+                    if (key === String(key).toUpperCase()) {
+                        return String(v).toUpperCase();
+                    }
+                    return v;
                 }
-                return v;
             }
         }
         return key;
@@ -1097,6 +1106,9 @@ const wizardModule = {
 
         document.getElementById('btn-prev-step').style.visibility = wizardModule.current === 0 ? 'hidden' : 'visible';
         document.getElementById('btn-next-step').innerHTML = wizardModule.current === questions.length - 1 ? `${langModule.t('Create Plan')} <i class="fa-solid fa-microchip ml-2"></i>` : `${langModule.t('Next Step')} <i class="fa-solid fa-angle-right ml-2"></i>`;
+        
+        // Re-apply static translations to dynamic elements
+        if (window.safeI18nApply) { window.safeI18nApply(); }
     },
 
     handleInputChange: () => {
@@ -1292,17 +1304,18 @@ const dashModule = {
         if (user.active_protocol) {
             const p = user.active_protocol;
             
+            const safeT = window.safeI18nT || langModule.t;
             // Populate Protocol Context
-            const titleMap = { fat_loss: langModule.t("PLAN: FAT LOSS"), muscle_gain: langModule.t("PLAN: BUILD MUSCLE"), recomp: langModule.t("PLAN: BODY RECOMPOSITION"), military: langModule.t("PLAN: OVERALL FITNESS") };
+            const titleMap = { fat_loss: safeT("PLAN: FAT LOSS"), muscle_gain: safeT("PLAN: BUILD MUSCLE"), recomp: safeT("PLAN: BODY RECOMPOSITION"), military: safeT("PLAN: OVERALL FITNESS") };
             document.getElementById('dash-mission-type').textContent = titleMap[p.meta.goal];
-            document.getElementById('dash-tier').textContent = langModule.t(p.meta.tier) + " " + langModule.t("LEVEL");
-            document.getElementById('res-training-style').textContent = langModule.t(p.meta.style);
+            document.getElementById('dash-tier').textContent = safeT(p.meta.tier) + " " + safeT("LEVEL");
+            document.getElementById('res-training-style').textContent = safeT(p.meta.style);
 
             // Profile Stats
             document.getElementById('res-profile-stats').innerHTML = `
-                <div class="stat-item"><span class="stat-label" data-i18n="Frequency">${langModule.t("Frequency")}</span><span class="stat-value"><i class="fa-solid fa-calendar-day text-primary mr-1 text-xs"></i> ${p.meta.days} ${langModule.t("Days / Wk")}</span></div>
-                <div class="stat-item"><span class="stat-label" data-i18n="Status">${langModule.t("Status")}</span><span class="stat-value text-success"><i class="fa-solid fa-check text-success mr-1 text-xs"></i> ${langModule.t("Active")}</span></div>
-                <div class="stat-item"><span class="stat-label" data-i18n="Deploy Date">${langModule.t("Deploy Date")}</span><span class="stat-value">${p.created_at}</span></div>
+                <div class="stat-item"><span class="stat-label" data-safe-i18n="Frequency">${safeT("Frequency")}</span><span class="stat-value"><i class="fa-solid fa-calendar-day text-primary mr-1 text-xs"></i> ${p.meta.days} ${safeT("Days / Wk")}</span></div>
+                <div class="stat-item"><span class="stat-label" data-safe-i18n="Status">${safeT("Status")}</span><span class="stat-value text-success"><i class="fa-solid fa-check text-success mr-1 text-xs"></i> ${safeT("Active")}</span></div>
+                <div class="stat-item"><span class="stat-label" data-safe-i18n="Deploy Date">${safeT("Deploy Date")}</span><span class="stat-value">${p.created_at}</span></div>
             `;
 
             // Nutrition
@@ -1312,25 +1325,27 @@ const dashModule = {
                 <div class="macro-box"><div class="val">${p.nutrition.carbs}g</div><div class="lbl">CARB</div></div>
                 <div class="macro-box"><div class="val">${p.nutrition.fats}g</div><div class="lbl">FAT</div></div>
             `;
-            
-            const dietTitles = {balanced: langModule.t("Balanced Nutrition"), keto: langModule.t("Keto Diet"), fasting: langModule.t("Intermittent Fasting")};
-            const structTitles = {strict: langModule.t("Strict Tracking"), flexible: langModule.t("Flexible / Intuitive")};
+            const dietTitles = {balanced: safeT("Balanced Nutrition"), keto: safeT("Keto Diet"), fasting: safeT("Intermittent Fasting")};
+            const structTitles = {strict: safeT("Strict Tracking"), flexible: safeT("Flexible / Intuitive")};
             document.getElementById('res-nutrition-plan').innerHTML = `
-                <li><i class="fa-solid fa-check"></i> ${langModule.t("Diet")}: ${dietTitles[p.nutrition.diet] || langModule.t(p.nutrition.diet)}</li>
-                <li><i class="fa-solid fa-check"></i> ${langModule.t("Style")}: ${structTitles[p.nutrition.structure] || langModule.t(p.nutrition.structure)}</li>
+                <li><i class="fa-solid fa-check"></i> ${safeT("Diet")}: ${dietTitles[p.nutrition.diet] || safeT(p.nutrition.diet)}</li>
+                <li><i class="fa-solid fa-check"></i> ${safeT("Style")}: ${structTitles[p.nutrition.structure] || safeT(p.nutrition.structure)}</li>
             `;
 
             // Recovery
             document.getElementById('res-recovery-plan').innerHTML = p.recovery.map(r => {
                 // Try to parse out the dynamic parts to translate the generic string
                 let text = r;
-                if (r.startsWith('Aim for')) {
-                    const hrs = r.match(/Aim for (.*?) hours/)?.[1] || '7.5';
-                    text = `${langModule.t('Aim for')} ${hrs} ${langModule.t('hours of quality sleep.')}`;
-                } else if (r.startsWith('Daily mobility:')) {
-                    const inj = r.match(/\[(.*?)\]/)?.[1] || '';
-                    const translatedInj = inj.split(', ').map(i => langModule.t(i)).join(', ');
-                    text = `${langModule.t('Daily mobility: 10 mins dedicated stretching/rehab for')} [${translatedInj}].`;
+                if (r.startsWith('Aim for') || r.includes('часа качествен сън') || r.includes('hours of quality sleep')) {
+                    const hrs = r.match(/([0-9.]+)/)?.[1] || '7.5';
+                    text = `${safeT('Aim for')} ${hrs} ${safeT('hours of quality sleep.')}`;
+                } else if (r.startsWith('Daily mobility:') || r.includes('Ежедневна подвижност')) {
+                    const injMatch = r.match(/\[(.*?)\]/);
+                    if (injMatch) {
+                        const inj = injMatch[1];
+                        const translatedInj = inj.split(', ').map(i => safeT(i)).join(', ');
+                        text = `${safeT('Daily mobility: 10 mins dedicated stretching/rehab for')} [${translatedInj}].`;
+                    }
                 }
                 return `<li><i class="fa-solid fa-droplet"></i> ${text}</li>`;
             }).join('');
@@ -1338,21 +1353,24 @@ const dashModule = {
             // Training Modules (Scroller)
             let modulesHtml = "";
             p.training.forEach((t) => {
-                let translatedDesc = langModule.t(t.desc) || t.desc;
-                if (t.desc.startsWith('Focus on your main goal')) {
-                    const weak = t.desc.match(/\[(.*?)\]/)?.[1] || 'core fitness';
-                    translatedDesc = `${langModule.t('Focus on your main goal, especially')} [${langModule.t(weak)}].`;
+                let translatedDesc = safeT(t.desc) || t.desc;
+                if (t.desc.startsWith('Focus on your main goal') || t.desc.includes('Фокус върху основната ви цел')) {
+                    const weakMatch = t.desc.match(/\[(.*?)\]/);
+                    const weak = weakMatch ? weakMatch[1] : 'core fitness';
+                    translatedDesc = `${safeT('Focus on your main goal, especially')} [${safeT(weak)}].`;
+                } else if (t.desc.startsWith('Build up your fitness') || t.desc.includes('Подобрявайте формата си')) {
+                    translatedDesc = safeT('Build up your fitness and track progress.');
                 }
                 
                 modulesHtml += `
                 <div class="day-card">
-                    <div class="day-header">${langModule.t(t.day)}</div>
+                    <div class="day-header">${safeT(t.day)}</div>
                     <div class="day-body">
                         <div class="day-desc font-mono">
-                            <strong class="text-primary tracking-widest uppercase">${langModule.t(t.name)}</strong><br>
+                            <strong class="text-primary tracking-widest uppercase">${safeT(t.name)}</strong><br>
                             <span class="text-xs uppercase mt-2 block opacity-80">${translatedDesc}</span>
                         </div>
-                        <div class="mt-4"><span class="day-stat-chip"><i class="fa-solid fa-circle text-primary text-[0.45rem]"></i> ${langModule.t("To Do")}</span></div>
+                        <div class="mt-4"><span class="day-stat-chip"><i class="fa-solid fa-circle text-primary text-[0.45rem]"></i> ${safeT("To Do")}</span></div>
                     </div>
                 </div>`;
             });
@@ -1388,9 +1406,10 @@ const dashModule = {
             const sleepStr = t.sleep ? `${t.sleep}/10` : '-';
             const workStr = t.workouts ? `${t.workouts}%` : '-';
             
+            const safeT = window.safeI18nT || langModule.t;
             html += `<tr>
                 <td>${t.date}</td>
-                <td>${t.weight} ${langModule.t("kg")}</td>
+                <td>${t.weight} ${safeT("kg")}</td>
                 <td>${waistStr}</td>
                 <td>${t.adherence}%</td>
                 <td>${workStr}</td>
@@ -1424,12 +1443,13 @@ const dashModule = {
                 document.getElementById('tracker-adh-bar').style.backgroundColor = realA > 85 ? 'var(--success)' : (realA > 70 ? 'var(--warning)' : 'var(--danger)');
             }, 500);
 
+            const safeT = window.safeI18nT || langModule.t;
             // Update placeholder box on Active protocol 
             document.querySelector('.border-dashed').innerHTML = `
                 <div>
                     <i class="fa-solid fa-radar text-primary text-3xl mb-2"></i>
-                    <h4 class="text-xs font-bold uppercase text-primary font-mono tracking-widest mt-2" data-i18n="Overall Consistency">${langModule.t("Overall Consistency")}: ${Math.round((realA + realWC)/2) || realA}%</h4>
-                    <p class="text-[0.65rem] text-muted mt-1 uppercase font-mono tracking-widest"><span data-i18n="Diet">${langModule.t("Diet")}</span>: ${realA}% | <span data-i18n="Training">${langModule.t("Training")}</span>: ${realWC}%</p>
+                    <h4 class="text-xs font-bold uppercase text-primary font-mono tracking-widest mt-2"><span data-safe-i18n="Overall Consistency">${safeT("Overall Consistency")}</span>: ${Math.round((realA + realWC)/2) || realA}%</h4>
+                    <p class="text-[0.65rem] text-muted mt-1 uppercase font-mono tracking-widest"><span data-safe-i18n="Diet">${safeT("Diet")}</span>: ${realA}% | <span data-safe-i18n="Training">${safeT("Training")}</span>: ${realWC}%</p>
                 </div>
             `;
         } else {
@@ -1440,24 +1460,25 @@ const dashModule = {
 
     renderHistory: (user) => {
         let html = '';
+        const safeT = window.safeI18nT || langModule.t;
         user.history.forEach((h, i) => {
-            const titleMap = { fat_loss: langModule.t("PLAN: FAT LOSS"), muscle_gain: langModule.t("PLAN: BUILD MUSCLE"), recomp: langModule.t("PLAN: BODY RECOMPOSITION"), military: langModule.t("PLAN: OVERALL FITNESS") };
+            const titleMap = { fat_loss: safeT("PLAN: FAT LOSS"), muscle_gain: safeT("PLAN: BUILD MUSCLE"), recomp: safeT("PLAN: BODY RECOMPOSITION"), military: safeT("PLAN: OVERALL FITNESS") };
             html += `
             <div class="history-card">
                 <div>
-                    <span class="badge mb-2">${langModule.t("ARCHIVED")}</span>
+                    <span class="badge mb-2">${safeT("ARCHIVED")}</span>
                     <h4 class="text-xl font-heading font-black tracking-widest">${titleMap[h.meta.goal]}</h4>
-                    <p class="text-secondary text-xs uppercase font-mono mt-1">${langModule.t("Deployed")}: ${h.created_at}</p>
+                    <p class="text-secondary text-xs uppercase font-mono mt-1">${safeT("Deployed")}: ${h.created_at}</p>
                 </div>
                 <div class="flex gap-2 flex-wrap">
-                    <span class="day-stat-chip">${langModule.t("Level")}: ${langModule.t(h.meta.tier)}</span>
-                    <span class="day-stat-chip">${h.nutrition.cals} ${langModule.t("kcal limit")}</span>
+                    <span class="day-stat-chip">${safeT("Level")}: ${safeT(h.meta.tier)}</span>
+                    <span class="day-stat-chip">${h.nutrition.cals} ${safeT("kcal limit")}</span>
                 </div>
             </div>`;
         });
         
         const grid = document.getElementById('history-grid');
-        grid.innerHTML = html || '<p class="text-muted font-mono uppercase text-sm">[ No previous plans found ]</p>';
+        grid.innerHTML = html || `<p class="text-muted font-mono uppercase text-sm" data-safe-i18n="[ No previous plans found ]">${safeT('[ No previous plans found ]')}</p>`;
     },
 
     switchTab: (tabId, event) => {

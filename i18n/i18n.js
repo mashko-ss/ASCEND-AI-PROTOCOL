@@ -29,6 +29,7 @@ export function t(key) {
     }
     return key;
 }
+window.safeI18nT = t;
 
 export function applyTranslations() {
     document.querySelectorAll('[data-safe-i18n]').forEach(el => {
@@ -36,6 +37,7 @@ export function applyTranslations() {
         el.innerText = t(key);
     });
 }
+window.safeI18nApply = applyTranslations;
 
 // Initial application
 document.addEventListener('DOMContentLoaded', applyTranslations);
