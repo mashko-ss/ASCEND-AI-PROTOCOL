@@ -1181,9 +1181,106 @@ const wizardModule = {
 // 5. THE AI GENERATION ALGORITHM
 // ==========================================
 const algorithm = {
+    // ---- NEW AI GENERATION ENGINE ----
+    generateAIProtocol: async (userProfile) => {
+        // Construct the highly detailed System Prompt
+        const systemPrompt = `
+You are an elite, world-class fitness and nutrition coach. Your goal is to design a highly effective, personalized plan based on the user's profile.
+You must adhere strictly to evidence-based principles, such as progressive overload, adequate recovery, and logical exercise sequencing (e.g., Push/Pull/Legs, Upper/Lower, or Full Body splits depending on frequency).
+
+USER PROFILE:
+${JSON.stringify(userProfile, null, 2)}
+
+CRITICAL REQUIREMENT:
+You must output the result ONLY in strict JSON format. Do NOT include any markdown formatting (like \`\`\`json), no introductory text, no conversational text, and no concluding text. Just the raw JSON object.
+
+The JSON MUST exactly follow this structure:
+{
+  "workout_plan": [
+    {
+      "day": "Day Name (e.g., Monday, Tuesday)",
+      "focus": "Workout Focus (e.g., Upper Body Strength, Active Recovery)",
+      "exercises": [
+        {
+          "name": "Exercise Name",
+          "sets": "Number of sets (e.g., 3-4)",
+          "reps": "Rep range (e.g., 8-12)",
+          "rest": "Rest time (e.g., 90s)"
+        }
+      ]
+    }
+  ],
+  "nutrition_plan": {
+    "daily_calories": "Target calories (e.g., 2500 kcal)",
+    "macros": {
+      "protein": "Target protein (e.g., 180g)",
+      "carbs": "Target carbs (e.g., 250g)",
+      "fats": "Target fats (e.g., 70g)"
+    },
+    "guidelines": [
+      "Rule 1 based on their dietary preference and goal",
+      "Rule 2...",
+      "Rule 3..."
+    ]
+  }
+}`;
+
+        console.log("--- GENERATED AI SYSTEM PROMPT ---");
+        console.log(systemPrompt);
+        console.log("----------------------------------");
+
+        // Mock API Call Structure indicating where the actual fetch request goes
+        try {
+            console.log("Simulating API fetch request to AI Provider...");
+            // const response = await fetch('https://api.openai.com/v1/chat/completions', {
+            //     method: 'POST',
+            //     headers: {
+            //         'Content-Type': 'application/json',
+            //         'Authorization': 'Bearer YOUR_API_KEY'
+            //     },
+            //     body: JSON.stringify({
+            //         model: 'gpt-4o', // or equivalent model
+            //         messages: [{ role: 'system', content: systemPrompt }],
+            //         temperature: 0.7,
+            //         response_format: { type: 'json_object' }
+            //     })
+            // });
+            // const aiResult = await response.json();
+            // const parsedJSON = JSON.parse(aiResult.choices[0].message.content);
+            // return parsedJSON;
+
+            // For now, return a mock structured response
+            const mockParsedJSON = {
+                "workout_plan": [
+                    {
+                        "day": "Monday",
+                        "focus": "Upper Body Strength",
+                        "exercises": [
+                            {"name": "Barbell Bench Press", "sets": "4", "reps": "5-8", "rest": "120s"}
+                        ]
+                    }
+                ],
+                "nutrition_plan": {
+                    "daily_calories": "Calculating...",
+                    "macros": {"protein": "TBD", "carbs": "TBD", "fats": "TBD"},
+                    "guidelines": ["Stay hydrated", "Focus on whole foods"]
+                }
+            };
+            return mockParsedJSON;
+        } catch (error) {
+            console.error("AI Generation failed:", error);
+            return null;
+        }
+    },
+
     generate: (data) => {
         const overlay = document.getElementById('loading-overlay');
         overlay.classList.add('active');
+
+        // NEW LOGIC: Call the AI prompt engine and log it, then proceed with legacy simulation
+        algorithm.generateAIProtocol(data).then(mockAIResult => {
+            console.log("Mock AI Generated JSON object:", mockAIResult);
+        });
 
         let p = 0;
         const bar = document.getElementById('cyber-progress-bar');
