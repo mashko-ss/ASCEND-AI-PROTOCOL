@@ -1663,6 +1663,16 @@ document.addEventListener('DOMContentLoaded', () => {
     } else {
         app.navigate('landing');
     }
+
+    // --- DEVELOPER TEST SHORTCUT ---
+    const testBtn = document.getElementById('dev-test-ai');
+    if (testBtn) {
+        testBtn.addEventListener('click', () => {
+            if (window.testAIProtocol) {
+                window.testAIProtocol();
+            }
+        });
+    }
 });
 
 // ==========================================
