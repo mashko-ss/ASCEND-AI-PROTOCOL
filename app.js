@@ -1273,14 +1273,19 @@ The JSON MUST exactly follow this structure:
         }
     },
 
-    generate: (data) => {
+    generate: async (data) => {
         const overlay = document.getElementById('loading-overlay');
         overlay.classList.add('active');
 
-        // NEW LOGIC: Call the AI prompt engine and log it, then proceed with legacy simulation
-        algorithm.generateAIProtocol(data).then(mockAIResult => {
-            console.log("Mock AI Generated JSON object:", mockAIResult);
-        });
+        // NEW LOGIC: Await the AI prompt engine and log the strictly formatted JSON
+        console.log("Gathering user profile data for AI:", JSON.stringify(data, null, 2));
+        const aiResult = await algorithm.generateAIProtocol(data);
+        
+        console.log("==========================================");
+        console.log("🔥 FINAL AI GENERATED PROTOCOL (JSON) 🔥");
+        console.log("==========================================");
+        console.log(JSON.stringify(aiResult, null, 2));
+        console.log("==========================================");
 
         let p = 0;
         const bar = document.getElementById('cyber-progress-bar');
@@ -1659,3 +1664,49 @@ document.addEventListener('DOMContentLoaded', () => {
         app.navigate('landing');
     }
 });
+
+// ==========================================
+// 8. TESTING: AI GENERATION PROTOCOL
+// ==========================================
+window.testAIProtocol = async () => {
+    console.log("Starting AI Protocol Test...");
+    
+    // Create a mock user profile representing the 8 steps
+    const mockProfile = {
+        goal: "recomp", // 1. Training Goal (Recomposition)
+        seriousness: "high", // Secondary: How dedicated
+        experience: "intermediate", // 2. Experience Level
+        fitness_level: 6,
+        has_injuries: "no", // 3. Limitations
+        stress: 5,
+        recovery_ability: "average",
+        days: "4", // 4. Days per Week
+        session_duration: "60", // 5. Session Duration
+        equipment: "full", // 6. Available Equipment
+        style: "hybrid", // 7. Training Style 
+        diet: "balanced", // 8. Nutrition Profile
+        has_allergies: "no",
+        meals_per_day: "3",
+        budget: "medium", // Lifestyle & Habits
+        hydration: "3",
+        supplements: "basic",
+        work_schedule: "standard", // Mindset & Tracking
+        structure: "flexible"
+    };
+
+    console.log("Mock Profile Data:", mockProfile);
+
+    // Call the AI Engine
+    const result = await algorithm.generateAIProtocol(mockProfile);
+    
+    console.log("----------------------------------");
+    console.log("AI SYSTEM RESPONSE (MOCK JSON):");
+    console.log(JSON.stringify(result, null, 2));
+    console.log("----------------------------------");
+    
+    if (result && result.workout_plan && result.nutrition_plan) {
+        console.log("✅ Test Passed: Valid JSON structure returned containing workout_plan and nutrition_plan.");
+    } else {
+        console.error("❌ Test Failed: Invalid JSON structure or missing key elements.");
+    }
+};
