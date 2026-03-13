@@ -762,6 +762,14 @@ const app = {
         // DOM Update
         app.views.forEach(v => document.getElementById(`view-${v}`).classList.remove('active'));
         document.getElementById(`view-${viewId}`).classList.add('active');
+        
+        // NEW LOGIC: Lock body scroll during assessment
+        if (viewId === 'assessment') {
+            document.body.classList.add('no-scroll');
+        } else {
+            document.body.classList.remove('no-scroll');
+        }
+
         window.scrollTo(0,0);
         
         // Auto close mobile menu
@@ -1662,16 +1670,6 @@ document.addEventListener('DOMContentLoaded', () => {
         else app.navigate('onboarding');
     } else {
         app.navigate('landing');
-    }
-
-    // --- DEVELOPER TEST SHORTCUT ---
-    const testBtn = document.getElementById('dev-test-ai');
-    if (testBtn) {
-        testBtn.addEventListener('click', () => {
-            if (window.testAIProtocol) {
-                window.testAIProtocol();
-            }
-        });
     }
 });
 

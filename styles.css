@@ -75,6 +75,32 @@ body::before {
     background-position: center center;
 }
 
+/* --- PREMIUM AI AMBIENT GLOW --- */
+.bg-glow {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    width: 150vw;
+    height: 150vh;
+    transform: translate(-50%, -50%);
+    background: radial-gradient(circle at center, rgba(234, 88, 12, 1) 0%, rgba(4, 4, 6, 0) 60%);
+    z-index: -1;
+    pointer-events: none;
+    animation: pulse-glow 10s ease-in-out infinite alternate;
+}
+
+@keyframes pulse-glow {
+    0% {
+        transform: translate(-50%, -50%) scale(0.9);
+        opacity: 0.03;
+    }
+    100% {
+        transform: translate(-50%, -50%) scale(1.1);
+        opacity: 0.08;
+    }
+}
+/* ---------------------------------- */
+
 h1,
 h2,
 h3,
@@ -839,8 +865,26 @@ h6 {
     box-shadow: var(--shadow-md);
     display: flex;
     flex-direction: column;
-    height: 85vh;
-    max-height: 800px;
+    /* Strict 100vh constraint logic */
+    height: 100%;
+    max-height: calc(100vh - 4rem); /* accounting for main app padding if any */
+    overflow: hidden;
+}
+
+/* Modifier to prevent body scroll */
+body.no-scroll {
+    overflow: hidden;
+    height: 100vh;
+}
+
+/* Ensure the full view is flex and constraint to screen */
+#view-assessment {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    padding: 1rem;
+    overflow: hidden;
 }
 
 .wizard-header {
@@ -864,15 +908,36 @@ h6 {
 }
 
 .wizard-scroll-area {
-    padding: 2.5rem 3rem;
-    overflow-y: auto;
+    padding: 0.75rem 1.5rem;
+    overflow-y: hidden;
     flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+/* Customize webkit scrollbar for the wizard area to look premium */
+.wizard-scroll-area::-webkit-scrollbar {
+    width: 6px;
+}
+
+.wizard-scroll-area::-webkit-scrollbar-track {
+    background: var(--bg-base); 
+}
+
+.wizard-scroll-area::-webkit-scrollbar-thumb {
+    background: var(--border-color); 
+    border-radius: var(--radius-sm);
+}
+
+.wizard-scroll-area::-webkit-scrollbar-thumb:hover {
+    background: var(--text-muted); 
 }
 
 .wizard-form-group {
     display: flex;
     flex-direction: column;
-    gap: 2.5rem;
+    gap: 1rem;
     animation: slideIn 0.3s ease forwards;
 }
 
@@ -891,7 +956,7 @@ h6 {
 .question-block {
     display: flex;
     flex-direction: column;
-    gap: 1.25rem;
+    gap: 0.5rem;
 }
 
 .question-label {
@@ -906,18 +971,25 @@ h6 {
 }
 
 .options-grid {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 0.75rem;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: stretch;
+    gap: 0.5rem;
 }
 
-.opts-2 {
-    grid-template-columns: 1fr 1fr;
+.options-grid > * {
+    flex: 1 1 calc(50% - 0.5rem);
 }
 
-.opts-3 {
-    grid-template-columns: repeat(3, 1fr);
+.opts-2 > * {
+    flex: 1 1 calc(50% - 0.5rem);
 }
+
+.opts-3 > * {
+    flex: 1 1 calc(33.333% - 0.5rem);
+}
+
+
 
 .radio-card input,
 .chip-checkbox input {
@@ -928,35 +1000,37 @@ h6 {
 .radio-card-content {
     display: flex;
     flex-direction: column;
-    padding: 1.25rem;
+    padding: 0.6rem 0.8rem;
     background: var(--bg-base);
     border: 1px solid var(--border-color);
     border-radius: var(--radius-sm);
     cursor: pointer;
     transition: all var(--transition-fast);
     height: 100%;
+    justify-content: center;
+    text-align: center;
 }
 
 .radio-card-content i {
-    font-size: 1.25rem;
+    font-size: 1.1rem;
     color: var(--text-secondary);
-    margin-bottom: 0.75rem;
+    margin-bottom: 0.4rem;
     transition: color var(--transition-fast);
 }
 
 .radio-label {
     font-family: var(--font-mono);
     font-weight: 700;
-    font-size: 0.85rem;
+    font-size: 0.8rem;
     color: var(--text-secondary);
     text-transform: uppercase;
 }
 
 .radio-subtext {
-    font-size: 0.8rem;
+    font-size: 0.7rem;
     color: var(--text-muted);
-    margin-top: 0.5rem;
-    line-height: 1.4;
+    margin-top: 0.25rem;
+    line-height: 1.3;
 }
 
 .radio-card:hover .radio-card-content {
@@ -1032,10 +1106,12 @@ h6 {
 .wizard-actions {
     display: flex;
     justify-content: space-between;
-    padding: 1.5rem 3rem;
+    padding: 1.25rem 2rem;
     border-top: 1px solid var(--border-color);
     background: var(--bg-base);
     border-radius: 0 0 var(--radius-md) var(--radius-md);
+    /* Ensure action buttons are always pinned to bottom */
+    flex-shrink: 0;
 }
 
 .dashboard-layout {
