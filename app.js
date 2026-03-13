@@ -662,6 +662,11 @@ const langModule = {
         const activeBtn = document.getElementById(`lang-btn-${lang}`);
         if(activeBtn) activeBtn.classList.add('text-primary', 'font-bold');
         
+        // Trigger the new safe i18n system for STEP 1 dashboard texts
+        if (window.safeI18nSetLanguage) {
+            window.safeI18nSetLanguage(lang);
+        }
+        
         // Re-render wizard if active
         if (typeof wizardModule !== 'undefined' && document.getElementById('view-assessment')?.classList.contains('active')) {
             wizardModule.render();

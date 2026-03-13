@@ -217,10 +217,10 @@
                         <div class="dash-tab active" id="tab-active-protocol">
                             <div class="dashboard-header mb-6 flex-between">
                                 <div>
-                                    <h2 class="dashboard-title uppercase font-black tracking-widest" id="dash-mission-type" data-i18n="YOUR TRAINING PLAN">YOUR TRAINING PLAN</h2>
+                                    <h2 class="dashboard-title uppercase font-black tracking-widest" id="dash-mission-type" data-i18n="Your Training Plan">YOUR TRAINING PLAN</h2>
                                     <p class="text-secondary mt-1 font-mono text-xs uppercase" data-i18n="Pending Assessment">Pending your assessment.</p>
                                 </div>
-                                <button class="btn btn-outline font-mono text-xs uppercase" onclick="dashModule.switchTab('progress-tracker', event)"><i class="fa-solid fa-pen-to-square mr-1"></i> <span data-i18n="Log Progress">Log Progress</span></button>
+                                <button class="btn btn-outline font-mono text-xs uppercase" onclick="dashModule.switchTab('progress-tracker', event)"><i class="fa-solid fa-pen-to-square mr-1"></i> <span data-i18n="Enter Progress">Log Progress</span></button>
                             </div>
 
                             <div class="dashboard-grid">
@@ -272,7 +272,7 @@
                                 <div class="dashboard-card card-span-1 bg-surface-hover flex-center text-center p-6 border-dashed">
                                     <div>
                                         <i class="fa-solid fa-wave-square text-secondary text-2xl mb-3"></i>
-                                        <h4 class="text-xs font-bold uppercase tracking-widest text-secondary font-mono" data-i18n="No Data Yet">No Data Yet</h4>
+                                        <h4 class="text-xs font-bold uppercase tracking-widest text-secondary font-mono" data-i18n="No Data">No Data Yet</h4>
                                         <p class="text-xs text-muted mt-2 font-mono" data-i18n="Log Progress Desc">Log your weekly progress to track your improvements.</p>
                                     </div>
                                 </div>
@@ -280,7 +280,7 @@
                                 <!-- Training Protocol -->
                                 <div class="dashboard-card card-span-3 mt-2">
                                     <div class="card-header flex-between items-center">
-                                        <h3><i class="fa-solid fa-diagram-project"></i> <span data-i18n="Workout Plan">Workout Plan</span></h3>
+                                        <h3><i class="fa-solid fa-diagram-project"></i> <span data-i18n="Training Plan">Workout Plan</span></h3>
                                         <span class="badge badge-outline font-mono bg-base" id="res-training-style">HYBRID</span>
                                     </div>
                                     <div class="card-body p-0">
@@ -463,6 +463,7 @@
     </div>
 
     <script src="config.js"></script>
-    <script src="app.js"></script>
+    <script type="module" src="i18n/i18n.js"></script>
+    <script type="module" src="app.js"></script>
 </body>
 </html>
