@@ -3,6 +3,9 @@
  * Architecture: Vanilla JS + Robust LocalStorage Simulation
  */
 
+// Global App Namespace established early to prevent ReferenceErrors
+window.app = window.app || {};
+
 // ==========================================
 // 1. DATABASE & PERSISTENCE
 // ==========================================
@@ -795,12 +798,25 @@ const app = {
             document.getElementById('nav-avatar').textContent = user.email.substring(0, 2).toUpperCase();
             document.getElementById('dropdown-email').textContent = user.email;
 
-            // Setup Dropdown listener
-            document.getElementById('user-menu-btn').onclick = (e) => {
-                e.stopPropagation();
-                document.getElementById('user-dropdown').classList.toggle('hidden');
-            };
-            document.addEventListener('click', () => document.getElementById('user-dropdown').classList.add('hidden'));
+            // Setup Dropdown listener safely
+            const userMenuBtn = document.getElementById('user-menu-btn');
+            if (userMenuBtn) {
+                userMenuBtn.onclick = null; // Clear old
+                userMenuBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const dropdown = document.getElementById('user-dropdown');
+                    if (dropdown) dropdown.classList.toggle('hidden');
+                });
+            }
+            
+            // Check if listener was already bound avoiding memory leaks
+            if (!window._dropdownBlurListener) {
+                document.addEventListener('click', () => {
+                    const dropdown = document.getElementById('user-dropdown');
+                    if (dropdown) dropdown.classList.add('hidden');
+                });
+                window._dropdownBlurListener = true;
+            }
         } else {
             navUnauth.classList.remove('hidden');
             navAuth.classList.add('hidden');
@@ -838,11 +854,23 @@ const authModule = {
         document.getElementById('btn-auth-submit').textContent = authModule.isSignup ? langModule.t('Create Account') : langModule.t('Login');
         document.getElementById('auth-error').classList.add('hidden');
 
-        const toggleTxt = document.getElementById('auth-toggle-text');
-        if (authModule.isSignup) {
-            toggleTxt.innerHTML = `<span data-i18n="Already have an account?">${langModule.t('Already have an account?')}</span> <span class="text-primary hover-underline cursor-pointer font-bold" onclick="authModule.toggleMode()" data-i18n="Login">${langModule.t('Login')}</span>`;
-        } else {
-            toggleTxt.innerHTML = `<span data-i18n="No account yet?">${langModule.t('No account yet?')}</span> <span class="text-primary hover-underline cursor-pointer font-bold" onclick="authModule.toggleMode()" data-i18n="Create Account">${langModule.t('Create Account')}</span>`;
+        const toggleContainer = document.getElementById('auth-toggle-text');
+        if (toggleContainer) {
+            // Rebuild using the safe ID structure without inline onclicks
+            if (authModule.isSignup) {
+                toggleContainer.innerHTML = `<span data-i18n="Already have an account?">${langModule.t('Already have an account?')}</span> <span class="text-primary hover-underline cursor-pointer font-bold" id="auth-toggle-btn" data-i18n="Login">${langModule.t('Login')}</span>`;
+            } else {
+                toggleContainer.innerHTML = `<span data-i18n="No account yet?">${langModule.t('No account yet?')}</span> <span class="text-primary hover-underline cursor-pointer font-bold" id="auth-toggle-btn" data-i18n="Create Account">${langModule.t('Create Account')}</span>`;
+            }
+            
+            // Re-bind listener because we just destroyed the DOM element with innerHTML
+            const authToggleBtn = document.getElementById('auth-toggle-btn');
+            if (authToggleBtn) {
+                authToggleBtn.addEventListener('click', (e) => { 
+                    e.preventDefault(); 
+                    authModule.toggleMode(); 
+                });
+            }
         }
     },
 
@@ -1437,22 +1465,88 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // Wizard Navigation Listeners via Event Delegation (Guaranteed Binding)
-    document.addEventListener('click', (e) => {
-        const nextBtn = e.target.closest('#btn-next-step');
-        if (nextBtn) {
-            e.preventDefault();
-            wizardModule.next();
-            return;
-        }
+    // ==========================================
+    // EXPLICIT, SAFE EVENT LISTENERS (Null-checked)
+    // ==========================================
+    
+    // --- Navigation & Routing ---
+    const navBrandLogo = document.getElementById('nav-brand-logo');
+    if (navBrandLogo) navBrandLogo.addEventListener('click', (e) => { e.preventDefault(); app.navigate('landing'); });
 
-        const prevBtn = e.target.closest('#btn-prev-step');
-        if (prevBtn) {
-            e.preventDefault();
-            wizardModule.prev();
-            return;
-        }
-    });
+    const navMobileLogin = document.getElementById('nav-mobile-login');
+    if (navMobileLogin) navMobileLogin.addEventListener('click', (e) => { e.preventDefault(); app.navigate('auth', 'login'); });
+
+    const heroLoginBtn = document.getElementById('hero-login-btn');
+    if (heroLoginBtn) heroLoginBtn.addEventListener('click', (e) => { e.preventDefault(); app.navigate('auth', 'login'); });
+
+    const navMobileSignup = document.getElementById('nav-mobile-signup');
+    if (navMobileSignup) navMobileSignup.addEventListener('click', (e) => { e.preventDefault(); app.navigate('auth', 'signup'); });
+
+    const heroStartBtn = document.getElementById('hero-start-btn');
+    if (heroStartBtn) heroStartBtn.addEventListener('click', (e) => { e.preventDefault(); app.navigate('auth', 'signup'); });
+
+    const navUserDashboard = document.getElementById('nav-user-dashboard');
+    if (navUserDashboard) navUserDashboard.addEventListener('click', (e) => { e.preventDefault(); app.navigate('dashboard'); });
+
+    const assessmentPauseBtn = document.getElementById('assessment-pause-btn');
+    if (assessmentPauseBtn) assessmentPauseBtn.addEventListener('click', (e) => { e.preventDefault(); app.navigate('dashboard'); });
+
+    const navUserAssessment = document.getElementById('nav-user-assessment');
+    if (navUserAssessment) navUserAssessment.addEventListener('click', (e) => { e.preventDefault(); app.navigate('assessment'); });
+
+    const onboardingStartBtn = document.getElementById('onboarding-start-btn');
+    if (onboardingStartBtn) onboardingStartBtn.addEventListener('click', (e) => { e.preventDefault(); app.navigate('assessment'); });
+
+    const sidebarRetakeBtn = document.getElementById('sidebar-retake-btn');
+    if (sidebarRetakeBtn) sidebarRetakeBtn.addEventListener('click', (e) => { e.preventDefault(); app.navigate('assessment'); });
+
+    const navUserLogout = document.getElementById('nav-user-logout');
+    if (navUserLogout) navUserLogout.addEventListener('click', (e) => { e.preventDefault(); app.logout(); });
+
+    // --- Language & Menu ---
+    const langBtnEn = document.getElementById('lang-btn-en');
+    if (langBtnEn) langBtnEn.addEventListener('click', (e) => { e.preventDefault(); langModule.setLanguage('en'); });
+
+    const langBtnBg = document.getElementById('lang-btn-bg');
+    if (langBtnBg) langBtnBg.addEventListener('click', (e) => { e.preventDefault(); langModule.setLanguage('bg'); });
+
+    const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+    if (mobileMenuBtn) mobileMenuBtn.addEventListener('click', (e) => { e.preventDefault(); app.toggleMobileMenu(); });
+
+    // --- Auth Module ---
+    const authToggleBtn = document.getElementById('auth-toggle-btn');
+    if (authToggleBtn) authToggleBtn.addEventListener('click', (e) => { e.preventDefault(); authModule.toggleMode(); });
+
+    // --- Dashboard Tabs ---
+    const tabBtnProtocol = document.getElementById('tab-btn-protocol');
+    if (tabBtnProtocol) tabBtnProtocol.addEventListener('click', (e) => { e.preventDefault(); dashModule.switchTab('active-protocol', e); });
+
+    const tabBtnProgress = document.getElementById('tab-btn-progress');
+    if (tabBtnProgress) tabBtnProgress.addEventListener('click', (e) => { e.preventDefault(); dashModule.switchTab('progress-tracker', e); });
+
+    const dashLogProgressBtn = document.getElementById('dash-log-progress-btn');
+    if (dashLogProgressBtn) dashLogProgressBtn.addEventListener('click', (e) => { e.preventDefault(); dashModule.switchTab('progress-tracker', e); });
+
+    const tabBtnHistory = document.getElementById('tab-btn-history');
+    if (tabBtnHistory) tabBtnHistory.addEventListener('click', (e) => { e.preventDefault(); dashModule.switchTab('history', e); });
+
+    // --- Modals ---
+    const trackerLogBtn = document.getElementById('tracker-log-btn');
+    if (trackerLogBtn) trackerLogBtn.addEventListener('click', (e) => { e.preventDefault(); toggleModal('modal-checkin', true); });
+
+    const modalSaveLogBtn = document.getElementById('modal-save-log-btn');
+    if (modalSaveLogBtn) modalSaveLogBtn.addEventListener('click', (e) => { e.preventDefault(); dashModule.submitCheckin(); });
+
+    // --- Wizard Navigation ---
+    const btnNextStep = document.getElementById('btn-next-step');
+    if (btnNextStep) btnNextStep.addEventListener('click', (e) => { e.preventDefault(); wizardModule.next(); });
+
+    const btnPrevStep = document.getElementById('btn-prev-step');
+    if (btnPrevStep) btnPrevStep.addEventListener('click', (e) => { e.preventDefault(); wizardModule.prev(); });
+
+    // --- Form Submission ---
+    const authForm = document.getElementById('auth-form');
+    if (authForm) authForm.addEventListener('submit', (e) => { e.preventDefault(); authModule.submit(); });
 
     // Check auth to route properly
     const user = db.getCurrentUser();
