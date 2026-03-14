@@ -878,118 +878,16 @@ const authModule = {
 
 // ==========================================
 // ==========================================
-// 4. THE 9-STEP MATRIX MODULE
+// 4. THE WIZARD MODULE (DOM DRIVEN)
 // ==========================================
-const questions = [
-    {
-        step: 0, id: 'training_goal', title: 'Training Goal',
-        fields: [
-            {
-                id: 'primary_goal', type: 'radio', cols: 2, label: 'Primary Focus', options: [
-                    { val: 'fat_loss', label: 'Fat Loss', subtext: 'Lose fat while preserving muscle.', icon: 'fa-fire' },
-                    { val: 'muscle_gain', label: 'Build Muscle', subtext: 'Gain muscle and strength.', icon: 'fa-dumbbell' },
-                    { val: 'recomp', label: 'Recomposition', subtext: 'Lose fat and gain muscle at the same time.', icon: 'fa-scale-unbalanced' },
-                    { val: 'longevity', label: 'Health & Longevity', subtext: 'Optimize healthspan and vitality.', icon: 'fa-heart-pulse' }
-                ]
-            }
-        ]
-    },
-    {
-        step: 1, id: 'experience_level', title: 'Experience Level',
-        fields: [
-            {
-                id: 'experience', type: 'radio', cols: 1, label: 'Training Experience', options: [
-                    { val: 'beginner', label: 'Beginner', subtext: 'New to training, learning the basics.', icon: 'fa-seedling' },
-                    { val: 'intermediate', label: 'Intermediate', subtext: 'Consistent training for a few months.', icon: 'fa-bolt' },
-                    { val: 'advanced', label: 'Advanced', subtext: 'Several years of training experience.', icon: 'fa-fire-flame-curved' }
-                ]
-            }
-        ]
-    },
-    {
-        step: 2, id: 'equipment', title: 'Available Equipment',
-        fields: [
-            {
-                id: 'equipment', type: 'radio', cols: 1, label: 'Equipment Access', options: [
-                    { val: 'full', label: 'Full Gym', subtext: 'A proper gym with machines and free weights.', icon: 'fa-building' },
-                    { val: 'home', label: 'Home Gym', subtext: 'Basic setup with dumbbells or a barbell.', icon: 'fa-warehouse' },
-                    { val: 'bodyweight', label: 'Bodyweight/Minimal', subtext: 'No equipment, just your body.', icon: 'fa-child-reaching' }
-                ]
-            }
-        ]
-    },
-    {
-        step: 3, id: 'days_per_week', title: 'Days per Week',
-        fields: [
-            {
-                id: 'days', type: 'radio', cols: 2, label: 'Training Days Per Week', options: [
-                    { val: '2', label: '2 Days', icon: 'fa-calendar-day' },
-                    { val: '3', label: '3 Days', icon: 'fa-calendar-days' },
-                    { val: '4', label: '4 Days', icon: 'fa-calendar' },
-                    { val: '5', label: '5 Days', icon: 'fa-calendar-week' },
-                    { val: '6', label: '6 Days', icon: 'fa-calendar-check' }
-                ]
-            }
-        ]
-    },
-    {
-        step: 4, id: 'session_duration', title: 'Session Duration',
-        fields: [
-            {
-                id: 'duration', type: 'radio', cols: 2, label: 'Available Session Duration', options: [
-                    { val: '30', label: '30 Minutes', icon: 'fa-stopwatch-20' },
-                    { val: '45', label: '45 Minutes', icon: 'fa-stopwatch' },
-                    { val: '60', label: '60 Minutes', icon: 'fa-clock' },
-                    { val: '90', label: '90+ Minutes', icon: 'fa-hourglass' }
-                ]
-            }
-        ]
-    },
-    {
-        step: 5, id: 'weight_goal', title: 'Weight Goal',
-        fields: [
-            {
-                id: 'weight_goal', type: 'radio', cols: 1, label: 'Bodyweight Focus', options: [
-                    { val: 'lose', label: 'Lose Fat', subtext: 'Drop bodyweight and lean out.', icon: 'fa-arrow-down' },
-                    { val: 'maintain', label: 'Maintain', subtext: 'Stay around my current weight.', icon: 'fa-equals' },
-                    { val: 'gain', label: 'Build Muscle', subtext: 'Increase bodyweight and size.', icon: 'fa-arrow-up' }
-                ]
-            }
-        ]
-    },
-    {
-        step: 6, id: 'dietary_preference', title: 'Dietary Preference',
-        fields: [
-            {
-                id: 'diet', type: 'radio', cols: 1, label: 'Nutrition Style', options: [
-                    { val: 'standard', label: 'Standard / Balanced', subtext: 'A balanced mix of everything.', icon: 'fa-utensils' },
-                    { val: 'vegetarian', label: 'Vegetarian', subtext: 'No meat, but dairy and eggs are okay.', icon: 'fa-carrot' },
-                    { val: 'vegan', label: 'Vegan', subtext: 'Strictly plant-based.', icon: 'fa-leaf' },
-                    { val: 'keto', label: 'Keto', subtext: 'Very low carb, high fat.', icon: 'fa-bacon' }
-                ]
-            }
-        ]
-    },
-    {
-        step: 7, id: 'activity_level', title: 'Daily Activity Level',
-        fields: [
-            {
-                id: 'activity', type: 'radio', cols: 1, label: 'Activity Outside of Training', options: [
-                    { val: 'sedentary', label: 'Sedentary', subtext: 'Mostly sitting / little movement', icon: 'fa-chair' },
-                    { val: 'moderate', label: 'Moderately Active', subtext: 'Regular movement or active job', icon: 'fa-person-walking' },
-                    { val: 'highly', label: 'Highly Active', subtext: 'Hard physical work or intense daily activity', icon: 'fa-person-running' }
-                ]
-            }
-        ]
-    }
-];
-
 const wizardModule = {
     current: 0,
+    totalSteps: 8,
     data: {},
 
     init: () => {
         const user = db.getCurrentUser();
+        // Restore step state from DB
         if (user && user.assessment_state && Object.keys(user.assessment_state.data).length > 0) {
             wizardModule.current = user.assessment_state.step;
             wizardModule.data = user.assessment_state.data;
@@ -997,144 +895,85 @@ const wizardModule = {
             wizardModule.current = 0;
             wizardModule.data = {};
         }
+        
+        // Restore physical radio checked statuses
+        Object.keys(wizardModule.data).forEach(key => {
+            const radio = document.querySelector(`input[name="${key}"][value="${wizardModule.data[key]}"]`);
+            if (radio) radio.checked = true;
+        });
+
         wizardModule.render();
     },
 
     render: () => {
-        const q = questions[wizardModule.current];
-        document.getElementById('step-counter').textContent = `${wizardModule.current + 1} / ${questions.length}`;
-        document.getElementById('step-label').textContent = `${langModule.t('Step')} ${wizardModule.current + 1}`;
-        document.getElementById('step-title').textContent = langModule.t(q.title);
-        document.getElementById('wizard-progress').style.width = `${((wizardModule.current) / questions.length) * 100}%`;
-
-        const form = document.getElementById('wizard-form');
-        let html = '';
-
-        q.fields.forEach(f => {
-            const isVisible = f.condition ? f.condition(wizardModule.data) : true;
-            const displayStyle = isVisible ? '' : 'display: none;';
-
-            html += `<div class="question-block" id="block-${f.id}" style="${displayStyle}">
-                        <span class="question-label">${langModule.t(f.label)}</span>`;
-
-            if (f.type === 'number') {
-                const val = wizardModule.data[f.id] || '';
-                const placeholder = f.placeholder ? langModule.t(f.placeholder) : '';
-                html += `<input type="number" id="inp-${f.id}" class="input-modern w-full font-mono" placeholder="${placeholder}" value="${val}" oninput="wizardModule.handleInputChange()">`;
+        // Toggle strict .active / .hidden CSS Classes on DOM Steps
+        const steps = document.querySelectorAll('.wizard-step');
+        steps.forEach((step, index) => {
+            if (index === wizardModule.current) {
+                step.classList.add('active');
+                step.classList.remove('hidden');
+                step.style.display = 'block'; // Failsafe
+            } else {
+                step.classList.remove('active');
+                step.classList.add('hidden');
+                step.style.display = 'none'; // Failsafe
             }
-            else if (f.type === 'radio') {
-                const gridClass = f.cols === 2 ? 'opts-2' : f.cols === 3 ? 'opts-3' : '';
-                html += `<div class="options-grid ${gridClass}">`;
-                f.options.forEach(opt => {
-                    const checked = wizardModule.data[f.id] === opt.val ? 'checked' : '';
-                    html += `
-                    <label class="radio-card">
-                        <input type="radio" name="${f.id}" value="${opt.val}" ${checked} onchange="wizardModule.handleInputChange()">
-                        <div class="radio-card-content">
-                            ${opt.icon ? `<i class="fa-solid ${opt.icon}"></i>` : ''}
-                            <span class="radio-label">${langModule.t(opt.label)}</span>
-                            ${opt.subtext ? `<span class="radio-subtext">${langModule.t(opt.subtext)}</span>` : ''}
-                        </div>
-                    </label>`;
-                });
-                html += `</div>`;
-            }
-            else if (f.type === 'slider') {
-                const val = wizardModule.data[f.id] || f.default;
-                html += `
-                <div class="slider-container">
-                    <input type="range" id="inp-${f.id}" class="range-slider" min="${f.min}" max="${f.max}" value="${val}" oninput="document.getElementById('out-${f.id}').innerText=this.value; wizardModule.handleInputChange()">
-                    <div class="flex-between text-[0.65rem] text-muted font-bold font-mono tracking-widest uppercase mt-2">
-                        <span>${langModule.t('MIN')}: ${f.min}</span>
-                        <span class="text-primary text-xl font-bold" id="out-${f.id}">${val}</span>
-                        <span>${langModule.t('MAX')}: ${f.max}</span>
-                    </div>
-                </div>`;
-            }
-            else if (f.type === 'chips') {
-                html += `<div class="chips-grid">`;
-                const selected = wizardModule.data[f.id] || [];
-                f.options.forEach(opt => {
-                    const checked = selected.includes(opt) ? 'checked' : '';
-                    html += `
-                    <label class="chip-checkbox">
-                        <input type="checkbox" name="${f.id}" value="${opt}" ${checked} onchange="wizardModule.handleInputChange()">
-                        <div class="chip-content">${langModule.t(opt)}</div>
-                    </label>`;
-                });
-                html += `</div>`;
-            }
-            html += `</div>`;
         });
 
-        form.innerHTML = html;
+        // Update progress UI
+        document.getElementById('step-counter').textContent = `${wizardModule.current + 1} / ${wizardModule.totalSteps}`;
+        document.getElementById('wizard-progress').style.width = `${(wizardModule.current / wizardModule.totalSteps) * 100}%`;
 
+        // Update Button Visibilities
         document.getElementById('btn-prev-step').style.visibility = wizardModule.current === 0 ? 'hidden' : 'visible';
-        document.getElementById('btn-next-step').innerHTML = wizardModule.current === questions.length - 1 ? `${langModule.t('Create Plan')} <i class="fa-solid fa-microchip ml-2"></i>` : `${langModule.t('Next Step')} <i class="fa-solid fa-angle-right ml-2"></i>`;
+        
+        const nextBtn = document.getElementById('btn-next-step');
+        if (wizardModule.current === wizardModule.totalSteps - 1) {
+            nextBtn.innerHTML = `<span data-safe-i18n="Create Plan">${langModule.t('Create Plan')}</span> <i class="fa-solid fa-microchip ml-2"></i>`;
+        } else {
+            nextBtn.innerHTML = `<span data-safe-i18n="Next Step">${langModule.t('Next Step')}</span> <i class="fa-solid fa-angle-right ml-1"></i>`;
+        }
 
-        // Re-apply static translations to dynamic elements
         if (window.safeI18nApply) { window.safeI18nApply(); }
     },
 
-    handleInputChange: () => {
-        wizardModule.captureStep(true);
-        const q = questions[wizardModule.current];
-        q.fields.forEach(f => {
-            if (f.condition) {
-                const block = document.getElementById(`block-${f.id}`);
-                if (block) {
-                    if (f.condition(wizardModule.data)) {
-                        block.style.display = 'block';
-                    } else {
-                        block.style.display = 'none';
-                    }
-                }
-            }
-        });
-    },
+    captureStep: () => {
+        const currentStepEl = document.getElementById(`step-${wizardModule.current}`);
+        if (!currentStepEl) return false;
 
-    captureStep: (skipValidation = false) => {
-        const stepData = questions[wizardModule.current].fields;
-        let valid = true;
-
-        stepData.forEach(f => {
-            // Only validate elements that are currently visible/active according to their condition
-            const isVisible = f.condition ? f.condition(wizardModule.data) : true;
-
-            if (f.type === 'radio') {
-                const checked = document.querySelector(`input[name="${f.id}"]:checked`);
-                if (checked) wizardModule.data[f.id] = checked.value;
-                else if (isVisible) valid = false;
-            } else if (f.type === 'slider' || f.type === 'number') {
-                const el = document.getElementById(`inp-${f.id}`);
-                if (el && el.value) wizardModule.data[f.id] = el.value;
-                else if (isVisible) valid = false;
-            } else if (f.type === 'chips') {
-                const checks = Array.from(document.querySelectorAll(`input[name="${f.id}"]:checked`)).map(c => c.value);
-                wizardModule.data[f.id] = checks;
-                if (isVisible && checks.length === 0 && !f.options.includes('None')) valid = false; // pseudo-validation
-            }
-        });
-
-        return valid;
+        const checked = currentStepEl.querySelector('input[type="radio"]:checked');
+        if (checked) {
+            wizardModule.data[checked.name] = checked.value;
+            return true;
+        }
+        
+        return false; // No selection made inside the active step card bounds
     },
 
     next: () => {
         if (!wizardModule.captureStep()) {
-            alert(langModule.t('Please complete all visible fields to proceed.')); return;
+            alert(langModule.t('Please make a selection to proceed.')); 
+            return;
         }
 
-        if (wizardModule.current < questions.length - 1) {
+        if (wizardModule.current < wizardModule.totalSteps - 1) {
             wizardModule.current++;
             db.saveAssessmentState(wizardModule.current, wizardModule.data);
             wizardModule.render();
         } else {
+            // Final Step - Complete Assessment
             algorithm.generate(wizardModule.data);
         }
     },
 
     prev: () => {
-        wizardModule.captureStep(true); // Don't block backward navigation with validation
+        // Silently snag value when going backwards, don't throw fail alerts
+        const currentStepEl = document.getElementById(`step-${wizardModule.current}`);
+        if (currentStepEl) {
+            const checked = currentStepEl.querySelector('input[type="radio"]:checked');
+            if (checked) wizardModule.data[checked.name] = checked.value;
+        }
+
         if (wizardModule.current > 0) {
             wizardModule.current--;
             wizardModule.render();
@@ -1598,22 +1437,22 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // Wizard Navigation Listeners
-    const prevBtn = document.getElementById('btn-prev-step');
-    if (prevBtn) {
-        prevBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            wizardModule.prev();
-        });
-    }
-
-    const nextBtn = document.getElementById('btn-next-step');
-    if (nextBtn) {
-        nextBtn.addEventListener('click', (e) => {
+    // Wizard Navigation Listeners via Event Delegation (Guaranteed Binding)
+    document.addEventListener('click', (e) => {
+        const nextBtn = e.target.closest('#btn-next-step');
+        if (nextBtn) {
             e.preventDefault();
             wizardModule.next();
-        });
-    }
+            return;
+        }
+
+        const prevBtn = e.target.closest('#btn-prev-step');
+        if (prevBtn) {
+            e.preventDefault();
+            wizardModule.prev();
+            return;
+        }
+    });
 
     // Check auth to route properly
     const user = db.getCurrentUser();
