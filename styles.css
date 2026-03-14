@@ -67,19 +67,14 @@ body {
 body::before {
     content: '';
     position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
+    top: 50%;
+    left: 50%;
+    width: 150vw;
+    height: 150vh;
+    transform: translate(-50%, -50%);
     z-index: -1;
     pointer-events: none;
-    background-image:
-        radial-gradient(circle at 15% 50%, rgba(234, 88, 12, 0.04) 0%, transparent 50%),
-        radial-gradient(circle at 85% 30%, rgba(234, 88, 12, 0.04) 0%, transparent 50%),
-        linear-gradient(to right, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
-        linear-gradient(to bottom, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
-    background-size: 100% 100%, 100% 100%, 40px 40px, 40px 40px;
-    background-position: center center;
+    background: radial-gradient(circle at center, rgba(234, 88, 12, 0.05) 0%, transparent 70%);
 }
 
 /* --- PREMIUM AI AMBIENT GLOW --- */
@@ -891,7 +886,7 @@ h6 {
     border: 1px solid var(--border-color);
     border-radius: var(--radius-md);
     width: 100%;
-    max-width: 720px;
+    max-width: 900px;
     box-shadow: var(--shadow-md);
     display: flex;
     flex-direction: column;
@@ -1001,22 +996,17 @@ body.no-scroll {
 }
 
 .options-grid {
-    display: flex;
-    flex-wrap: wrap;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 0.75rem;
     align-items: stretch;
-    gap: 0.5rem;
 }
 
-.options-grid>* {
-    flex: 1 1 calc(50% - 0.5rem);
-}
-
-.opts-2>* {
-    flex: 1 1 calc(50% - 0.5rem);
-}
-
-.opts-3>* {
-    flex: 1 1 calc(33.333% - 0.5rem);
+.opts-2, .opts-3 {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 0.75rem;
+    align-items: stretch;
 }
 
 
@@ -1138,7 +1128,7 @@ body.no-scroll {
     justify-content: space-between;
     padding: 20px;
     border-top: 1px solid var(--border-color);
-    background: var(--bg-base);
+    background: #000;
     position: fixed;
     bottom: 0;
     left: 0;
