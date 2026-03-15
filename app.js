@@ -784,11 +784,20 @@ const app = {
         app.views.forEach(v => document.getElementById(`view-${v}`).classList.remove('active'));
         document.getElementById(`view-${viewId}`).classList.add('active');
 
-        // NEW LOGIC: Lock body scroll during assessment
+        // NEW LOGIC: Lock body scroll during assessment; allow full page scroll on dashboard
         if (viewId === 'assessment') {
             document.body.classList.add('no-scroll');
+            document.documentElement.classList.remove('dashboard-active');
+            document.body.classList.remove('dashboard-active');
         } else {
             document.body.classList.remove('no-scroll');
+            if (viewId === 'dashboard') {
+                document.documentElement.classList.add('dashboard-active');
+                document.body.classList.add('dashboard-active');
+            } else {
+                document.documentElement.classList.remove('dashboard-active');
+                document.body.classList.remove('dashboard-active');
+            }
         }
 
         window.scrollTo(0, 0);

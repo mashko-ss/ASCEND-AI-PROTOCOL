@@ -895,10 +895,38 @@ h6 {
     overflow: hidden;
 }
 
-/* Modifier to prevent body scroll */
+/* Modifier to prevent body scroll (assessment phase) */
 body.no-scroll {
     overflow: hidden;
     height: 100vh;
+}
+
+/* Dashboard view: allow full page scroll so accordions don't lock content */
+html.dashboard-active {
+    overflow-y: auto;
+    overflow-x: hidden;
+    height: auto;
+    min-height: 100vh;
+    scroll-behavior: smooth;
+}
+
+body.dashboard-active {
+    overflow-y: auto;
+    overflow-x: hidden;
+    height: auto;
+    min-height: 100vh;
+    scroll-behavior: smooth;
+}
+
+body.dashboard-active .dashboard-layout {
+    overflow: visible;
+    min-height: min-content;
+    flex: none;
+}
+
+body.dashboard-active .dashboard-main {
+    overflow: visible;
+    min-height: min-content;
 }
 
 /* Ensure the full view is flex and constraint to screen */
