@@ -1078,6 +1078,25 @@ body.dashboard-active .dashboard-main {
     overflow-x: auto !important;
 }
 
+/* Force 4-option assessment grids (e.g. Daily Activity Level) on 1 row */
+.options-grid.opts-4 {
+    display: grid !important;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    flex-wrap: unset !important;
+    overflow-x: unset !important;
+}
+
+.options-grid.opts-4 .radio-card {
+    min-width: 0;
+}
+
+@media (max-width: 640px) {
+    .options-grid.opts-4 {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
 
 
 .radio-card input,
@@ -1630,12 +1649,12 @@ body.dashboard-active .dashboard-main {
     text-transform: uppercase;
 }
 
-/* Macro display: horizontal, spacious row — numbers and labels fully visible, centered, no truncation */
+/* Macro display: strict 4-column grid — no overlap, responsive text, ellipsis */
 .macro-display {
-    display: grid;
-    grid-template-columns: repeat(4, minmax(4.5rem, 1fr));
+    display: grid !important;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
     align-items: stretch;
-    gap: 0;
     border-radius: var(--radius-sm);
     border: 1px solid var(--border-color);
     padding: 1rem 0.75rem;
@@ -1655,15 +1674,16 @@ body.dashboard-active .dashboard-main {
     padding: 10px 5px !important;
     box-sizing: border-box;
     overflow: hidden !important;
-    text-overflow: clip;
+    white-space: nowrap;
+    text-overflow: ellipsis;
 }
 
 .macro-box:not(:last-child) {
-    border-right: 1px solid var(--border-color);
+    border-right: none;
 }
 
 .macro-box .val {
-    font-size: 1.2rem !important;
+    font-size: clamp(0.9rem, 2vw, 1.2rem) !important;
     font-weight: 700;
     font-family: var(--font-mono);
     line-height: 1.25;
@@ -1671,9 +1691,6 @@ body.dashboard-active .dashboard-main {
     text-overflow: ellipsis;
     white-space: nowrap !important;
     text-align: center;
-}
-.macro-box:first-child .val {
-    font-size: 1.2rem !important;
 }
 
 .macro-box .lbl {
@@ -1684,6 +1701,8 @@ body.dashboard-active .dashboard-main {
     font-weight: 700;
     letter-spacing: 0.05em;
     white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
     line-height: 1.2;
     text-align: center;
 }
@@ -1692,22 +1711,11 @@ body.dashboard-active .dashboard-main {
 @media (max-width: 380px) {
     .macro-display {
         grid-template-columns: repeat(2, 1fr);
-        gap: 0;
+        gap: 10px;
         padding: 0.75rem 0.5rem;
     }
     .macro-box {
         padding: 0.5rem 0.4rem;
-    }
-    .macro-box:not(:last-child) {
-        border-right: none;
-    }
-    .macro-box:nth-child(odd) {
-        border-right: 1px solid var(--border-color);
-    }
-    .macro-box:nth-child(1),
-    .macro-box:nth-child(2) {
-        border-bottom: 1px solid var(--border-color);
-        padding-bottom: 0.75rem;
     }
 }
 
@@ -1814,17 +1822,19 @@ body.dashboard-active .dashboard-main {
 .scrolling-modules-container {
     padding: 1.5rem;
     background: var(--bg-base);
-    align-items: flex-start !important;
+    display: flex;
+    flex-direction: column;
+    align-items: start !important;
 }
 
-/* Parent of daily workout cards: prevent row stretch when one accordion expands — closed days stay compact */
+/* Parent of daily workout cards: prevent row stretch — closed days stay compact, never stretch vertically */
 .module-cards-grid,
 #res-training-plan {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
     gap: 20px;
     padding-bottom: 0.5rem;
-    align-items: flex-start !important;
+    align-items: start !important;
 }
 
 .day-card {
@@ -1833,8 +1843,7 @@ body.dashboard-active .dashboard-main {
     border-radius: var(--radius-sm);
     overflow: hidden;
     height: max-content !important;
-    align-self: flex-start !important;
-    margin-bottom: auto !important;
+    align-self: start !important;
 }
 
 /* Static day cards (Training Plan): always open, no accordion */

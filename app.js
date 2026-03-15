@@ -1518,8 +1518,8 @@ const accordionModule = {
     },
 
     _toggleOne: (card, trigger) => {
-        // Only this card's body is toggled; no sibling day cards or other accordions are modified
-        const body = card.querySelector('.accordion-body');
+        // Precise DOM traversal: content is the direct next sibling of the clicked header
+        const body = trigger.nextElementSibling;
         const wasClosed = card.classList.contains('is-closed');
 
         if (wasClosed) {
