@@ -1065,10 +1065,10 @@ body.dashboard-active .dashboard-main {
     overflow-x: auto !important;
 }
 
-/* Ensure option cards do not shrink or wrap to new line */
+/* Force all option cards to share one row and shrink equally without wrapping */
 #view-assessment .options-grid .radio-card {
-    flex-shrink: 0 !important;
-    min-width: 140px;
+    flex: 1 1 0 !important;
+    min-width: 0 !important;
 }
 
 .opts-2, .opts-3 {
@@ -1826,8 +1826,9 @@ body.dashboard-active .dashboard-main {
     border: 1px solid var(--border-color);
     border-radius: var(--radius-sm);
     overflow: hidden;
-    align-self: flex-start !important;
     height: max-content !important;
+    align-self: flex-start !important;
+    margin-bottom: auto !important;
 }
 
 /* Static day cards (Training Plan): always open, no accordion */
