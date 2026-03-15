@@ -1041,63 +1041,56 @@ body.dashboard-active .dashboard-main {
     padding-left: 0.75rem;
 }
 
-/* Assessment option cards: force ONE ROW, no wrap on desktop; horizontal scroll when needed */
+/* ============================================
+   ASSESSMENT OPTION CARDS (Step 7 & 8)
+   Clean layout: text wraps inside card boundaries.
+   No horizontal overflow for long labels (WRIST/ELBOW, STANDARD/BALANCED).
+   ============================================ */
 .options-grid {
-    display: flex !important;
-    flex-wrap: nowrap !important;
-    gap: 15px !important;
-    overflow-x: auto !important;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
     align-items: stretch;
     min-width: 0;
 }
 
-#view-assessment .options-grid {
-    display: flex !important;
-    flex-wrap: nowrap !important;
-    gap: 15px !important;
-    overflow-x: auto !important;
+.options-grid.opts-2 {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
 }
 
-#view-assessment .options-grid.opts-2 {
-    display: flex !important;
-    flex-wrap: nowrap !important;
-    gap: 15px !important;
-    overflow-x: auto !important;
+.options-grid.opts-3 {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
 }
 
-/* Force all option cards to share one row and shrink equally without wrapping */
-#view-assessment .options-grid .radio-card {
-    flex: 1 1 0 !important;
-    min-width: 0 !important;
-}
-
-.opts-2, .opts-3 {
-    display: flex !important;
-    flex-wrap: nowrap !important;
-    gap: 15px !important;
-    overflow-x: auto !important;
-}
-
-/* Force 4-option assessment grids (e.g. Daily Activity Level) on 1 row */
 .options-grid.opts-4 {
-    display: grid !important;
+    display: grid;
     grid-template-columns: repeat(4, 1fr);
-    gap: 10px;
-    flex-wrap: unset !important;
-    overflow-x: unset !important;
-}
-
-.options-grid.opts-4 .radio-card {
-    min-width: 0;
+    gap: 12px;
 }
 
 @media (max-width: 640px) {
+    .options-grid.opts-2,
+    .options-grid.opts-3,
     .options-grid.opts-4 {
         grid-template-columns: repeat(2, 1fr);
     }
 }
 
+/* Cards without opts-* use flex wrap */
+.options-grid:not([class*="opts-"]) {
+    display: flex;
+    flex-wrap: wrap;
+}
 
+.radio-card,
+.option-card {
+    min-width: 0;
+    flex: 1 1 auto;
+}
 
 .radio-card input,
 .chip-checkbox input {
@@ -1108,17 +1101,21 @@ body.dashboard-active .dashboard-main {
 .radio-card-content {
     display: flex;
     flex-direction: column;
-    padding: 0.6rem 0.8rem;
+    align-items: center;
+    justify-content: center;
+    padding: 10px;
     background: var(--bg-base);
     border: 1px solid var(--border-color);
     border-radius: var(--radius-sm);
     cursor: pointer;
     transition: all var(--transition-fast);
     height: 100%;
-    justify-content: center;
-    text-align: center !important;
-    white-space: normal !important;
-    word-wrap: break-word !important;
+    min-width: 0;
+    box-sizing: border-box;
+    white-space: normal;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    text-align: center;
 }
 
 .radio-card-content i {
@@ -1126,37 +1123,54 @@ body.dashboard-active .dashboard-main {
     color: var(--text-secondary);
     margin-bottom: 0.4rem;
     transition: color var(--transition-fast);
+    flex-shrink: 0;
+}
+
+.radio-card-content label,
+.radio-card-content .radio-label,
+.radio-card-content span {
+    white-space: normal;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    text-align: center;
+    width: 100%;
+    min-width: 0;
 }
 
 .radio-label {
     font-family: var(--font-mono);
     font-weight: 700;
-    font-size: 1.5rem;
+    font-size: clamp(0.75rem, 1.5vw, 1rem);
     color: var(--text-secondary);
     text-transform: uppercase;
-    white-space: normal !important;
-    word-wrap: break-word !important;
-    text-align: center !important;
+    white-space: normal;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    text-align: center;
+    line-height: 1.3;
 }
 
 .radio-subtext {
-    font-size: 1rem;
+    font-size: 0.85rem;
     color: var(--text-muted);
     margin-top: 0.5rem;
     line-height: 1.4;
+    white-space: normal;
+    word-wrap: break-word;
+    text-align: center;
 }
 
 .radio-card:hover .radio-card-content {
     border-color: var(--text-muted);
 }
 
-.radio-card input:checked~.radio-card-content {
+.radio-card input:checked ~ .radio-card-content {
     border-color: var(--accent-primary);
     background: rgba(234, 88, 12, 0.05);
 }
 
-.radio-card input:checked~.radio-card-content i,
-.radio-card input:checked~.radio-card-content .radio-label {
+.radio-card input:checked ~ .radio-card-content i,
+.radio-card input:checked ~ .radio-card-content .radio-label {
     color: var(--text-primary);
 }
 
@@ -1649,9 +1663,13 @@ body.dashboard-active .dashboard-main {
     text-transform: uppercase;
 }
 
-/* Macro display: strict 4-column grid — no overlap, responsive text, ellipsis */
+/* ============================================
+   DASHBOARD MACRO BOXES
+   Strict 4-column grid — no overlap, no bleed.
+   Values scale down responsively instead of overflowing.
+   ============================================ */
 .macro-display {
-    display: grid !important;
+    display: grid;
     grid-template-columns: repeat(4, 1fr);
     gap: 10px;
     align-items: stretch;
@@ -1659,38 +1677,33 @@ body.dashboard-active .dashboard-main {
     border: 1px solid var(--border-color);
     padding: 1rem 0.75rem;
     width: 100%;
+    min-width: 0;
     background: var(--bg-base);
     box-sizing: border-box;
 }
 
 .macro-box {
-    min-width: 0 !important;
-    text-align: center;
+    min-width: 0;
+    overflow: hidden;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     gap: 0.35rem;
-    padding: 10px 5px !important;
+    padding: 10px 6px;
     box-sizing: border-box;
-    overflow: hidden !important;
-    white-space: nowrap;
-    text-overflow: ellipsis;
-}
-
-.macro-box:not(:last-child) {
-    border-right: none;
 }
 
 .macro-box .val {
-    font-size: clamp(0.9rem, 2vw, 1.2rem) !important;
+    font-size: clamp(0.9rem, 2vw, 1.2rem);
     font-weight: 700;
     font-family: var(--font-mono);
     line-height: 1.25;
-    overflow: hidden !important;
+    white-space: nowrap;
+    overflow: hidden;
     text-overflow: ellipsis;
-    white-space: nowrap !important;
     text-align: center;
+    max-width: 100%;
 }
 
 .macro-box .lbl {
@@ -1705,9 +1718,9 @@ body.dashboard-active .dashboard-main {
     text-overflow: ellipsis;
     line-height: 1.2;
     text-align: center;
+    max-width: 100%;
 }
 
-/* Stack macro boxes on very narrow screens only */
 @media (max-width: 380px) {
     .macro-display {
         grid-template-columns: repeat(2, 1fr);
@@ -1715,7 +1728,7 @@ body.dashboard-active .dashboard-main {
         padding: 0.75rem 0.5rem;
     }
     .macro-box {
-        padding: 0.5rem 0.4rem;
+        padding: 8px 4px;
     }
 }
 
@@ -1819,22 +1832,26 @@ body.dashboard-active .dashboard-main {
     border-top: none;
 }
 
+/* ============================================
+   WORKOUT DAYS ACCORDION
+   Closed days stay compact — no vertical stretch to match opened days.
+   ============================================ */
 .scrolling-modules-container {
     padding: 1.5rem;
     background: var(--bg-base);
     display: flex;
     flex-direction: column;
-    align-items: start !important;
+    align-items: flex-start !important;
 }
 
-/* Parent of daily workout cards: prevent row stretch — closed days stay compact, never stretch vertically */
+/* Parent of daily workout cards: strict flex-start — closed days never stretch */
 .module-cards-grid,
 #res-training-plan {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
     gap: 20px;
     padding-bottom: 0.5rem;
-    align-items: start !important;
+    align-items: flex-start !important;
 }
 
 .day-card {
@@ -1843,7 +1860,7 @@ body.dashboard-active .dashboard-main {
     border-radius: var(--radius-sm);
     overflow: hidden;
     height: max-content !important;
-    align-self: start !important;
+    align-self: flex-start !important;
 }
 
 /* Static day cards (Training Plan): always open, no accordion */
@@ -2333,12 +2350,6 @@ body.dashboard-active .dashboard-main {
         grid-template-columns: 1fr;
     }
 
-    .opts-2,
-    .opts-3 {
-        display: flex !important;
-        flex-wrap: nowrap !important;
-        overflow-x: auto !important;
-    }
 
     .form-grid {
         grid-template-columns: 1fr;
