@@ -181,13 +181,13 @@ const langModule = {
             "Save Log": "Save Log",
             "GENERATING PLAN": "GENERATING PLAN",
             "Analyzing status...": "Analyzing your profile...",
-            "Mon": "Mon",
-            "Tue": "Tue",
-            "Wed": "Wed",
-            "Thu": "Thu",
-            "Fri": "Fri",
-            "Sat": "Sat",
-            "Sun": "Sun",
+            "Monday": "Mon",
+            "Tuesday": "Tue",
+            "Wednesday": "Wed",
+            "Thursday": "Thu",
+            "Friday": "Fri",
+            "Saturday": "Sat",
+            "Sunday": "Sun",
             "Strength Focus": "Strength Focus",
             "Bodyweight Focus": "Bodyweight Focus",
             "Cardio & Endurance Phase": "Cardio & Endurance Phase",
@@ -808,7 +808,7 @@ const app = {
                     if (dropdown) dropdown.classList.toggle('hidden');
                 });
             }
-            
+
             // Check if listener was already bound avoiding memory leaks
             if (!window._dropdownBlurListener) {
                 document.addEventListener('click', () => {
@@ -862,13 +862,13 @@ const authModule = {
             } else {
                 toggleContainer.innerHTML = `<span data-i18n="No account yet?">${langModule.t('No account yet?')}</span> <span class="text-primary hover-underline cursor-pointer font-bold" id="auth-toggle-btn" data-i18n="Create Account">${langModule.t('Create Account')}</span>`;
             }
-            
+
             // Re-bind listener because we just destroyed the DOM element with innerHTML
             const authToggleBtn = document.getElementById('auth-toggle-btn');
             if (authToggleBtn) {
-                authToggleBtn.addEventListener('click', (e) => { 
-                    e.preventDefault(); 
-                    authModule.toggleMode(); 
+                authToggleBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    authModule.toggleMode();
                 });
             }
         }
@@ -923,7 +923,7 @@ const wizardModule = {
             wizardModule.current = 0;
             wizardModule.data = {};
         }
-        
+
         // Restore physical radio checked statuses
         Object.keys(wizardModule.data).forEach(key => {
             const radio = document.querySelector(`input[name="${key}"][value="${wizardModule.data[key]}"]`);
@@ -954,7 +954,7 @@ const wizardModule = {
 
         // Update Button Visibilities
         document.getElementById('btn-prev-step').style.visibility = wizardModule.current === 0 ? 'hidden' : 'visible';
-        
+
         const nextBtn = document.getElementById('btn-next-step');
         if (wizardModule.current === wizardModule.totalSteps - 1) {
             nextBtn.innerHTML = `<span data-safe-i18n="Create Plan">${langModule.t('Create Plan')}</span> <i class="fa-solid fa-microchip ml-2"></i>`;
@@ -974,13 +974,13 @@ const wizardModule = {
             wizardModule.data[checked.name] = checked.value;
             return true;
         }
-        
+
         return false; // No selection made inside the active step card bounds
     },
 
     next: () => {
         if (!wizardModule.captureStep()) {
-            alert(langModule.t('Please make a selection to proceed.')); 
+            alert(langModule.t('Please make a selection to proceed.'));
             return;
         }
 
@@ -1118,7 +1118,45 @@ The JSON MUST exactly follow this structure:
         console.log("==========================================");
         console.log(JSON.stringify(aiResult, null, 2));
         console.log("==========================================");
+        // 1. Simulate sending the prompt to the AI and waiting for a response (1.5 seconds)
+        setTimeout(() => {
+            console.log("AI Response Received!");
 
+            // 2. This is the generated workout (Mock Data) returned by the AI
+            const aiWorkoutPlan = `
+                <div class="active-workout-plan" style="background: rgba(255, 87, 34, 0.1); border-left: 4px solid #ff5722; padding: 15px; margin-top: 15px; border-radius: 4px;">
+                    <h4 style="color: #fff; margin-bottom: 10px;">DAY 1: UPPER BODY FOCUS</h4>
+                    <ul style="color: #aaa; list-style: none; padding-left: 0;">
+                        <li style="margin-bottom: 8px;"><strong>1. Barbell Bench Press</strong>: 4 sets x 8-10 reps (90s rest)</li>
+                        <li style="margin-bottom: 8px;"><strong>2. Pull-ups</strong>: 3 sets x 8-12 reps (90s rest)</li>
+                        <li style="margin-bottom: 8px;"><strong>3. Overhead Dumbbell Press</strong>: 3 sets x 10-12 reps (60s rest)</li>
+                    </ul>
+                    <hr style="border-color: #333; margin: 15px 0;">
+                    <h4 style="color: #fff; margin-bottom: 10px;">DAY 2: LOWER BODY FOCUS</h4>
+                    <ul style="color: #aaa; list-style: none; padding-left: 0;">
+                        <li style="margin-bottom: 8px;"><strong>1. Barbell Squats</strong>: 4 sets x 6-8 reps (120s rest)</li>
+                        <li style="margin-bottom: 8px;"><strong>2. Romanian Deadlifts</strong>: 3 sets x 10-12 reps (90s rest)</li>
+                    </ul>
+                </div>
+            `;
+
+            // 3. Hide the assessment view and show the final dashboard
+            const assessmentView = document.getElementById('assessment-view');
+            const dashboardView = document.getElementById('dashboard-view');
+
+            if (assessmentView) assessmentView.classList.add('hidden');
+            if (dashboardView) dashboardView.classList.remove('hidden');
+
+            // 4. Replace "Pending your assessment." with the actual workout plan in the Dashboard
+            if (dashboardView) {
+                dashboardView.innerHTML = dashboardView.innerHTML.replace(
+                    'Pending your assessment.',
+                    aiWorkoutPlan
+                );
+            }
+
+            console.log("Dashboard successfully updated with AI Protocol!");
+        }, 1500); // End of setTimeout simulation
         let p = 0;
         const bar = document.getElementById('cyber-progress-bar');
         const txt = document.getElementById('loading-text');
@@ -1133,6 +1171,12 @@ The JSON MUST exactly follow this structure:
             if (p >= 100) {
                 clearInterval(int);
                 const protocol = algorithm.compile(data);
+
+                // Inject the AI JSON structure into the protocol for dashboard rendering
+                if (aiResult) {
+                    protocol.aiResult = aiResult;
+                }
+
                 db.saveNewProtocol(protocol);
                 db.clearAssessmentState();
 
@@ -1164,7 +1208,7 @@ The JSON MUST exactly follow this structure:
         // Build Training Arrays
         let numDays = parseInt(a.days || 3);
         const isBg = langModule.currentLanguage === 'bg';
-        const dayNames = isBg ? ['ПОН', 'ВТО', 'СРЯ', 'ЧЕТ', 'ПЕТ', 'СЪБ'] : ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+        const dayNames = isBg ? ['ПОНЕДЕЛНИК', 'ВТОРНИК', 'СРЯДА', 'ЧЕТВЪРТЪК', 'ПЕТЪК', 'СЪБОТА', 'НЕДЕЛЯ'] : ['Monday', 'Tuesday', 'Wedndsday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
         for (let i = 0; i < numDays; i++) {
             let n = i % 2 === 0 ? (isBg ? "Тренировка" : "Training Session") : (isBg ? 'Активно възстановяване' : 'Active Recovery');
@@ -1230,63 +1274,88 @@ const dashModule = {
                 <div class="stat-item"><span class="stat-label" data-safe-i18n="Deploy Date">${safeT("Deploy Date")}</span><span class="stat-value">${p.created_at}</span></div>
             `;
 
-            // Nutrition
-            document.getElementById('res-macros').innerHTML = `
-                <div class="macro-box"><div class="val text-primary">${p.nutrition.cals}</div><div class="lbl">KCAL</div></div>
-                <div class="macro-box"><div class="val">${p.nutrition.pro}g</div><div class="lbl">PRO</div></div>
-                <div class="macro-box"><div class="val">${p.nutrition.carbs}g</div><div class="lbl">CARB</div></div>
-                <div class="macro-box"><div class="val">${p.nutrition.fats}g</div><div class="lbl">FAT</div></div>
-            `;
-            const dietTitles = { balanced: safeT("Balanced Nutrition"), keto: safeT("Keto Diet"), fasting: safeT("Intermittent Fasting") };
-            const structTitles = { strict: safeT("Strict Tracking"), flexible: safeT("Flexible / Intuitive") };
-            document.getElementById('res-nutrition-plan').innerHTML = `
-                <li><i class="fa-solid fa-check"></i> ${safeT("Diet")}: ${dietTitles[p.nutrition.diet] || safeT(p.nutrition.diet)}</li>
-                <li><i class="fa-solid fa-check"></i> ${safeT("Style")}: ${structTitles[p.nutrition.structure] || safeT(p.nutrition.structure)}</li>
-            `;
+            // Determine if we have an AI JSON Protocol to render
+            if (p.aiResult) {
+                // Remove Pending Assessment message
+                const pendingEl = document.querySelector('#dash-mission-type').nextElementSibling;
+                if (pendingEl) pendingEl.style.display = 'none';
 
-            // Recovery
-            document.getElementById('res-recovery-plan').innerHTML = p.recovery.map(r => {
-                // Try to parse out the dynamic parts to translate the generic string
-                let text = r;
-                if (r.startsWith('Aim for') || r.includes('часа качествен сън') || r.includes('hours of quality sleep')) {
-                    const hrs = r.match(/([0-9.]+)/)?.[1] || '7.5';
-                    text = `${safeT('Aim for')} ${hrs} ${safeT('hours of quality sleep.')}`;
-                } else if (r.startsWith('Daily mobility:') || r.includes('Ежедневна подвижност')) {
-                    const injMatch = r.match(/\[(.*?)\]/);
-                    if (injMatch) {
-                        const inj = injMatch[1];
-                        const translatedInj = inj.split(', ').map(i => safeT(i)).join(', ');
-                        text = `${safeT('Daily mobility: 10 mins dedicated stretching/rehab for')} [${translatedInj}].`;
+                // Render AI Nutrition Plan
+                if (p.aiResult.nutrition_plan) {
+                    const aiN = p.aiResult.nutrition_plan;
+                    document.getElementById('res-macros').innerHTML = `
+                        <div class="macro-box"><div class="val text-primary break-all text-sm">${aiN.daily_calories}</div><div class="lbl">KCAL</div></div>
+                        <div class="macro-box"><div class="val">${aiN.macros.protein}</div><div class="lbl">PRO</div></div>
+                        <div class="macro-box"><div class="val">${aiN.macros.carbs}</div><div class="lbl">CARB</div></div>
+                        <div class="macro-box"><div class="val">${aiN.macros.fats}</div><div class="lbl">FAT</div></div>
+                    `;
+                    document.getElementById('res-nutrition-plan').innerHTML = aiN.guidelines.map(g => `<li><i class="fa-solid fa-check text-primary"></i> ${safeT(g)}</li>`).join('');
+                }
+
+                // Render AI Training Plan
+                if (p.aiResult.workout_plan) {
+                    let aiHtml = '';
+                    p.aiResult.workout_plan.forEach(w => {
+                        let exHtml = w.exercises.map(e => `
+                            <div class="text-[0.7rem] mt-2 border-t border-border-light pt-2 text-secondary">
+                                <span class="text-primary font-bold block">${safeT(e.name)}</span>
+                                <span>${e.sets} ${safeT("sets")} | ${e.reps} | ${safeT("Rest")}: ${e.rest}</span>
+                            </div>
+                        `).join('');
+
+                        aiHtml += `
+                        <div class="day-card flex flex-col justify-start">
+                            <div class="day-header border-b border-border-light pb-2 mb-2 text-center text-xs tracking-widest">${safeT(w.day)}</div>
+                            <div class="day-body flex-grow">
+                                <div class="day-desc font-mono">
+                                    <strong class="text-warning tracking-widest uppercase block text-center text-sm mb-3">${safeT(w.focus)}</strong>
+                                    <div>${exHtml}</div>
+                                </div>
+                            </div>
+                        </div>`;
+                    });
+                    document.getElementById('res-training-plan').innerHTML = aiHtml;
+                }
+            } else {
+                // Fallback rendering
+                document.getElementById('res-macros').innerHTML = `
+                    <div class="macro-box"><div class="val text-primary">${p.nutrition.cals}</div><div class="lbl">KCAL</div></div>
+                    <div class="macro-box"><div class="val">${p.nutrition.pro}g</div><div class="lbl">PRO</div></div>
+                    <div class="macro-box"><div class="val">${p.nutrition.carbs}g</div><div class="lbl">CARB</div></div>
+                    <div class="macro-box"><div class="val">${p.nutrition.fats}g</div><div class="lbl">FAT</div></div>
+                `;
+                const dietTitles = { balanced: safeT("Balanced Nutrition"), keto: safeT("Keto Diet"), fasting: safeT("Intermittent Fasting") };
+                const structTitles = { strict: safeT("Strict Tracking"), flexible: safeT("Flexible / Intuitive") };
+                document.getElementById('res-nutrition-plan').innerHTML = `
+                    <li><i class="fa-solid fa-check"></i> ${safeT("Diet")}: ${dietTitles[p.nutrition.diet] || safeT(p.nutrition.diet)}</li>
+                    <li><i class="fa-solid fa-check"></i> ${safeT("Style")}: ${structTitles[p.nutrition.structure] || safeT(p.nutrition.structure)}</li>
+                `;
+
+                let modulesHtml = "";
+                p.training.forEach((t) => {
+                    let translatedDesc = safeT(t.desc) || t.desc;
+                    if (t.desc.startsWith('Focus on your main goal') || t.desc.includes('Фокус върху основната ви цел')) {
+                        const weakMatch = t.desc.match(/\[(.*?)\]/);
+                        const weak = weakMatch ? weakMatch[1] : 'core fitness';
+                        translatedDesc = `${safeT('Focus on your main goal, especially')} [${safeT(weak)}].`;
+                    } else if (t.desc.startsWith('Build up your fitness') || t.desc.includes('Подобрявайте формата си')) {
+                        translatedDesc = safeT('Build up your fitness and track progress.');
                     }
-                }
-                return `<li><i class="fa-solid fa-droplet"></i> ${text}</li>`;
-            }).join('');
 
-            // Training Modules (Scroller)
-            let modulesHtml = "";
-            p.training.forEach((t) => {
-                let translatedDesc = safeT(t.desc) || t.desc;
-                if (t.desc.startsWith('Focus on your main goal') || t.desc.includes('Фокус върху основната ви цел')) {
-                    const weakMatch = t.desc.match(/\[(.*?)\]/);
-                    const weak = weakMatch ? weakMatch[1] : 'core fitness';
-                    translatedDesc = `${safeT('Focus on your main goal, especially')} [${safeT(weak)}].`;
-                } else if (t.desc.startsWith('Build up your fitness') || t.desc.includes('Подобрявайте формата си')) {
-                    translatedDesc = safeT('Build up your fitness and track progress.');
-                }
-
-                modulesHtml += `
-                <div class="day-card">
-                    <div class="day-header">${safeT(t.day)}</div>
-                    <div class="day-body">
-                        <div class="day-desc font-mono">
-                            <strong class="text-primary tracking-widest uppercase">${safeT(t.name)}</strong><br>
-                            <span class="text-xs uppercase mt-2 block opacity-80">${translatedDesc}</span>
+                    modulesHtml += `
+                    <div class="day-card">
+                        <div class="day-header">${safeT(t.day)}</div>
+                        <div class="day-body">
+                            <div class="day-desc font-mono">
+                                <strong class="text-primary tracking-widest uppercase">${safeT(t.name)}</strong><br>
+                                <span class="text-xs uppercase mt-2 block opacity-80">${translatedDesc}</span>
+                            </div>
+                            <div class="mt-4"><span class="day-stat-chip"><i class="fa-solid fa-circle text-primary text-[0.45rem]"></i> ${safeT("To Do")}</span></div>
                         </div>
-                        <div class="mt-4"><span class="day-stat-chip"><i class="fa-solid fa-circle text-primary text-[0.45rem]"></i> ${safeT("To Do")}</span></div>
-                    </div>
-                </div>`;
-            });
-            document.getElementById('res-training-plan').innerHTML = modulesHtml;
+                    </div>`;
+                });
+                document.getElementById('res-training-plan').innerHTML = modulesHtml;
+            }
         }
 
         // Populate Telemetry History
@@ -1468,7 +1537,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // ==========================================
     // EXPLICIT, SAFE EVENT LISTENERS (Null-checked)
     // ==========================================
-    
+
     // --- Navigation & Routing ---
     const navBrandLogo = document.getElementById('nav-brand-logo');
     if (navBrandLogo) navBrandLogo.addEventListener('click', (e) => { e.preventDefault(); app.navigate('landing'); });

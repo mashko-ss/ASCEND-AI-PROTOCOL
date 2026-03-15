@@ -882,12 +882,12 @@ h6 {
 }
 
 .wizard-container {
-    background: var(--bg-surface);
-    border: 1px solid var(--border-color);
+    background: transparent !important;
+    border: none !important;
     border-radius: var(--radius-md);
     width: 100%;
     max-width: 900px;
-    box-shadow: var(--shadow-md);
+    box-shadow: none !important;
     display: flex;
     flex-direction: column;
     /* Strict viewport constraint logic */
@@ -914,8 +914,8 @@ body.no-scroll {
 
 .wizard-header {
     padding: 1.25rem 1.5rem;
-    border-bottom: 1px solid var(--border-color);
-    background: var(--bg-base);
+    border: none !important;
+    background: transparent !important;
 }
 
 .progress-bar {
