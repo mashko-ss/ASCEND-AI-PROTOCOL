@@ -1475,6 +1475,7 @@ body.dashboard-active .dashboard-main {
     grid-template-columns: repeat(auto-fit, minmax(min(100%, 350px), 1fr));
     gap: 1.5rem;
     width: 100%;
+    align-items: start;
 }
 
 .card-span-2 {
@@ -1873,18 +1874,21 @@ body.dashboard-active .dashboard-main {
     background: var(--bg-surface-hover);
 }
 
+/* --- Progress Modal: dark theme, glass-morphism, orange accents, centered --- */
 .modal-overlay {
     position: fixed;
     top: 0;
     left: 0;
     width: 100vw;
     height: 100vh;
-    background: rgba(4, 4, 6, 0.95);
-    backdrop-filter: blur(4px);
+    background: rgba(4, 4, 6, 0.88);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
     z-index: 1000;
     display: flex;
     align-items: center;
     justify-content: center;
+    padding: 1.5rem;
     opacity: 0;
     pointer-events: none;
     transition: opacity var(--transition-normal);
@@ -1898,19 +1902,40 @@ body.dashboard-active .dashboard-main {
 .modal {
     background: var(--bg-surface);
     border: 1px solid var(--border-color);
-    border-radius: var(--radius-md);
+    border-radius: var(--radius-lg);
     width: 100%;
     max-width: 550px;
     max-height: 90vh;
     display: flex;
     flex-direction: column;
-    box-shadow: var(--shadow-md);
+    box-shadow: var(--shadow-md), 0 0 0 1px rgba(255, 255, 255, 0.03);
     transform: translateY(20px);
     transition: transform var(--transition-normal);
 }
 
 .modal-overlay.active .modal {
     transform: translateY(0);
+}
+
+/* Progress modal: solid dark panel with orange accent strip */
+.modal-progress {
+    background: var(--bg-surface);
+    border-top: 3px solid var(--accent-primary);
+    box-shadow: var(--shadow-md), 0 0 40px var(--accent-glow);
+}
+
+.modal-progress .modal-header {
+    background: rgba(234, 88, 12, 0.06);
+    border-bottom-color: rgba(234, 88, 12, 0.2);
+}
+
+.modal-progress .modal-body .form-group label {
+    color: var(--text-secondary);
+}
+
+.modal-progress .modal-footer {
+    background: var(--bg-base);
+    border-top: 1px solid var(--border-color);
 }
 
 .modal-header {
@@ -1925,6 +1950,16 @@ body.dashboard-active .dashboard-main {
 .modal-body {
     padding: 1.5rem;
     overflow-y: auto;
+}
+
+.modal-body.form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem 1.5rem;
+}
+
+.modal-body.form-grid .span-2 {
+    grid-column: 1 / -1;
 }
 
 .modal-footer {

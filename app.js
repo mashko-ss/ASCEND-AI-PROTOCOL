@@ -97,7 +97,7 @@ const db = {
         if (!state.currentUser) return;
 
         log.id = 'CHK-' + Date.now().toString().slice(-6);
-        log.date = new Date().toLocaleDateString();
+        log.date = new Date().toLocaleString(); // full timestamp for History Log
         state.users[state.currentUser].telemetry.unshift(log); // newest first
         db.save(state);
     }
@@ -179,6 +179,8 @@ const langModule = {
             "Great [10]": "Great [10]",
             "Cancel": "Cancel",
             "Save Log": "Save Log",
+            "Save Progress": "Save Progress",
+            "Enter Progress": "Enter Progress",
             "GENERATING PLAN": "GENERATING PLAN",
             "Analyzing status...": "Analyzing your profile...",
             "Monday": "Mon",
@@ -446,6 +448,8 @@ const langModule = {
             "Great [10]": "Отлично [10]",
             "Cancel": "Отказ",
             "Save Log": "Запази отчета",
+            "Save Progress": "Запази прогрес",
+            "Enter Progress": "Въведи прогрес",
             "GENERATING PLAN": "ГЕНЕРИРАНЕ НА ПЛАН",
             "Analyzing status...": "Анализиране на профила...",
             "Mon": "ПОН",
@@ -1654,25 +1658,30 @@ const dashModule = {
     },
 
     renderTelemetry: (user) => {
-        let avgW = 0, avgA = 0, avgE = 0, avgS = 0, avgWC = 0;
+        let avgA = 0, avgE = 0, avgS = 0, avgWC = 0;
         let html = '';
         const len = user.telemetry.length;
+        let latestWeight = '--', latestAdherence = '--', latestEnergy = '--';
 
-        user.telemetry.forEach(t => {
-            if (html === '') avgW = t.weight; // latest weight
+        user.telemetry.forEach((t, i) => {
+            if (i === 0) {
+                latestWeight = t.weight;
+                latestAdherence = t.adherence || '--';
+                latestEnergy = t.energy != null ? t.energy : '--';
+            }
             avgA += parseInt(t.adherence) || 0;
             avgE += parseInt(t.energy) || 0;
             avgS += parseInt(t.sleep) || 0;
             avgWC += parseInt(t.workouts) || 0;
 
-            const waistStr = t.waist ? `${t.waist} cm` : '-';
+            const waistStr = t.waist ? `${t.waist}` : '-';
             const sleepStr = t.sleep ? `${t.sleep}/10` : '-';
             const workStr = t.workouts ? `${t.workouts}%` : '-';
 
             const safeT = window.safeI18nT || langModule.t;
             html += `<tr>
                 <td>${t.date}</td>
-                <td>${t.weight} ${safeT("kg")}</td>
+                <td>${t.weight}</td>
                 <td>${waistStr}</td>
                 <td>${t.adherence}%</td>
                 <td>${workStr}</td>
@@ -1691,30 +1700,31 @@ const dashModule = {
 
             const realA = Math.round(avgA / len);
             const realE = (avgE / len).toFixed(1);
-            const realS = (avgS / len).toFixed(1);
             const realWC = Math.round(avgWC / len);
 
-            document.getElementById('tracker-weight').textContent = avgW;
-            document.getElementById('tracker-adherence').textContent = realA;
-            document.getElementById('tracker-energy').textContent = realE;
+            document.getElementById('tracker-weight').textContent = latestWeight;
+            document.getElementById('tracker-adherence').textContent = latestAdherence;
+            document.getElementById('tracker-energy').textContent = latestEnergy;
 
-            // Trend bars visually simulated
+            const adhNum = parseInt(latestAdherence) || 0;
+            const engNum = parseFloat(latestEnergy) || 0;
             setTimeout(() => {
-                document.getElementById('tracker-adh-bar').style.width = `${realA}%`;
-                document.getElementById('tracker-eng-bar').style.width = `${(realE / 10) * 100}%`;
-                // Colors based on performance
-                document.getElementById('tracker-adh-bar').style.backgroundColor = realA > 85 ? 'var(--success)' : (realA > 70 ? 'var(--warning)' : 'var(--danger)');
-            }, 500);
+                document.getElementById('tracker-adh-bar').style.width = `${adhNum}%`;
+                document.getElementById('tracker-eng-bar').style.width = `${(engNum / 10) * 100}%`;
+                document.getElementById('tracker-adh-bar').style.backgroundColor = adhNum > 85 ? 'var(--success)' : (adhNum > 70 ? 'var(--warning)' : 'var(--danger)');
+            }, 100);
 
             const safeT = window.safeI18nT || langModule.t;
-            // Update placeholder box on Active protocol 
-            document.querySelector('.border-dashed').innerHTML = `
-                <div>
-                    <i class="fa-solid fa-radar text-primary text-3xl mb-2"></i>
-                    <h4 class="text-xs font-bold uppercase text-primary font-mono tracking-widest mt-2"><span data-safe-i18n="Overall Consistency">${safeT("Overall Consistency")}</span>: ${Math.round((realA + realWC) / 2) || realA}%</h4>
-                    <p class="text-[0.65rem] text-muted mt-1 uppercase font-mono tracking-widest"><span data-safe-i18n="Diet">${safeT("Diet")}</span>: ${realA}% | <span data-safe-i18n="Training">${safeT("Training")}</span>: ${realWC}%</p>
-                </div>
-            `;
+            const placeholderBox = document.querySelector('.border-dashed');
+            if (placeholderBox) {
+                placeholderBox.innerHTML = `
+                    <div>
+                        <i class="fa-solid fa-radar text-primary text-3xl mb-2"></i>
+                        <h4 class="text-xs font-bold uppercase text-primary font-mono tracking-widest mt-2"><span data-safe-i18n="Overall Consistency">${safeT("Overall Consistency")}</span>: ${Math.round((realA + realWC) / 2) || realA}%</h4>
+                        <p class="text-[0.65rem] text-muted mt-1 uppercase font-mono tracking-widest"><span data-safe-i18n="Diet">${safeT("Diet")}</span>: ${realA}% | <span data-safe-i18n="Training">${safeT("Training")}</span>: ${realWC}%</p>
+                    </div>
+                `;
+            }
         } else {
             tb.innerHTML = '';
             empty.classList.remove('hidden');
@@ -1777,17 +1787,49 @@ const dashModule = {
             notes: notes
         });
 
-        // Reset and close
+        // Reset form and close modal
         document.getElementById('checkin-val-weight').value = '';
         document.getElementById('checkin-val-waist').value = '';
         document.getElementById('checkin-val-adherence').value = '';
         document.getElementById('checkin-val-workouts').value = '';
+        document.getElementById('checkin-val-energy').value = '7';
+        document.getElementById('checkin-val-sleep').value = '7';
         document.getElementById('checkin-val-notes').value = '';
-        document.getElementById('modal-checkin').classList.remove('active');
+        const energyOut = document.getElementById('energy-out');
+        const sleepOut = document.getElementById('sleep-out');
+        if (energyOut) energyOut.textContent = '7';
+        if (sleepOut) sleepOut.textContent = '7';
 
-        dashModule.render(); // re-render to plot trends
+        const overlay = document.getElementById('modal-checkin');
+        if (overlay) {
+            overlay.classList.remove('active');
+            overlay.setAttribute('aria-hidden', 'true');
+        }
+
+        dashModule.render(); // re-render: new row in History Log + update Your Progress stats (localStorage already updated)
     }
 };
+
+// ==========================================
+// 6.5 MODAL HELPERS
+// ==========================================
+function toggleModal(modalId, show) {
+    const overlay = document.getElementById(modalId);
+    if (!overlay) return;
+    if (show) {
+        overlay.classList.add('active');
+        overlay.setAttribute('aria-hidden', 'false');
+        const energyEl = document.getElementById('checkin-val-energy');
+        const sleepEl = document.getElementById('checkin-val-sleep');
+        const energyOut = document.getElementById('energy-out');
+        const sleepOut = document.getElementById('sleep-out');
+        if (energyEl && energyOut) energyOut.textContent = energyEl.value;
+        if (sleepEl && sleepOut) sleepOut.textContent = sleepEl.value;
+    } else {
+        overlay.classList.remove('active');
+        overlay.setAttribute('aria-hidden', 'true');
+    }
+}
 
 // ==========================================
 // 7. BOOTSTRAP & EVENTS
@@ -1809,12 +1851,27 @@ document.addEventListener('DOMContentLoaded', () => {
     const activeBtn = document.getElementById(`lang-btn-${langModule.currentLanguage}`);
     if (activeBtn) activeBtn.classList.add('text-primary', 'font-bold');
 
-    // Modals Close handlers
+    // Modals Close handlers: Cancel button and X
     document.querySelectorAll('.modal-close').forEach(btn => {
         btn.addEventListener('click', (e) => {
-            e.target.closest('.modal-overlay').classList.remove('active');
+            const overlay = e.target.closest('.modal-overlay');
+            if (overlay) {
+                overlay.classList.remove('active');
+                overlay.setAttribute('aria-hidden', 'true');
+            }
         });
     });
+
+    // Close progress modal when clicking the overlay backdrop (outside the modal)
+    const progressModalOverlay = document.getElementById('modal-checkin');
+    if (progressModalOverlay) {
+        progressModalOverlay.addEventListener('click', (e) => {
+            if (e.target === progressModalOverlay) {
+                progressModalOverlay.classList.remove('active');
+                progressModalOverlay.setAttribute('aria-hidden', 'true');
+            }
+        });
+    }
 
     // ==========================================
     // EXPLICIT, SAFE EVENT LISTENERS (Null-checked)
@@ -1876,7 +1933,12 @@ document.addEventListener('DOMContentLoaded', () => {
     if (tabBtnProgress) tabBtnProgress.addEventListener('click', (e) => { e.preventDefault(); dashModule.switchTab('progress-tracker', e); });
 
     const dashLogProgressBtn = document.getElementById('dash-log-progress-btn');
-    if (dashLogProgressBtn) dashLogProgressBtn.addEventListener('click', (e) => { e.preventDefault(); dashModule.switchTab('progress-tracker', e); });
+    if (dashLogProgressBtn) dashLogProgressBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        dashModule.switchTab('progress-tracker', null);
+        document.getElementById('tab-btn-progress')?.classList.add('active');
+        toggleModal('modal-checkin', true);
+    });
 
     const tabBtnHistory = document.getElementById('tab-btn-history');
     if (tabBtnHistory) tabBtnHistory.addEventListener('click', (e) => { e.preventDefault(); dashModule.switchTab('history', e); });

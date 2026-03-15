@@ -725,8 +725,8 @@
                                         data-safe-i18n="Your track record">Your track record of results.</p>
                                 </div>
                                 <button class="btn btn-primary font-mono text-xs tracking-widest uppercase"
-                                    id="tracker-log-btn"><i class="fa-solid fa-upload mr-1"></i> <span
-                                        data-i18n="Log Progress">Log Progress</span></button>
+                                    id="tracker-log-btn"><i class="fa-solid fa-plus mr-1"></i> <span
+                                        data-i18n="Enter Progress">ENTER PROGRESS</span></button>
                             </div>
 
                             <!-- KPIs -->
@@ -824,13 +824,12 @@
         </main>
     </div>
 
-    <!-- Check-in Modal -->
-    <div class="modal-overlay" id="modal-checkin">
-        <div class="modal border-t-4" style="border-top-color: var(--accent-primary)">
+    <!-- Progress Modal: Enter progress (Weight, Waist, Energy, Sleep, Notes). Hidden by default. -->
+    <div class="modal-overlay" id="modal-checkin" aria-hidden="true">
+        <div class="modal modal-progress border-t-4" style="border-top-color: var(--accent-primary)" role="dialog" aria-labelledby="progress-modal-title">
             <div class="modal-header">
-                <h3 class="font-bold tracking-widest uppercase text-sm"><i
-                        class="fa-solid fa-terminal text-primary mr-2"></i> <span data-i18n="Log Progress">Log
-                        Progress</span></h3>
+                <h3 id="progress-modal-title" class="font-bold tracking-widest uppercase text-sm"><i
+                        class="fa-solid fa-chart-line text-primary mr-2"></i> <span data-i18n="Enter Progress">Enter Progress</span></h3>
                 <button class="btn-icon modal-close"><i class="fa-solid fa-xmark"></i></button>
             </div>
             <div class="modal-body form-grid gap-y-6">
@@ -895,7 +894,7 @@
             <div class="modal-footer">
                 <button class="btn btn-ghost modal-close font-mono text-xs uppercase" data-i18n="Cancel">Cancel</button>
                 <button class="btn btn-primary font-mono text-xs uppercase" id="modal-save-log-btn"><i
-                        class="fa-solid fa-paper-plane mr-2"></i> <span data-i18n="Save Log">Save Log</span></button>
+                        class="fa-solid fa-check mr-2"></i> <span data-i18n="Save Progress">Save Progress</span></button>
             </div>
         </div>
     </div>
