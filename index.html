@@ -640,13 +640,14 @@
                                     </div>
                                 </div>
 
-                                <!-- Nutrition Protocol -->
-                                <div class="dashboard-card card-span-1">
-                                    <div class="card-header highlight-header">
+                                <!-- Nutrition Protocol (accordion) -->
+                                <div class="dashboard-card card-span-1 accordion-card is-open" id="accordion-nutrition">
+                                    <div class="card-header highlight-header accordion-trigger" data-accordion-id="accordion-nutrition" tabindex="0" role="button" aria-expanded="true" aria-controls="accordion-nutrition-body">
                                         <h3><i class="fa-solid fa-flask"></i> <span
                                                 data-safe-i18n="Nutrition Plan">Nutrition Plan</span></h3>
+                                        <i class="accordion-chevron fa-solid fa-chevron-down" aria-hidden="true"></i>
                                     </div>
-                                    <div class="card-body">
+                                    <div class="card-body accordion-body" id="accordion-nutrition-body">
                                         <div class="macro-display flex gap-2 mb-6" id="res-macros">
                                             <!-- Dynamic -->
                                         </div>
@@ -656,13 +657,14 @@
                                     </div>
                                 </div>
 
-                                <!-- Recovery Protocol -->
-                                <div class="dashboard-card card-span-1">
-                                    <div class="card-header">
+                                <!-- Recovery Protocol (accordion) -->
+                                <div class="dashboard-card card-span-1 accordion-card is-open" id="accordion-recovery">
+                                    <div class="card-header accordion-trigger" data-accordion-id="accordion-recovery" tabindex="0" role="button" aria-expanded="true" aria-controls="accordion-recovery-body">
                                         <h3><i class="fa-solid fa-shield-heart"></i> <span
                                                 data-safe-i18n="Recovery Plan">Recovery Plan</span></h3>
+                                        <i class="accordion-chevron fa-solid fa-chevron-down" aria-hidden="true"></i>
                                     </div>
-                                    <div class="card-body">
+                                    <div class="card-body accordion-body" id="accordion-recovery-body">
                                         <ul class="protocol-list font-mono text-sm" id="res-recovery-plan">
                                             <!-- Dynamic -->
                                         </ul>
@@ -691,18 +693,21 @@
                                     </div>
                                 </div>
 
-                                <!-- Training Protocol -->
-                                <div class="dashboard-card card-span-3 mt-2">
-                                    <div class="card-header flex-between items-center">
+                                <!-- Training Protocol (day cards are accordions, rendered in JS) -->
+                                <div class="dashboard-card card-span-3 mt-2 accordion-card is-open" id="accordion-training">
+                                    <div class="card-header flex-between items-center accordion-trigger" data-accordion-id="accordion-training" tabindex="0" role="button" aria-expanded="true" aria-controls="accordion-training-body">
                                         <h3><i class="fa-solid fa-diagram-project"></i> <span
                                                 data-safe-i18n="Training Plan">Workout Plan</span></h3>
-                                        <span class="badge badge-outline font-mono bg-base"
-                                            id="res-training-style">HYBRID</span>
+                                        <span class="flex items-center gap-2">
+                                            <span class="badge badge-outline font-mono bg-base"
+                                                id="res-training-style">HYBRID</span>
+                                            <i class="accordion-chevron fa-solid fa-chevron-down" aria-hidden="true"></i>
+                                        </span>
                                     </div>
-                                    <div class="card-body p-0">
+                                    <div class="card-body p-0 accordion-body" id="accordion-training-body">
                                         <div class="scrolling-modules-container border-t border-border-color">
                                             <div class="module-cards-grid" id="res-training-plan">
-                                                <!-- Dynamic Day Cards -->
+                                                <!-- Dynamic Day Cards (each day is an accordion) -->
                                             </div>
                                         </div>
                                     </div>

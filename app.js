@@ -1329,6 +1329,76 @@ The JSON MUST exactly follow this structure:
 };
 
 // ==========================================
+// 5.5 ACCORDION MODULE (collapsible + scroll-into-view)
+// ==========================================
+const accordionModule = {
+    bind: (container = null) => {
+        const root = container || document.getElementById('view-dashboard');
+        if (!root) return;
+
+        const triggers = root.querySelectorAll('.accordion-trigger');
+        triggers.forEach(trigger => {
+            const id = trigger.getAttribute('data-accordion-id');
+            if (!id) return;
+
+            const card = document.getElementById(id);
+            if (!card) return;
+
+            const open = () => {
+                const wasClosed = card.classList.contains('is-closed');
+                card.classList.remove('is-closed');
+                card.classList.add('is-open');
+                trigger.setAttribute('aria-expanded', 'true');
+                if (wasClosed) {
+                    const body = card.querySelector('.accordion-body');
+                    if (body) {
+                        body.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }
+                }
+            };
+
+            const close = () => {
+                card.classList.add('is-closed');
+                card.classList.remove('is-open');
+                trigger.setAttribute('aria-expanded', 'false');
+            };
+
+            const toggle = () => {
+                if (card.classList.contains('is-closed')) {
+                    open();
+                } else {
+                    close();
+                }
+            };
+
+            trigger.addEventListener('click', (e) => {
+                e.preventDefault();
+                toggle();
+            });
+
+            trigger.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    toggle();
+                }
+            });
+        });
+    },
+
+    initDashboardAccordions: () => {
+        const view = document.getElementById('view-dashboard');
+        if (!view) return;
+
+        view.querySelectorAll('.accordion-card').forEach(card => {
+            if (!card.classList.contains('is-closed')) {
+                card.classList.add('is-open');
+            }
+        });
+        accordionModule.bind();
+    }
+};
+
+// ==========================================
 // 6. DASHBOARD & UI ORCHESTRATION
 // ==========================================
 const dashModule = {
@@ -1397,10 +1467,10 @@ const dashModule = {
                         : `<p class="text-secondary text-sm font-mono">${safeT("Focus on whole foods and hit your macro targets above.")}</p>`;
                 }
 
-                // Render AI Training Plan
+                // Render AI Training Plan (each day as collapsible accordion)
                 if (p.aiResult.workout_plan) {
                     let aiHtml = '';
-                    p.aiResult.workout_plan.forEach(w => {
+                    p.aiResult.workout_plan.forEach((w, idx) => {
                         let exHtml = w.exercises.map(e => `
                             <div class="text-[0.7rem] mt-2 border-t border-border-light pt-2 text-secondary">
                                 <span class="text-primary font-bold block">${safeT(e.name)}</span>
@@ -1408,10 +1478,14 @@ const dashModule = {
                             </div>
                         `).join('');
 
+                        const accordionId = `accordion-day-${idx}`;
                         aiHtml += `
-                        <div class="day-card flex flex-col justify-start">
-                            <div class="day-header border-b border-border-light pb-2 mb-2 text-center text-xs tracking-widest">${safeT(w.day)}</div>
-                            <div class="day-body flex-grow">
+                        <div class="day-card accordion-card is-open flex flex-col justify-start" id="${accordionId}" data-accordion-id="${accordionId}">
+                            <div class="day-header accordion-trigger border-b border-border-light pb-2 mb-2 text-center text-xs tracking-widest" data-accordion-id="${accordionId}" tabindex="0" role="button" aria-expanded="true" aria-controls="${accordionId}-body">
+                                <span>${safeT(w.day)}</span>
+                                <i class="accordion-chevron fa-solid fa-chevron-down" aria-hidden="true"></i>
+                            </div>
+                            <div class="day-body accordion-body flex-grow" id="${accordionId}-body">
                                 <div class="day-desc font-mono">
                                     <strong class="text-warning tracking-widest uppercase block text-center text-sm mb-3">${safeT(w.focus)}</strong>
                                     <div>${exHtml}</div>
@@ -1437,7 +1511,7 @@ const dashModule = {
                 `;
 
                 let modulesHtml = "";
-                p.training.forEach((t) => {
+                p.training.forEach((t, idx) => {
                     let translatedDesc = safeT(t.desc) || t.desc;
                     if (t.desc.startsWith('Focus on your main goal') || t.desc.includes('Фокус върху основната ви цел')) {
                         const weakMatch = t.desc.match(/\[(.*?)\]/);
@@ -1447,10 +1521,14 @@ const dashModule = {
                         translatedDesc = safeT('Build up your fitness and track progress.');
                     }
 
+                    const accordionId = `accordion-day-${idx}`;
                     modulesHtml += `
-                    <div class="day-card">
-                        <div class="day-header">${safeT(t.day)}</div>
-                        <div class="day-body">
+                    <div class="day-card accordion-card is-open" id="${accordionId}" data-accordion-id="${accordionId}">
+                        <div class="day-header accordion-trigger" data-accordion-id="${accordionId}" tabindex="0" role="button" aria-expanded="true" aria-controls="${accordionId}-body">
+                            <span>${safeT(t.day)}</span>
+                            <i class="accordion-chevron fa-solid fa-chevron-down" aria-hidden="true"></i>
+                        </div>
+                        <div class="day-body accordion-body" id="${accordionId}-body">
                             <div class="day-desc font-mono">
                                 <strong class="text-primary tracking-widest uppercase">${safeT(t.name)}</strong><br>
                                 <span class="text-xs uppercase mt-2 block opacity-80">${translatedDesc}</span>
@@ -1461,6 +1539,7 @@ const dashModule = {
                 });
                 document.getElementById('res-training-plan').innerHTML = modulesHtml;
             }
+            accordionModule.bind();
         }
 
         // Populate Telemetry History

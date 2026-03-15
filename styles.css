@@ -1143,6 +1143,105 @@ body.no-scroll {
     margin: 0 auto;
     width: 100%;
     padding: 2.5rem 5%;
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+}
+
+.dashboard-main {
+    flex-grow: 1;
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+/* Premium scrollbar for dashboard main */
+.dashboard-main::-webkit-scrollbar {
+    width: 8px;
+}
+
+.dashboard-main::-webkit-scrollbar-track {
+    background: var(--bg-base);
+}
+
+.dashboard-main::-webkit-scrollbar-thumb {
+    background: var(--border-color);
+    border-radius: var(--radius-sm);
+}
+
+.dashboard-main::-webkit-scrollbar-thumb:hover {
+    background: var(--text-muted);
+}
+
+/* --- Accordion / Collapsible (Dashboard protocol sections) --- */
+.accordion-card {
+    display: flex;
+    flex-direction: column;
+}
+
+.accordion-trigger {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    cursor: pointer;
+    user-select: none;
+    transition: background var(--transition-fast);
+}
+
+.accordion-trigger:hover {
+    background: var(--bg-surface-hover);
+}
+
+.accordion-trigger:focus {
+    outline: none;
+}
+
+.accordion-trigger:focus-visible {
+    box-shadow: 0 0 0 2px var(--accent-primary);
+}
+
+.accordion-chevron {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    transition: transform var(--transition-normal);
+    flex-shrink: 0;
+}
+
+.accordion-card.is-open .accordion-chevron {
+    transform: rotate(180deg);
+    color: var(--accent-primary);
+}
+
+.accordion-body {
+    overflow: hidden;
+    max-height: 5000px;
+    transition: max-height var(--transition-normal), opacity var(--transition-normal);
+}
+
+.accordion-card.is-closed .accordion-body {
+    max-height: 0 !important;
+    opacity: 0;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+    border: none;
+}
+
+/* Day card as accordion (workout days) */
+.day-card.accordion-card .day-header {
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+}
+
+.day-card.accordion-card .day-header .accordion-chevron {
+    font-size: 0.7rem;
+}
+
+.day-card.accordion-card.is-closed .day-body {
+    display: none;
 }
 
 .dashboard-sidebar {
@@ -1211,9 +1310,7 @@ body.no-scroll {
     color: var(--text-primary);
 }
 
-.dashboard-main {
-    flex-grow: 1;
-}
+/* dashboard-main layout moved above with scroll */
 
 .dash-tab {
     display: none;
