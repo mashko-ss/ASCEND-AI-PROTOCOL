@@ -1249,16 +1249,24 @@ body.dashboard-active .dashboard-main {
     box-shadow: 0 0 0 2px var(--accent-primary);
 }
 
-.accordion-chevron {
-    font-size: 0.75rem;
-    color: var(--text-muted);
-    transition: transform var(--transition-normal);
+/* Toggle icon wrapper: right-aligned, brand colors, smooth rotation */
+.accordion-toggle-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     flex-shrink: 0;
+    color: var(--text-muted);
+    transition: transform var(--transition-normal), color var(--transition-normal);
 }
 
-.accordion-card.is-open .accordion-chevron {
+.accordion-card.is-open .accordion-toggle-icon {
     transform: rotate(180deg);
     color: var(--accent-primary);
+}
+
+.accordion-chevron {
+    font-size: 0.75rem;
+    color: inherit;
 }
 
 .accordion-body {
@@ -1290,9 +1298,15 @@ body.dashboard-active .dashboard-main {
     background: var(--bg-surface-hover);
 }
 
+.day-card.accordion-card .day-header .accordion-toggle-icon {
+    color: var(--text-muted);
+    transition: transform var(--transition-normal), color var(--transition-normal);
+}
+.day-card.accordion-card.is-open .day-header .accordion-toggle-icon {
+    color: var(--accent-primary);
+}
 .day-card.accordion-card .day-header .accordion-chevron {
     font-size: 0.7rem;
-    transition: transform var(--transition-normal);
 }
 
 .day-card.accordion-card .day-body {
@@ -1581,14 +1595,16 @@ body.dashboard-active .dashboard-main {
 .macro-box {
     flex: 1 1 0;
     min-width: 4.5rem;
+    max-width: 100%;
     text-align: center;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     gap: 0.25rem;
-    padding: 0.5rem 0.25rem;
+    padding: 0.5rem 0.35rem;
     box-sizing: border-box;
+    overflow: hidden;
 }
 
 .macro-box:not(:last-child) {
@@ -1596,11 +1612,17 @@ body.dashboard-active .dashboard-main {
 }
 
 .macro-box .val {
-    font-size: 1.1rem;
+    font-size: 1rem;
     font-weight: 700;
     font-family: var(--font-mono);
     line-height: 1.2;
     white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0;
+}
+.macro-box:first-child .val {
+    font-size: 0.95rem;
 }
 
 .macro-box .lbl {
@@ -1685,6 +1707,42 @@ body.dashboard-active .dashboard-main {
 #accordion-nutrition .accordion-body > div.border-t > div:first-child {
     margin-bottom: 0.5rem;
     letter-spacing: 0.08em;
+}
+
+/* Nested accordions inside Nutrition Plan (GUIDELINES, MEAL TIMING, SUPPLEMENTS) */
+.nutrition-plan-sections {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+.nested-accordion {
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+    background: var(--bg-base);
+}
+.nested-accordion-trigger {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.6rem 0.85rem;
+    font-size: 0.65rem;
+}
+.nested-accordion-trigger .accordion-toggle-icon {
+    color: var(--text-muted);
+}
+.nested-accordion.is-open .nested-accordion-trigger .accordion-toggle-icon {
+    color: var(--accent-primary);
+}
+.nested-accordion-trigger .accordion-chevron {
+    font-size: 0.7rem;
+}
+.nested-accordion-body {
+    padding: 0 0.85rem 0.85rem;
+    border-top: 1px solid var(--border-color);
+}
+.nested-accordion.is-closed .nested-accordion-body {
+    border-top: none;
 }
 
 .scrolling-modules-container {

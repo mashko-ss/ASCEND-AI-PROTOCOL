@@ -1378,14 +1378,13 @@ NUTRITION PLAN RULES:
 // ==========================================
 // 5.5 ACCORDION MODULE (collapsible + scroll-into-view)
 // ==========================================
-// Section accordion IDs only (Nutrition, Recovery, Training header). Day cards are static, no accordion.
-const DASHBOARD_ACCORDION_IDS = ['accordion-nutrition', 'accordion-recovery', 'accordion-training'];
-
+// Bind all .accordion-card in dashboard (main sections, nested nutrition, day cards) so each works independently.
 const accordionModule = {
     bind: () => {
-        DASHBOARD_ACCORDION_IDS.forEach((cardId) => {
-            const card = document.getElementById(cardId);
-            if (!card) return;
+        const view = document.getElementById('view-dashboard');
+        if (!view) return;
+
+        view.querySelectorAll('.accordion-card').forEach((card) => {
             const trigger = card.querySelector('.accordion-trigger');
             if (!trigger) return;
 
@@ -1501,21 +1500,21 @@ const dashModule = {
                     const carb = (aiN.macros && aiN.macros.carbs && !String(aiN.macros.carbs).toLowerCase().includes('tbd')) ? aiN.macros.carbs : (p.nutrition ? `${p.nutrition.carbs}g` : '—');
                     const fat = (aiN.macros && aiN.macros.fats && !String(aiN.macros.fats).toLowerCase().includes('tbd')) ? aiN.macros.fats : (p.nutrition ? `${p.nutrition.fats}g` : '—');
                     document.getElementById('res-macros').innerHTML = `
-                        <div class="macro-box"><div class="val text-primary break-all text-sm">${calories}</div><div class="lbl">KCAL</div></div>
+                        <div class="macro-box"><div class="val text-primary">${calories}</div><div class="lbl">KCAL</div></div>
                         <div class="macro-box"><div class="val">${pro}</div><div class="lbl">PRO</div></div>
                         <div class="macro-box"><div class="val">${carb}</div><div class="lbl">CARB</div></div>
                         <div class="macro-box"><div class="val">${fat}</div><div class="lbl">FAT</div></div>
                     `;
                     const guidelines = (aiN.guidelines && Array.isArray(aiN.guidelines) && aiN.guidelines.length) ? aiN.guidelines : [];
-                    let nutritionHtml = guidelines.length
-                        ? `<div class="text-[0.65rem] uppercase tracking-widest text-primary font-bold mb-2">${safeT("Guidelines")}</div><ul class="protocol-list font-mono text-sm">${guidelines.map(g => `<li><i class="fa-solid fa-check text-primary"></i> ${safeT(g)}</li>`).join('')}</ul>`
+                    const guidelinesContent = guidelines.length
+                        ? `<ul class="protocol-list font-mono text-sm">${guidelines.map(g => `<li><i class="fa-solid fa-check text-primary"></i> ${safeT(g)}</li>`).join('')}</ul>`
                         : `<p class="text-secondary text-sm font-mono">${safeT("Focus on whole foods and hit your macro targets above.")}</p>`;
 
                     // Meal Timing (pre/post workout) — always show; use AI data or evidence-based fallback
                     const mealTiming = aiN.meal_timing;
                     const preText = mealTiming && mealTiming.pre_workout ? mealTiming.pre_workout : (langModule.currentLanguage === 'bg' ? '60–90 мин преди: въглехидрати + протеин (напр. овес, банан, протеин). Кафеин по избор 30–45 мин преди.' : '60–90 min before: carbs + protein (e.g. oats, banana, whey). Caffeine optional 30–45 min pre.');
                     const postText = mealTiming && mealTiming.post_workout ? mealTiming.post_workout : (langModule.currentLanguage === 'bg' ? 'В рамките на 1–2 часа: 40–60g въглехидрати + 25–40g протеин. Пример: пиле + ориз + зеленчуци или протеин + банан.' : 'Within 1–2 hours: 40–60g carbs + 25–40g protein. Example: chicken + rice + vegetables, or whey + banana + toast.');
-                    nutritionHtml += `<div class="mt-4 pt-4 border-t border-border-light"><div class="text-[0.65rem] uppercase tracking-widest text-primary font-bold mb-2">Meal Timing</div><ul class="protocol-list font-mono text-sm"><li><i class="fa-solid fa-clock text-primary"></i> <strong class="text-secondary">Pre-workout:</strong> ${safeT(preText)}</li><li><i class="fa-solid fa-clock text-primary"></i> <strong class="text-secondary">Post-workout:</strong> ${safeT(postText)}</li></ul></div>`;
+                    const mealTimingContent = `<ul class="protocol-list font-mono text-sm"><li><i class="fa-solid fa-clock text-primary"></i> <strong class="text-secondary">Pre-workout:</strong> ${safeT(preText)}</li><li><i class="fa-solid fa-clock text-primary"></i> <strong class="text-secondary">Post-workout:</strong> ${safeT(postText)}</li></ul>`;
 
                     // Recommended Supplement Stack — always show; use AI data or goal-based evidence-based fallback
                     let supplementStack = aiN.supplement_stack && Array.isArray(aiN.supplement_stack) ? aiN.supplement_stack : [];
@@ -1549,15 +1548,30 @@ const dashModule = {
                         };
                         supplementStack = stacks[goal] || stacks.recomp;
                     }
-                    nutritionHtml += `<div class="mt-4 pt-4 border-t border-border-light"><div class="text-[0.65rem] uppercase tracking-widest text-primary font-bold mb-2">Recommended Supplement Stack</div><ul class="protocol-list font-mono text-sm">`;
+                    let supplementContent = '<ul class="protocol-list font-mono text-sm">';
                     supplementStack.forEach(s => {
                         const name = s.name || '';
                         const purpose = s.purpose || '';
                         const dose = s.dose || '';
-                        nutritionHtml += `<li><i class="fa-solid fa-capsules text-primary"></i> <strong class="text-primary">${safeT(name)}</strong> — ${safeT(purpose)} <span class="text-muted">(${safeT(dose)})</span></li>`;
+                        supplementContent += `<li><i class="fa-solid fa-capsules text-primary"></i> <strong class="text-primary">${safeT(name)}</strong> — ${safeT(purpose)} <span class="text-muted">(${safeT(dose)})</span></li>`;
                     });
-                    nutritionHtml += `</ul></div>`;
+                    supplementContent += '</ul>';
 
+                    // Nested accordions: GUIDELINES, MEAL TIMING, RECOMMENDED SUPPLEMENT STACK (closed by default)
+                    const nestedIds = ['accordion-nutrition-guidelines', 'accordion-nutrition-meal-timing', 'accordion-nutrition-supplements'];
+                    const nestedTitles = [safeT('GUIDELINES'), safeT('MEAL TIMING'), safeT('RECOMMENDED SUPPLEMENT STACK')];
+                    const nestedBodies = [guidelinesContent, mealTimingContent, supplementContent];
+                    let nutritionHtml = '';
+                    nestedIds.forEach((nid, i) => {
+                        nutritionHtml += `
+                        <div class="nested-accordion accordion-card is-closed" id="${nid}">
+                            <div class="nested-accordion-trigger accordion-trigger" data-accordion-id="${nid}" tabindex="0" role="button" aria-expanded="false" aria-controls="${nid}-body">
+                                <span class="text-[0.65rem] uppercase tracking-widest text-primary font-bold">${nestedTitles[i]}</span>
+                                <span class="accordion-toggle-icon" aria-hidden="true"><i class="accordion-chevron fa-solid fa-chevron-down" aria-hidden="true"></i></span>
+                            </div>
+                            <div class="accordion-body nested-accordion-body" id="${nid}-body">${nestedBodies[i]}</div>
+                        </div>`;
+                    });
                     document.getElementById('res-nutrition-plan').innerHTML = nutritionHtml;
                 }
 
@@ -1588,9 +1602,12 @@ const dashModule = {
                         }).join('');
 
                         aiHtml += `
-                        <div class="day-card day-card-static flex flex-col justify-start">
-                            <div class="day-header border-b border-border-light pb-2 mb-2 text-center text-xs tracking-widest">${safeT(w.day)}</div>
-                            <div class="day-body flex-grow">
+                        <div class="day-card accordion-card is-closed flex flex-col justify-start" id="accordion-day-${idx}">
+                            <div class="day-header accordion-trigger border-b border-border-light pb-2 pt-2 text-xs tracking-widest flex items-center justify-between gap-2" data-accordion-id="accordion-day-${idx}" tabindex="0" role="button" aria-expanded="false" aria-controls="accordion-day-${idx}-body">
+                                <span>${safeT(w.day)}</span>
+                                <span class="accordion-toggle-icon" aria-hidden="true"><i class="accordion-chevron fa-solid fa-chevron-down" aria-hidden="true"></i></span>
+                            </div>
+                            <div class="day-body accordion-body flex-grow" id="accordion-day-${idx}-body">
                                 <div class="day-desc font-mono">
                                     <strong class="text-warning tracking-widest uppercase block text-center text-sm mb-3">${safeT(w.focus)}</strong>
                                     ${warmupHtml}
@@ -1628,9 +1645,12 @@ const dashModule = {
                     }
 
                     modulesHtml += `
-                    <div class="day-card day-card-static">
-                        <div class="day-header">${safeT(t.day)}</div>
-                        <div class="day-body">
+                    <div class="day-card accordion-card is-closed" id="accordion-day-fb-${idx}">
+                        <div class="day-header accordion-trigger flex items-center justify-between gap-2" data-accordion-id="accordion-day-fb-${idx}" tabindex="0" role="button" aria-expanded="false" aria-controls="accordion-day-fb-${idx}-body">
+                            <span>${safeT(t.day)}</span>
+                            <span class="accordion-toggle-icon" aria-hidden="true"><i class="accordion-chevron fa-solid fa-chevron-down" aria-hidden="true"></i></span>
+                        </div>
+                        <div class="day-body accordion-body" id="accordion-day-fb-${idx}-body">
                             <div class="day-desc font-mono">
                                 <strong class="text-primary tracking-widest uppercase">${safeT(t.name)}</strong><br>
                                 <span class="text-xs uppercase mt-2 block opacity-80">${translatedDesc}</span>
