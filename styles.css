@@ -1041,11 +1041,22 @@ body.dashboard-active .dashboard-main {
     padding-left: 0.75rem;
 }
 
+/* Assessment option cards: force single row, no wrap; horizontal scroll on tiny screens */
 .options-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    grid-template-columns: repeat(4, 1fr);
     gap: 0.75rem;
     align-items: stretch;
+    overflow-x: auto;
+    min-width: 0;
+}
+
+#view-assessment .options-grid {
+    grid-template-columns: repeat(4, 1fr) !important;
+}
+
+#view-assessment .options-grid.opts-2 {
+    grid-template-columns: repeat(6, 1fr) !important;
 }
 
 .opts-2, .opts-3 {
@@ -1624,7 +1635,7 @@ body.dashboard-active .dashboard-main {
     align-items: center;
     justify-content: center;
     gap: 0.35rem;
-    padding: 0.6rem 0.5rem;
+    padding: 10px 5px !important;
     box-sizing: border-box;
     overflow: visible;
     text-overflow: clip;
@@ -1635,16 +1646,17 @@ body.dashboard-active .dashboard-main {
 }
 
 .macro-box .val {
-    font-size: clamp(0.8rem, 2.2vw, 1.1rem);
+    font-size: clamp(1rem, 1.5vw, 1.5rem) !important;
     font-weight: 700;
     font-family: var(--font-mono);
     line-height: 1.25;
     overflow: visible;
     text-overflow: clip;
-    white-space: nowrap;
+    white-space: nowrap !important;
+    text-align: center;
 }
 .macro-box:first-child .val {
-    font-size: clamp(0.85rem, 2.4vw, 1.15rem);
+    font-size: clamp(1rem, 1.5vw, 1.5rem) !important;
 }
 
 .macro-box .lbl {
@@ -1787,12 +1799,13 @@ body.dashboard-active .dashboard-main {
     background: var(--bg-base);
 }
 
+/* Parent of daily workout cards: prevent row stretch when one accordion expands */
 .module-cards-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
     gap: 20px;
     padding-bottom: 0.5rem;
-    align-items: start;
+    align-items: start !important;
 }
 
 .day-card {
@@ -1801,7 +1814,7 @@ body.dashboard-active .dashboard-main {
     border-radius: var(--radius-sm);
     overflow: hidden;
     align-self: start;
-    height: max-content;
+    height: max-content !important;
 }
 
 /* Static day cards (Training Plan): always open, no accordion */
