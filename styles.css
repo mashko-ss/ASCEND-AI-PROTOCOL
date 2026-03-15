@@ -1601,10 +1601,10 @@ body.dashboard-active .dashboard-main {
     text-transform: uppercase;
 }
 
-/* Macro display: horizontal, spacious row — numbers and labels fully visible, centered, no overflow */
+/* Macro display: horizontal, spacious row — numbers and labels fully visible, centered, no truncation */
 .macro-display {
     display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(4, minmax(4.5rem, 1fr));
     align-items: stretch;
     gap: 0;
     border-radius: var(--radius-sm);
@@ -1625,7 +1625,6 @@ body.dashboard-active .dashboard-main {
     gap: 0.35rem;
     padding: 0.6rem 0.5rem;
     box-sizing: border-box;
-    overflow: hidden;
 }
 
 .macro-box:not(:last-child) {
@@ -1637,9 +1636,6 @@ body.dashboard-active .dashboard-main {
     font-weight: 700;
     font-family: var(--font-mono);
     line-height: 1.25;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
     min-width: 0;
     width: 100%;
 }
@@ -1792,6 +1788,7 @@ body.dashboard-active .dashboard-main {
     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
     gap: 20px;
     padding-bottom: 0.5rem;
+    align-items: start;
 }
 
 .day-card {
