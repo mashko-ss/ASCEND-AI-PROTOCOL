@@ -1374,18 +1374,16 @@ NUTRITION PLAN RULES:
 // ==========================================
 // 5.5 ACCORDION MODULE (collapsible + scroll-into-view)
 // ==========================================
+// Section accordion IDs only (Nutrition, Recovery, Training header). Day cards are static, no accordion.
+const DASHBOARD_ACCORDION_IDS = ['accordion-nutrition', 'accordion-recovery', 'accordion-training'];
+
 const accordionModule = {
-    bind: (container = null) => {
-        const root = container || document.getElementById('view-dashboard');
-        if (!root) return;
-
-        const triggers = root.querySelectorAll('.accordion-trigger');
-        triggers.forEach(trigger => {
-            const id = trigger.getAttribute('data-accordion-id');
-            if (!id) return;
-
-            const card = document.getElementById(id);
+    bind: () => {
+        DASHBOARD_ACCORDION_IDS.forEach((cardId) => {
+            const card = document.getElementById(cardId);
             if (!card) return;
+            const trigger = card.querySelector('.accordion-trigger');
+            if (!trigger) return;
 
             const open = () => {
                 const wasClosed = card.classList.contains('is-closed');
@@ -1585,14 +1583,10 @@ const dashModule = {
                         `;
                         }).join('');
 
-                        const accordionId = `accordion-day-${idx}`;
                         aiHtml += `
-                        <div class="day-card accordion-card is-open flex flex-col justify-start" id="${accordionId}" data-accordion-id="${accordionId}">
-                            <div class="day-header accordion-trigger border-b border-border-light pb-2 mb-2 text-center text-xs tracking-widest" data-accordion-id="${accordionId}" tabindex="0" role="button" aria-expanded="true" aria-controls="${accordionId}-body">
-                                <span>${safeT(w.day)}</span>
-                                <i class="accordion-chevron fa-solid fa-chevron-down" aria-hidden="true"></i>
-                            </div>
-                            <div class="day-body accordion-body flex-grow" id="${accordionId}-body">
+                        <div class="day-card day-card-static flex flex-col justify-start">
+                            <div class="day-header border-b border-border-light pb-2 mb-2 text-center text-xs tracking-widest">${safeT(w.day)}</div>
+                            <div class="day-body flex-grow">
                                 <div class="day-desc font-mono">
                                     <strong class="text-warning tracking-widest uppercase block text-center text-sm mb-3">${safeT(w.focus)}</strong>
                                     ${warmupHtml}
@@ -1629,14 +1623,10 @@ const dashModule = {
                         translatedDesc = safeT('Build up your fitness and track progress.');
                     }
 
-                    const accordionId = `accordion-day-${idx}`;
                     modulesHtml += `
-                    <div class="day-card accordion-card is-open" id="${accordionId}" data-accordion-id="${accordionId}">
-                        <div class="day-header accordion-trigger" data-accordion-id="${accordionId}" tabindex="0" role="button" aria-expanded="true" aria-controls="${accordionId}-body">
-                            <span>${safeT(t.day)}</span>
-                            <i class="accordion-chevron fa-solid fa-chevron-down" aria-hidden="true"></i>
-                        </div>
-                        <div class="day-body accordion-body" id="${accordionId}-body">
+                    <div class="day-card day-card-static">
+                        <div class="day-header">${safeT(t.day)}</div>
+                        <div class="day-body">
                             <div class="day-desc font-mono">
                                 <strong class="text-primary tracking-widest uppercase">${safeT(t.name)}</strong><br>
                                 <span class="text-xs uppercase mt-2 block opacity-80">${translatedDesc}</span>

@@ -1688,22 +1688,31 @@ body.dashboard-active .dashboard-main {
 
 .scrolling-modules-container {
     padding: 1.5rem;
-    overflow-x: auto;
     background: var(--bg-base);
 }
 
 .module-cards-grid {
-    display: flex;
-    gap: 1rem;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
     padding-bottom: 0.5rem;
 }
 
 .day-card {
-    min-width: 250px;
     background: var(--bg-surface);
     border: 1px solid var(--border-color);
     border-radius: var(--radius-sm);
     overflow: hidden;
+}
+
+/* Static day cards (Training Plan): always open, no accordion */
+.day-card-static .day-header {
+    cursor: default;
+    pointer-events: none;
+}
+.day-card-static .day-body {
+    max-height: none;
+    opacity: 1;
 }
 
 .day-header {
