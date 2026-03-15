@@ -1275,21 +1275,116 @@ body.dashboard-active .dashboard-main {
     border: none;
 }
 
-/* Day card as accordion (workout days) */
+/* Day card as accordion (workout days) — fully interactive, independent toggle */
 .day-card.accordion-card .day-header {
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 0.5rem;
+    padding: 0.5rem 0;
+    transition: background var(--transition-fast);
+}
+
+.day-card.accordion-card .day-header:hover {
+    background: var(--bg-surface-hover);
 }
 
 .day-card.accordion-card .day-header .accordion-chevron {
     font-size: 0.7rem;
+    transition: transform var(--transition-normal);
+}
+
+.day-card.accordion-card .day-body {
+    overflow: hidden;
+    max-height: 5000px;
+    transition: max-height var(--transition-normal), opacity var(--transition-normal);
 }
 
 .day-card.accordion-card.is-closed .day-body {
-    display: none;
+    max-height: 0 !important;
+    opacity: 0;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+    margin-top: 0 !important;
+}
+
+/* --- Exercise rows: checkboxes + completed state (premium dark/orange theme) --- */
+.exercise-row {
+    position: relative;
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+}
+
+/* Hide native checkbox, keep for accessibility and click target */
+.exercise-checkbox {
+    position: absolute;
+    left: 0;
+    top: 0.35rem;
+    width: 1.25rem;
+    height: 1.25rem;
+    opacity: 0;
+    margin: 0;
+    cursor: pointer;
+    z-index: 1;
+}
+
+/* Custom checkbox: dark border, orange when checked */
+.exercise-checkbox-custom {
+    flex-shrink: 0;
+    width: 1.25rem;
+    height: 1.25rem;
+    min-width: 1.25rem;
+    min-height: 1.25rem;
+    border: 2px solid var(--border-color);
+    background: var(--bg-surface);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: background var(--transition-fast), border-color var(--transition-fast), box-shadow var(--transition-fast);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.exercise-checkbox-custom:hover {
+    border-color: var(--text-muted);
+    background: var(--bg-surface-hover);
+}
+
+.exercise-checkbox:focus-visible + .exercise-checkbox-custom {
+    box-shadow: 0 0 0 2px var(--accent-primary);
+}
+
+.exercise-checkbox:checked + .exercise-checkbox-custom {
+    background: var(--accent-primary);
+    border-color: var(--accent-primary);
+}
+
+.exercise-checkbox:checked + .exercise-checkbox-custom::after {
+    content: '';
+    width: 0.35rem;
+    height: 0.6rem;
+    margin-bottom: 0.15rem;
+    border: solid var(--bg-base);
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+}
+
+/* Completed state: subtle opacity + strikethrough */
+.exercise-checkbox:checked ~ .exercise-content {
+    opacity: 0.65;
+    text-decoration: line-through;
+}
+
+.exercise-checkbox:checked ~ .exercise-content span {
+    text-decoration: line-through;
+}
+
+.exercise-content {
+    flex: 1;
+    min-width: 0;
+    transition: opacity var(--transition-fast);
 }
 
 .dashboard-sidebar {

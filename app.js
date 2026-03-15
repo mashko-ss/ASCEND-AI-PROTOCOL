@@ -1567,15 +1567,20 @@ const dashModule = {
                         const warmupText = (w.warmup && String(w.warmup).trim()) ? w.warmup : defaultWarmup;
                         const warmupHtml = `<div class="text-[0.7rem] mb-3 p-2 rounded bg-surface-hover border border-border-light text-secondary"><span class="text-primary font-bold uppercase text-[0.65rem] tracking-widest block mb-1">Warm-up</span><span>${safeT(warmupText)}</span></div>`;
 
-                        let exHtml = (w.exercises || []).map(e => {
+                        let exHtml = (w.exercises || []).map((e, exIdx) => {
                             const rpe = (e.rpe != null && e.rpe !== '') ? `RPE ${e.rpe}` : '';
                             const tempo = (e.tempo != null && e.tempo !== '' && e.tempo !== '—') ? `Tempo ${e.tempo}` : (e.tempo === '—' ? '—' : '');
                             const meta = [rpe, tempo].filter(Boolean).join(' · ');
+                            const checkId = `ex-day-${idx}-${exIdx}`;
                             return `
-                            <div class="text-[0.7rem] mt-2 border-t border-border-light pt-2 text-secondary">
-                                <span class="text-primary font-bold block">${safeT(e.name)}</span>
-                                <span>${e.sets} ${safeT("sets")} | ${e.reps} | ${safeT("Rest")}: ${e.rest}</span>
-                                ${meta ? `<span class="block mt-1 text-muted font-mono text-[0.65rem]">${meta}</span>` : ''}
+                            <div class="exercise-row text-[0.7rem] mt-2 border-t border-border-light pt-2 text-secondary">
+                                <input type="checkbox" class="exercise-checkbox" id="${checkId}" aria-label="${safeT("Mark exercise complete")}"/>
+                                <label for="${checkId}" class="exercise-checkbox-custom" aria-hidden="true"></label>
+                                <div class="exercise-content">
+                                    <span class="text-primary font-bold block">${safeT(e.name)}</span>
+                                    <span>${e.sets} ${safeT("sets")} | ${e.reps} | ${safeT("Rest")}: ${e.rest}</span>
+                                    ${meta ? `<span class="block mt-1 text-muted font-mono text-[0.65rem]">${meta}</span>` : ''}
+                                </div>
                             </div>
                         `;
                         }).join('');
