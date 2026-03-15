@@ -301,6 +301,8 @@ const langModule = {
             "90+ Minutes": "90+ Minutes",
             "Equipment Access": "Equipment Access",
             "Full Gym": "Full Gym",
+            "Gym": "Gym",
+            "Home": "Home",
             "A proper gym with machines and free weights.": "A proper gym with machines and free weights.",
             "Home Gym": "Home Gym",
             "Basic setup with dumbbells or a barbell.": "Basic setup with dumbbells or a barbell.",
@@ -570,6 +572,8 @@ const langModule = {
             "90+ Minutes": "90+ Минути",
             "Equipment Access": "Налично оборудване",
             "Full Gym": "Пълен фитнес",
+            "Gym": "Фитнес",
+            "Home": "Вкъщи",
             "A proper gym with machines and free weights.": "Добре оборудвана фитнес зала.",
             "Home Gym": "Домашен фитнес",
             "Basic setup with dumbbells or a barbell.": "Основни тежести и дъмбели вкъщи.",
@@ -1049,7 +1053,17 @@ const wizardModule = {
             return true;
         }
 
-        // Steps 1–6: single radio per step
+        // Step 4 (index 4): Experience & Equipment — require BOTH experience and equipment
+        if (wizardModule.current === 4) {
+            const experienceEl = currentStepEl.querySelector('input[name="experience"]:checked');
+            const equipmentEl = currentStepEl.querySelector('input[name="equipment"]:checked');
+            if (!experienceEl || !equipmentEl) return false;
+            wizardModule.data.experience = experienceEl.value;
+            wizardModule.data.equipment = equipmentEl.value;
+            return true;
+        }
+
+        // Steps 1, 2, 3, 5, 6: single radio per step (activity, primary_goal, target_focus, days, duration, limitations)
         const checked = currentStepEl.querySelector('input[type="radio"]:checked');
         if (checked) {
             wizardModule.data[checked.name] = checked.value;
@@ -1094,6 +1108,11 @@ const wizardModule = {
                 const checkboxes = currentStepEl.querySelectorAll('input[name="allergies"]:checked');
                 const values = Array.from(checkboxes).map(c => c.value);
                 wizardModule.data.allergies = (values.includes('none') || values.length === 0) ? 'none' : values.filter(v => v !== 'none').join(',');
+            } else if (wizardModule.current === 4) {
+                const experienceEl = currentStepEl.querySelector('input[name="experience"]:checked');
+                const equipmentEl = currentStepEl.querySelector('input[name="equipment"]:checked');
+                if (experienceEl) wizardModule.data.experience = experienceEl.value;
+                if (equipmentEl) wizardModule.data.equipment = equipmentEl.value;
             } else {
                 const checked = currentStepEl.querySelector('input[type="radio"]:checked');
                 if (checked) wizardModule.data[checked.name] = checked.value;
@@ -1391,7 +1410,7 @@ NUTRITION PLAN RULES:
                 goal: goal,
                 tier: (a.experience || 'beginner').toUpperCase(),
                 days: a.days || '3',
-                style: (a.equipment || 'bodyweight').toUpperCase(),
+                style: (a.equipment || 'home').toUpperCase(),
                 target_focus: a.target_focus || 'overall',
                 limitations: a.limitations || 'none'
             },
@@ -1437,7 +1456,7 @@ NUTRITION PLAN RULES:
 // ==========================================
 // 5.5 ACCORDION MODULE (collapsible + scroll-into-view)
 // ==========================================
-// Accordion: 100% independent toggles. Day cards use strict .day-card scoping so one never affects another.
+// Accordion: 100% independent toggles. Opening one accordion toggles ONLY that card's content; siblings are never affected.
 const accordionModule = {
     _bound: false,
     _boundTraining: false,
@@ -1446,7 +1465,7 @@ const accordionModule = {
         const view = document.getElementById('view-dashboard');
         if (!view) return;
 
-        // Day cards: strict delegation on #res-training-plan so each day opens/closes alone
+        // Day cards: strict delegation on #res-training-plan — each day opens/closes only its own .accordion-body; siblings untouched
         const trainingPlanEl = document.getElementById('res-training-plan');
         if (trainingPlanEl && !accordionModule._boundTraining) {
             accordionModule._boundTraining = true;
@@ -1499,6 +1518,7 @@ const accordionModule = {
     },
 
     _toggleOne: (card, trigger) => {
+        // Only this card's body is toggled; no sibling day cards or other accordions are modified
         const body = card.querySelector('.accordion-body');
         const wasClosed = card.classList.contains('is-closed');
 

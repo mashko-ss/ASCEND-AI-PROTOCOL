@@ -1041,29 +1041,41 @@ body.dashboard-active .dashboard-main {
     padding-left: 0.75rem;
 }
 
-/* Assessment option cards: force single row, no wrap; horizontal scroll on tiny screens */
+/* Assessment option cards: force ONE ROW, no wrap on desktop; horizontal scroll when needed */
 .options-grid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 0.75rem;
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    gap: 15px !important;
+    overflow-x: auto !important;
     align-items: stretch;
-    overflow-x: auto;
     min-width: 0;
 }
 
 #view-assessment .options-grid {
-    grid-template-columns: repeat(4, 1fr) !important;
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    gap: 15px !important;
+    overflow-x: auto !important;
 }
 
 #view-assessment .options-grid.opts-2 {
-    grid-template-columns: repeat(6, 1fr) !important;
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    gap: 15px !important;
+    overflow-x: auto !important;
+}
+
+/* Ensure option cards do not shrink or wrap to new line */
+#view-assessment .options-grid .radio-card {
+    flex-shrink: 0 !important;
+    min-width: 140px;
 }
 
 .opts-2, .opts-3 {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 0.75rem;
-    align-items: stretch;
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    gap: 15px !important;
+    overflow-x: auto !important;
 }
 
 
@@ -1797,6 +1809,7 @@ body.dashboard-active .dashboard-main {
 .scrolling-modules-container {
     padding: 1.5rem;
     background: var(--bg-base);
+    align-items: flex-start !important;
 }
 
 /* Parent of daily workout cards: prevent row stretch when one accordion expands */
@@ -1805,7 +1818,7 @@ body.dashboard-active .dashboard-main {
     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
     gap: 20px;
     padding-bottom: 0.5rem;
-    align-items: start !important;
+    align-items: flex-start !important;
 }
 
 .day-card {
@@ -1813,7 +1826,7 @@ body.dashboard-active .dashboard-main {
     border: 1px solid var(--border-color);
     border-radius: var(--radius-sm);
     overflow: hidden;
-    align-self: start;
+    align-self: flex-start !important;
     height: max-content !important;
 }
 
@@ -2306,7 +2319,9 @@ body.dashboard-active .dashboard-main {
 
     .opts-2,
     .opts-3 {
-        grid-template-columns: 1fr;
+        display: flex !important;
+        flex-wrap: nowrap !important;
+        overflow-x: auto !important;
     }
 
     .form-grid {
