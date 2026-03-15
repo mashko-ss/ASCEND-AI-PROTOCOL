@@ -1079,17 +1079,29 @@ CRITICAL REQUIREMENT:
 You must output the result ONLY in strict JSON format. Do NOT include any markdown formatting (like \`\`\`json), no introductory text, no conversational text, and no concluding text. Just the raw JSON object.
 
 The JSON MUST exactly follow this structure:
+
+WORKOUT PLAN RULES:
+- EVERY day MUST include a specific "warmup" string (e.g., 5 min row, band work, dynamic stretches relevant to that day).
+- EVERY exercise MUST include "rpe" (1-10, Rate of Perceived Exertion) and "tempo" (e.g., 3-1-X-1 for eccentric-pause-concentric-pause). Use "—" for tempo only on non-rep work (e.g., planks, cardio duration).
+
+NUTRITION PLAN RULES:
+- You MUST include "meal_timing" with both "pre_workout" and "post_workout" as specific, actionable advice (timing, carbs/protein, example foods).
+- You MUST include "supplement_stack": an array of 3–5 evidence-based supplements tailored to the user's goal (e.g., fat loss: caffeine, protein; muscle gain: creatine, protein; recomp: creatine, omega-3, vitamin D). Each item: name, purpose, dose.
+
 {
   "workout_plan": [
     {
       "day": "Day Name (e.g., Monday, Tuesday)",
       "focus": "Workout Focus (e.g., Upper Body Strength, Active Recovery)",
+      "warmup": "Specific warm-up protocol for THIS day (required for every day)",
       "exercises": [
         {
           "name": "Exercise Name",
           "sets": "Number of sets (e.g., 3-4)",
           "reps": "Rep range (e.g., 8-12)",
-          "rest": "Rest time (e.g., 90s)"
+          "rest": "Rest time (e.g., 90s)",
+          "rpe": "RPE 1-10 (required for every exercise)",
+          "tempo": "Tempo e.g. 3-1-X-1 (required; use — for holds/cardio)"
         }
       ]
     }
@@ -1105,6 +1117,13 @@ The JSON MUST exactly follow this structure:
       "Rule 1 based on their dietary preference and goal",
       "Rule 2...",
       "Rule 3..."
+    ],
+    "meal_timing": {
+      "pre_workout": "Specific pre-workout nutrition advice (timing, carbs/protein, examples)",
+      "post_workout": "Specific post-workout nutrition advice (window, anabolic window, examples)"
+    },
+    "supplement_stack": [
+      { "name": "Supplement name", "purpose": "Evidence-based reason", "dose": "e.g., 5g daily" }
     ]
   }
 }`;
@@ -1133,61 +1152,66 @@ The JSON MUST exactly follow this structure:
             // const parsedJSON = JSON.parse(aiResult.choices[0].message.content);
             // return parsedJSON;
 
-            // Premium mock: multi-day workout plan + rich nutrition plan
+            // Premium mock: multi-day workout plan + rich nutrition plan (warmup, RPE, tempo, meal timing, supplements)
             const mockParsedJSON = {
                 "workout_plan": [
                     {
                         "day": "Monday",
                         "focus": "Upper Body Strength",
+                        "warmup": "5 min row or bike; 2x10 band pull-aparts, 2x10 band dislocates; 1x8 empty bar bench, 1x8 bent-over row.",
                         "exercises": [
-                            { "name": "Barbell Bench Press", "sets": "4", "reps": "5-8", "rest": "120s" },
-                            { "name": "Bent-Over Barbell Row", "sets": "4", "reps": "6-10", "rest": "90s" },
-                            { "name": "Overhead Dumbbell Press", "sets": "3", "reps": "8-12", "rest": "90s" },
-                            { "name": "Pull-ups or Lat Pulldown", "sets": "3", "reps": "8-12", "rest": "90s" },
-                            { "name": "Cable Tricep Pushdown", "sets": "3", "reps": "10-15", "rest": "60s" }
+                            { "name": "Barbell Bench Press", "sets": "4", "reps": "5-8", "rest": "120s", "rpe": "8", "tempo": "3-1-X-1" },
+                            { "name": "Bent-Over Barbell Row", "sets": "4", "reps": "6-10", "rest": "90s", "rpe": "8", "tempo": "3-1-X-1" },
+                            { "name": "Overhead Dumbbell Press", "sets": "3", "reps": "8-12", "rest": "90s", "rpe": "7", "tempo": "3-0-X-1" },
+                            { "name": "Pull-ups or Lat Pulldown", "sets": "3", "reps": "8-12", "rest": "90s", "rpe": "7", "tempo": "2-1-X-1" },
+                            { "name": "Cable Tricep Pushdown", "sets": "3", "reps": "10-15", "rest": "60s", "rpe": "7", "tempo": "2-0-X-1" }
                         ]
                     },
                     {
                         "day": "Tuesday",
                         "focus": "Lower Body & Core",
+                        "warmup": "5 min bike; leg swings 10/side, hip circles 10/side; 1x8 goblet squat, 1x8 RDL with light KB.",
                         "exercises": [
-                            { "name": "Barbell Back Squat", "sets": "4", "reps": "5-8", "rest": "120s" },
-                            { "name": "Romanian Deadlift", "sets": "3", "reps": "8-10", "rest": "90s" },
-                            { "name": "Leg Press", "sets": "3", "reps": "10-12", "rest": "90s" },
-                            { "name": "Leg Curl", "sets": "3", "reps": "10-12", "rest": "60s" },
-                            { "name": "Plank", "sets": "3", "reps": "45-60s", "rest": "60s" }
+                            { "name": "Barbell Back Squat", "sets": "4", "reps": "5-8", "rest": "120s", "rpe": "8", "tempo": "3-1-X-1" },
+                            { "name": "Romanian Deadlift", "sets": "3", "reps": "8-10", "rest": "90s", "rpe": "8", "tempo": "3-1-X-1" },
+                            { "name": "Leg Press", "sets": "3", "reps": "10-12", "rest": "90s", "rpe": "7", "tempo": "3-0-X-1" },
+                            { "name": "Leg Curl", "sets": "3", "reps": "10-12", "rest": "60s", "rpe": "7", "tempo": "2-1-X-1" },
+                            { "name": "Plank", "sets": "3", "reps": "45-60s", "rest": "60s", "rpe": "6", "tempo": "—" }
                         ]
                     },
                     {
                         "day": "Wednesday",
                         "focus": "Active Recovery / Mobility",
+                        "warmup": "5 min easy walk or bike; full-body dynamic stretch.",
                         "exercises": [
-                            { "name": "Light Cardio (Bike or Walk)", "sets": "1", "reps": "20-30 min", "rest": "-" },
-                            { "name": "Hip Mobility Flow", "sets": "2", "reps": "8-10 per side", "rest": "30s" },
-                            { "name": "Shoulder Dislocates", "sets": "2", "reps": "10-15", "rest": "30s" },
-                            { "name": "Cat-Cow Stretch", "sets": "2", "reps": "10", "rest": "30s" }
+                            { "name": "Light Cardio (Bike or Walk)", "sets": "1", "reps": "20-30 min", "rest": "-", "rpe": "4", "tempo": "—" },
+                            { "name": "Hip Mobility Flow", "sets": "2", "reps": "8-10 per side", "rest": "30s", "rpe": "3", "tempo": "—" },
+                            { "name": "Shoulder Dislocates", "sets": "2", "reps": "10-15", "rest": "30s", "rpe": "3", "tempo": "—" },
+                            { "name": "Cat-Cow Stretch", "sets": "2", "reps": "10", "rest": "30s", "rpe": "3", "tempo": "—" }
                         ]
                     },
                     {
                         "day": "Thursday",
                         "focus": "Push Focus (Chest & Shoulders)",
+                        "warmup": "5 min row; band pull-aparts 2x15; 1x8 incline DB press light, 1x8 lateral raise light.",
                         "exercises": [
-                            { "name": "Incline Dumbbell Press", "sets": "4", "reps": "8-10", "rest": "90s" },
-                            { "name": "Dumbbell Flyes", "sets": "3", "reps": "10-12", "rest": "60s" },
-                            { "name": "Seated Dumbbell Shoulder Press", "sets": "4", "reps": "8-10", "rest": "90s" },
-                            { "name": "Lateral Raises", "sets": "3", "reps": "12-15", "rest": "60s" },
-                            { "name": "Face Pulls", "sets": "3", "reps": "12-15", "rest": "60s" }
+                            { "name": "Incline Dumbbell Press", "sets": "4", "reps": "8-10", "rest": "90s", "rpe": "8", "tempo": "3-1-X-1" },
+                            { "name": "Dumbbell Flyes", "sets": "3", "reps": "10-12", "rest": "60s", "rpe": "7", "tempo": "3-0-X-1" },
+                            { "name": "Seated Dumbbell Shoulder Press", "sets": "4", "reps": "8-10", "rest": "90s", "rpe": "8", "tempo": "3-0-X-1" },
+                            { "name": "Lateral Raises", "sets": "3", "reps": "12-15", "rest": "60s", "rpe": "7", "tempo": "2-1-X-1" },
+                            { "name": "Face Pulls", "sets": "3", "reps": "12-15", "rest": "60s", "rpe": "6", "tempo": "2-1-X-1" }
                         ]
                     },
                     {
                         "day": "Friday",
                         "focus": "Pull & Lower Body",
+                        "warmup": "5 min bike; 2x8 cat-cow, 2x8 hip hinge; 1x5 deadlift with bar, 1x5 with 60% working weight.",
                         "exercises": [
-                            { "name": "Conventional Deadlift", "sets": "4", "reps": "4-6", "rest": "120s" },
-                            { "name": "Pull-ups or Assisted Pull-ups", "sets": "3", "reps": "6-10", "rest": "90s" },
-                            { "name": "Cable Row", "sets": "3", "reps": "8-12", "rest": "90s" },
-                            { "name": "Bulgarian Split Squat", "sets": "3", "reps": "8-10 per leg", "rest": "90s" },
-                            { "name": "Barbell Curl", "sets": "3", "reps": "8-12", "rest": "60s" }
+                            { "name": "Conventional Deadlift", "sets": "4", "reps": "4-6", "rest": "120s", "rpe": "8", "tempo": "2-1-X-1" },
+                            { "name": "Pull-ups or Assisted Pull-ups", "sets": "3", "reps": "6-10", "rest": "90s", "rpe": "8", "tempo": "2-1-X-1" },
+                            { "name": "Cable Row", "sets": "3", "reps": "8-12", "rest": "90s", "rpe": "7", "tempo": "3-1-X-1" },
+                            { "name": "Bulgarian Split Squat", "sets": "3", "reps": "8-10 per leg", "rest": "90s", "rpe": "7", "tempo": "3-0-X-1" },
+                            { "name": "Barbell Curl", "sets": "3", "reps": "8-12", "rest": "60s", "rpe": "7", "tempo": "2-1-X-1" }
                         ]
                     }
                 ],
@@ -1200,6 +1224,16 @@ The JSON MUST exactly follow this structure:
                         "Stay hydrated: 2.5-3 L water daily, more on training days.",
                         "Time carbs around training for energy and recovery.",
                         "Include fiber-rich vegetables with lunch and dinner."
+                    ],
+                    "meal_timing": {
+                        "pre_workout": "60–90 min before: 30–40g carbs + 15–20g protein (e.g. oats + banana + whey, or rice cakes + Greek yogurt). Caffeine optional 30–45 min pre (3–5 mg/kg).",
+                        "post_workout": "Within 1–2 hours: 40–60g carbs + 25–40g protein. Example: chicken + rice + vegetables, or whey + banana + toast. Prioritize whole foods when possible."
+                    },
+                    "supplement_stack": [
+                        { "name": "Creatine Monohydrate", "purpose": "Strength and lean mass; evidence-based for all goals.", "dose": "5 g daily (any time)." },
+                        { "name": "Vitamin D3", "purpose": "Bone health, immunity, mood; especially if low sun exposure.", "dose": "2,000–4,000 IU with a fat-containing meal." },
+                        { "name": "Omega-3 (EPA/DHA)", "purpose": "Recovery, joint health, body composition.", "dose": "2–3 g EPA+DHA combined daily." },
+                        { "name": "Whey or Plant Protein", "purpose": "Convenient way to hit protein targets.", "dose": "1–2 scoops as needed to meet daily protein." }
                     ]
                 }
             };
@@ -1471,21 +1505,80 @@ const dashModule = {
                         <div class="macro-box"><div class="val">${fat}</div><div class="lbl">FAT</div></div>
                     `;
                     const guidelines = (aiN.guidelines && Array.isArray(aiN.guidelines) && aiN.guidelines.length) ? aiN.guidelines : [];
-                    document.getElementById('res-nutrition-plan').innerHTML = guidelines.length
+                    let nutritionHtml = guidelines.length
                         ? `<div class="text-[0.65rem] uppercase tracking-widest text-primary font-bold mb-2">${safeT("Guidelines")}</div><ul class="protocol-list font-mono text-sm">${guidelines.map(g => `<li><i class="fa-solid fa-check text-primary"></i> ${safeT(g)}</li>`).join('')}</ul>`
                         : `<p class="text-secondary text-sm font-mono">${safeT("Focus on whole foods and hit your macro targets above.")}</p>`;
+
+                    // Meal Timing (pre/post workout) — always show; use AI data or evidence-based fallback
+                    const mealTiming = aiN.meal_timing;
+                    const preText = mealTiming && mealTiming.pre_workout ? mealTiming.pre_workout : (langModule.currentLanguage === 'bg' ? '60–90 мин преди: въглехидрати + протеин (напр. овес, банан, протеин). Кафеин по избор 30–45 мин преди.' : '60–90 min before: carbs + protein (e.g. oats, banana, whey). Caffeine optional 30–45 min pre.');
+                    const postText = mealTiming && mealTiming.post_workout ? mealTiming.post_workout : (langModule.currentLanguage === 'bg' ? 'В рамките на 1–2 часа: 40–60g въглехидрати + 25–40g протеин. Пример: пиле + ориз + зеленчуци или протеин + банан.' : 'Within 1–2 hours: 40–60g carbs + 25–40g protein. Example: chicken + rice + vegetables, or whey + banana + toast.');
+                    nutritionHtml += `<div class="mt-4 pt-4 border-t border-border-light"><div class="text-[0.65rem] uppercase tracking-widest text-primary font-bold mb-2">Meal Timing</div><ul class="protocol-list font-mono text-sm"><li><i class="fa-solid fa-clock text-primary"></i> <strong class="text-secondary">Pre-workout:</strong> ${safeT(preText)}</li><li><i class="fa-solid fa-clock text-primary"></i> <strong class="text-secondary">Post-workout:</strong> ${safeT(postText)}</li></ul></div>`;
+
+                    // Recommended Supplement Stack — always show; use AI data or goal-based evidence-based fallback
+                    let supplementStack = aiN.supplement_stack && Array.isArray(aiN.supplement_stack) ? aiN.supplement_stack : [];
+                    if (supplementStack.length === 0) {
+                        const goal = (p.meta && p.meta.goal) ? p.meta.goal : 'recomp';
+                        const stacks = {
+                            fat_loss: [
+                                { name: 'Caffeine', purpose: 'Performance and focus; supports fat oxidation.', dose: '3–5 mg/kg 30–45 min pre-workout.' },
+                                { name: 'Whey or Plant Protein', purpose: 'Preserve muscle while in deficit.', dose: '1–2 scoops as needed.' },
+                                { name: 'Vitamin D3', purpose: 'Immune and metabolic support.', dose: '2,000–4,000 IU daily with fat.' },
+                                { name: 'Omega-3 (EPA/DHA)', purpose: 'Recovery and body composition.', dose: '2–3 g EPA+DHA daily.' }
+                            ],
+                            muscle_gain: [
+                                { name: 'Creatine Monohydrate', purpose: 'Strength and lean mass; strong evidence.', dose: '5 g daily, any time.' },
+                                { name: 'Whey or Plant Protein', purpose: 'Hit daily protein targets.', dose: '1–2 scoops as needed.' },
+                                { name: 'Vitamin D3', purpose: 'Bone health, immunity.', dose: '2,000–4,000 IU daily.' },
+                                { name: 'Omega-3 (EPA/DHA)', purpose: 'Recovery and joint health.', dose: '2–3 g EPA+DHA daily.' }
+                            ],
+                            recomp: [
+                                { name: 'Creatine Monohydrate', purpose: 'Strength and lean mass.', dose: '5 g daily.' },
+                                { name: 'Vitamin D3', purpose: 'Health and performance.', dose: '2,000–4,000 IU daily.' },
+                                { name: 'Omega-3 (EPA/DHA)', purpose: 'Recovery and body composition.', dose: '2–3 g EPA+DHA daily.' },
+                                { name: 'Whey or Plant Protein', purpose: 'Convenient protein to hit targets.', dose: '1–2 scoops as needed.' }
+                            ],
+                            military: [
+                                { name: 'Vitamin D3', purpose: 'Healthspan and immunity.', dose: '2,000–4,000 IU daily.' },
+                                { name: 'Omega-3 (EPA/DHA)', purpose: 'Recovery and longevity.', dose: '2–3 g EPA+DHA daily.' },
+                                { name: 'Creatine Monohydrate', purpose: 'Strength and cognitive support.', dose: '5 g daily.' },
+                                { name: 'Protein (optional)', purpose: 'Convenience for daily protein.', dose: 'As needed.' }
+                            ]
+                        };
+                        supplementStack = stacks[goal] || stacks.recomp;
+                    }
+                    nutritionHtml += `<div class="mt-4 pt-4 border-t border-border-light"><div class="text-[0.65rem] uppercase tracking-widest text-primary font-bold mb-2">Recommended Supplement Stack</div><ul class="protocol-list font-mono text-sm">`;
+                    supplementStack.forEach(s => {
+                        const name = s.name || '';
+                        const purpose = s.purpose || '';
+                        const dose = s.dose || '';
+                        nutritionHtml += `<li><i class="fa-solid fa-capsules text-primary"></i> <strong class="text-primary">${safeT(name)}</strong> — ${safeT(purpose)} <span class="text-muted">(${safeT(dose)})</span></li>`;
+                    });
+                    nutritionHtml += `</ul></div>`;
+
+                    document.getElementById('res-nutrition-plan').innerHTML = nutritionHtml;
                 }
 
-                // Render AI Training Plan (each day as collapsible accordion)
+                // Render AI Training Plan (every day: warm-up protocol at top + exercises with RPE & Tempo)
                 if (p.aiResult.workout_plan) {
                     let aiHtml = '';
+                    const defaultWarmup = langModule.currentLanguage === 'bg' ? '5 мин леко кардио; динамично разтягане за работещите мускулни групи.' : '5 min light cardio; dynamic stretches for the muscles you\'ll train today.';
                     p.aiResult.workout_plan.forEach((w, idx) => {
-                        let exHtml = w.exercises.map(e => `
+                        const warmupText = (w.warmup && String(w.warmup).trim()) ? w.warmup : defaultWarmup;
+                        const warmupHtml = `<div class="text-[0.7rem] mb-3 p-2 rounded bg-surface-hover border border-border-light text-secondary"><span class="text-primary font-bold uppercase text-[0.65rem] tracking-widest block mb-1">Warm-up</span><span>${safeT(warmupText)}</span></div>`;
+
+                        let exHtml = (w.exercises || []).map(e => {
+                            const rpe = (e.rpe != null && e.rpe !== '') ? `RPE ${e.rpe}` : '';
+                            const tempo = (e.tempo != null && e.tempo !== '' && e.tempo !== '—') ? `Tempo ${e.tempo}` : (e.tempo === '—' ? '—' : '');
+                            const meta = [rpe, tempo].filter(Boolean).join(' · ');
+                            return `
                             <div class="text-[0.7rem] mt-2 border-t border-border-light pt-2 text-secondary">
                                 <span class="text-primary font-bold block">${safeT(e.name)}</span>
                                 <span>${e.sets} ${safeT("sets")} | ${e.reps} | ${safeT("Rest")}: ${e.rest}</span>
+                                ${meta ? `<span class="block mt-1 text-muted font-mono text-[0.65rem]">${meta}</span>` : ''}
                             </div>
-                        `).join('');
+                        `;
+                        }).join('');
 
                         const accordionId = `accordion-day-${idx}`;
                         aiHtml += `
@@ -1497,6 +1590,7 @@ const dashModule = {
                             <div class="day-body accordion-body flex-grow" id="${accordionId}-body">
                                 <div class="day-desc font-mono">
                                     <strong class="text-warning tracking-widest uppercase block text-center text-sm mb-3">${safeT(w.focus)}</strong>
+                                    ${warmupHtml}
                                     <div>${exHtml}</div>
                                 </div>
                             </div>

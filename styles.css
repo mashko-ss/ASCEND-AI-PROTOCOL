@@ -291,6 +291,24 @@ h6 {
     max-width: 100%;
 }
 
+.border-t {
+    border-top-width: 1px;
+    border-top-style: solid;
+}
+
+.border-b {
+    border-bottom-width: 1px;
+    border-bottom-style: solid;
+}
+
+.border-border-light {
+    border-color: var(--border-light);
+}
+
+.border-border-color {
+    border-color: var(--border-color);
+}
+
 .ml-auto {
     margin-left: auto;
 }
@@ -1440,16 +1458,28 @@ body.dashboard-active .dashboard-main {
 }
 
 .macro-display {
+    display: flex;
+    flex-wrap: wrap;
     border-radius: var(--radius-sm);
     overflow: hidden;
     border: 1px solid var(--border-color);
+    gap: 0;
+    width: 100%;
 }
 
 .macro-box {
     background: var(--bg-base);
-    padding: 1rem;
-    flex: 1;
+    padding: clamp(0.4rem, 1.5vw, 0.85rem);
+    flex: 1 1 0;
+    min-width: 0;
+    max-width: 100%;
     text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    box-sizing: border-box;
 }
 
 .macro-box:not(:last-child) {
@@ -1457,19 +1487,61 @@ body.dashboard-active .dashboard-main {
 }
 
 .macro-box .val {
-    font-size: 1.25rem;
+    font-size: clamp(0.7rem, 2vw, 1.15rem);
     font-weight: 700;
     font-family: var(--font-mono);
+    word-break: break-word;
+    overflow-wrap: break-word;
+    line-height: 1.2;
+    max-width: 100%;
 }
 
 .macro-box .lbl {
-    font-size: 0.65rem;
+    font-size: clamp(0.5rem, 1.2vw, 0.65rem);
     color: var(--text-muted);
     text-transform: uppercase;
     font-family: var(--font-mono);
     font-weight: 700;
-    margin-top: 0.25rem;
-    letter-spacing: 0.05em;
+    margin-top: 0.2rem;
+    letter-spacing: 0.02em;
+    white-space: normal;
+    word-break: break-word;
+    overflow-wrap: break-word;
+    overflow: hidden;
+    max-width: 100%;
+    line-height: 1.2;
+    text-align: center;
+}
+
+@media (max-width: 480px) {
+    .macro-box {
+        flex: 1 1 50%;
+        min-width: 0;
+        padding: 0.5rem 0.35rem;
+    }
+    .macro-box .lbl {
+        font-size: 0.5rem;
+    }
+    .macro-box .val {
+        font-size: 0.75rem;
+    }
+    .macro-box:nth-child(2),
+    .macro-box:nth-child(4) {
+        border-right: none;
+    }
+    .macro-box:nth-child(1),
+    .macro-box:nth-child(2) {
+        border-bottom: 1px solid var(--border-color);
+    }
+}
+
+@media (min-width: 481px) and (max-width: 640px) {
+    .macro-box {
+        padding: 0.5rem 0.4rem;
+    }
+    .macro-box .lbl {
+        font-size: 0.52rem;
+    }
 }
 
 .protocol-list {
