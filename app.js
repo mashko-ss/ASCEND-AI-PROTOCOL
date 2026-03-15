@@ -362,6 +362,15 @@ const langModule = {
             "Flexible / Intuitive": "Flexible / Intuitive",
             "I just want simple guidelines to follow.": "I just want simple guidelines to follow.",
             "Step": "Step",
+            "Step 8": "Step 8",
+            "Step 9": "Step 9",
+            "Allergies & Restrictions": "Allergies & Restrictions",
+            "No restrictions": "No restrictions",
+            "I have no food allergies or restrictions.": "I have no food allergies or restrictions.",
+            "Guidelines": "Guidelines",
+            "Focus on whole foods and hit your macro targets above.": "Focus on whole foods and hit your macro targets above.",
+            "sets": "sets",
+            "Rest": "Rest",
             "Create Plan": "Create Plan",
             "Please complete all visible fields to proceed.": "Please complete all visible fields to proceed.",
             "MIN": "MIN",
@@ -620,6 +629,15 @@ const langModule = {
             "Flexible / Intuitive": "Гъвкав / Интуитивен",
             "I just want simple guidelines to follow.": "Искам просто ясни насоки, които да следвам.",
             "Step": "Стъпка",
+            "Step 8": "Стъпка 8",
+            "Step 9": "Стъпка 9",
+            "Allergies & Restrictions": "Алергии и ограничения",
+            "No restrictions": "Без ограничения",
+            "I have no food allergies or restrictions.": "Нямам хранителни алергии или ограничения.",
+            "Guidelines": "Насоки",
+            "Focus on whole foods and hit your macro targets above.": "Фокусирайте се върху истинска храна и постигайте целевите макроси.",
+            "sets": "серии",
+            "Rest": "Почивка",
             "Create Plan": "Създай план",
             "Please complete all visible fields to proceed.": "Моля, попълнете всички видими полета, за да продължите.",
             "MIN": "МИН",
@@ -910,7 +928,7 @@ const authModule = {
 // ==========================================
 const wizardModule = {
     current: 0,
-    totalSteps: 8,
+    totalSteps: 9,
     data: {},
 
     init: () => {
@@ -926,6 +944,19 @@ const wizardModule = {
 
         // Restore physical radio checked statuses
         Object.keys(wizardModule.data).forEach(key => {
+            if (key === 'allergies') {
+                const val = wizardModule.data.allergies;
+                if (val === 'none') {
+                    const el = document.querySelector('input[name="allergies"][value="none"]');
+                    if (el) el.checked = true;
+                } else if (val) {
+                    val.split(',').forEach(v => {
+                        const el = document.querySelector(`input[name="allergies"][value="${v.trim()}"]`);
+                        if (el) el.checked = true;
+                    });
+                }
+                return;
+            }
             const radio = document.querySelector(`input[name="${key}"][value="${wizardModule.data[key]}"]`);
             if (radio) radio.checked = true;
         });
@@ -968,6 +999,18 @@ const wizardModule = {
     captureStep: () => {
         const currentStepEl = document.getElementById(`step-${wizardModule.current}`);
         if (!currentStepEl) return false;
+
+        // Step 7: Allergies & Restrictions (checkboxes, optional)
+        if (wizardModule.current === 7) {
+            const checkboxes = currentStepEl.querySelectorAll('input[name="allergies"]:checked');
+            const values = Array.from(checkboxes).map(c => c.value);
+            if (values.includes('none') || values.length === 0) {
+                wizardModule.data.allergies = 'none';
+            } else {
+                wizardModule.data.allergies = values.filter(v => v !== 'none').join(',');
+            }
+            return true;
+        }
 
         const checked = currentStepEl.querySelector('input[type="radio"]:checked');
         if (checked) {
@@ -1081,21 +1124,74 @@ The JSON MUST exactly follow this structure:
             // const parsedJSON = JSON.parse(aiResult.choices[0].message.content);
             // return parsedJSON;
 
-            // For now, return a mock structured response
+            // Premium mock: multi-day workout plan + rich nutrition plan
             const mockParsedJSON = {
                 "workout_plan": [
                     {
                         "day": "Monday",
                         "focus": "Upper Body Strength",
                         "exercises": [
-                            { "name": "Barbell Bench Press", "sets": "4", "reps": "5-8", "rest": "120s" }
+                            { "name": "Barbell Bench Press", "sets": "4", "reps": "5-8", "rest": "120s" },
+                            { "name": "Bent-Over Barbell Row", "sets": "4", "reps": "6-10", "rest": "90s" },
+                            { "name": "Overhead Dumbbell Press", "sets": "3", "reps": "8-12", "rest": "90s" },
+                            { "name": "Pull-ups or Lat Pulldown", "sets": "3", "reps": "8-12", "rest": "90s" },
+                            { "name": "Cable Tricep Pushdown", "sets": "3", "reps": "10-15", "rest": "60s" }
+                        ]
+                    },
+                    {
+                        "day": "Tuesday",
+                        "focus": "Lower Body & Core",
+                        "exercises": [
+                            { "name": "Barbell Back Squat", "sets": "4", "reps": "5-8", "rest": "120s" },
+                            { "name": "Romanian Deadlift", "sets": "3", "reps": "8-10", "rest": "90s" },
+                            { "name": "Leg Press", "sets": "3", "reps": "10-12", "rest": "90s" },
+                            { "name": "Leg Curl", "sets": "3", "reps": "10-12", "rest": "60s" },
+                            { "name": "Plank", "sets": "3", "reps": "45-60s", "rest": "60s" }
+                        ]
+                    },
+                    {
+                        "day": "Wednesday",
+                        "focus": "Active Recovery / Mobility",
+                        "exercises": [
+                            { "name": "Light Cardio (Bike or Walk)", "sets": "1", "reps": "20-30 min", "rest": "-" },
+                            { "name": "Hip Mobility Flow", "sets": "2", "reps": "8-10 per side", "rest": "30s" },
+                            { "name": "Shoulder Dislocates", "sets": "2", "reps": "10-15", "rest": "30s" },
+                            { "name": "Cat-Cow Stretch", "sets": "2", "reps": "10", "rest": "30s" }
+                        ]
+                    },
+                    {
+                        "day": "Thursday",
+                        "focus": "Push Focus (Chest & Shoulders)",
+                        "exercises": [
+                            { "name": "Incline Dumbbell Press", "sets": "4", "reps": "8-10", "rest": "90s" },
+                            { "name": "Dumbbell Flyes", "sets": "3", "reps": "10-12", "rest": "60s" },
+                            { "name": "Seated Dumbbell Shoulder Press", "sets": "4", "reps": "8-10", "rest": "90s" },
+                            { "name": "Lateral Raises", "sets": "3", "reps": "12-15", "rest": "60s" },
+                            { "name": "Face Pulls", "sets": "3", "reps": "12-15", "rest": "60s" }
+                        ]
+                    },
+                    {
+                        "day": "Friday",
+                        "focus": "Pull & Lower Body",
+                        "exercises": [
+                            { "name": "Conventional Deadlift", "sets": "4", "reps": "4-6", "rest": "120s" },
+                            { "name": "Pull-ups or Assisted Pull-ups", "sets": "3", "reps": "6-10", "rest": "90s" },
+                            { "name": "Cable Row", "sets": "3", "reps": "8-12", "rest": "90s" },
+                            { "name": "Bulgarian Split Squat", "sets": "3", "reps": "8-10 per leg", "rest": "90s" },
+                            { "name": "Barbell Curl", "sets": "3", "reps": "8-12", "rest": "60s" }
                         ]
                     }
                 ],
                 "nutrition_plan": {
-                    "daily_calories": "Calculating...",
-                    "macros": { "protein": "TBD", "carbs": "TBD", "fats": "TBD" },
-                    "guidelines": ["Stay hydrated", "Focus on whole foods"]
+                    "daily_calories": "2,200 kcal",
+                    "macros": { "protein": "165g", "carbs": "220g", "fats": "73g" },
+                    "guidelines": [
+                        "Prioritize protein at every meal (aim for 25-40g per meal).",
+                        "Eat whole foods 80% of the time; allow flexibility for the rest.",
+                        "Stay hydrated: 2.5-3 L water daily, more on training days.",
+                        "Time carbs around training for energy and recovery.",
+                        "Include fiber-rich vegetables with lunch and dinner."
+                    ]
                 }
             };
             return mockParsedJSON;
@@ -1208,7 +1304,7 @@ The JSON MUST exactly follow this structure:
         // Build Training Arrays
         let numDays = parseInt(a.days || 3);
         const isBg = langModule.currentLanguage === 'bg';
-        const dayNames = isBg ? ['ПОНЕДЕЛНИК', 'ВТОРНИК', 'СРЯДА', 'ЧЕТВЪРТЪК', 'ПЕТЪК', 'СЪБОТА', 'НЕДЕЛЯ'] : ['Monday', 'Tuesday', 'Wedndsday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+        const dayNames = isBg ? ['ПОНЕДЕЛНИК', 'ВТОРНИК', 'СРЯДА', 'ЧЕТВЪРТЪК', 'ПЕТЪК', 'СЪБОТА', 'НЕДЕЛЯ'] : ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
         for (let i = 0; i < numDays; i++) {
             let n = i % 2 === 0 ? (isBg ? "Тренировка" : "Training Session") : (isBg ? 'Активно възстановяване' : 'Active Recovery');
@@ -1280,16 +1376,25 @@ const dashModule = {
                 const pendingEl = document.querySelector('#dash-mission-type').nextElementSibling;
                 if (pendingEl) pendingEl.style.display = 'none';
 
-                // Render AI Nutrition Plan
+                // Render AI Nutrition Plan (dynamic rich HTML — no static "Calculating...")
                 if (p.aiResult.nutrition_plan) {
                     const aiN = p.aiResult.nutrition_plan;
+                    const calories = (aiN.daily_calories && !String(aiN.daily_calories).toLowerCase().includes('calculating') && !String(aiN.daily_calories).toLowerCase().includes('tbd'))
+                        ? aiN.daily_calories
+                        : (p.nutrition ? `${p.nutrition.cals} kcal` : '—');
+                    const pro = (aiN.macros && aiN.macros.protein && !String(aiN.macros.protein).toLowerCase().includes('tbd')) ? aiN.macros.protein : (p.nutrition ? `${p.nutrition.pro}g` : '—');
+                    const carb = (aiN.macros && aiN.macros.carbs && !String(aiN.macros.carbs).toLowerCase().includes('tbd')) ? aiN.macros.carbs : (p.nutrition ? `${p.nutrition.carbs}g` : '—');
+                    const fat = (aiN.macros && aiN.macros.fats && !String(aiN.macros.fats).toLowerCase().includes('tbd')) ? aiN.macros.fats : (p.nutrition ? `${p.nutrition.fats}g` : '—');
                     document.getElementById('res-macros').innerHTML = `
-                        <div class="macro-box"><div class="val text-primary break-all text-sm">${aiN.daily_calories}</div><div class="lbl">KCAL</div></div>
-                        <div class="macro-box"><div class="val">${aiN.macros.protein}</div><div class="lbl">PRO</div></div>
-                        <div class="macro-box"><div class="val">${aiN.macros.carbs}</div><div class="lbl">CARB</div></div>
-                        <div class="macro-box"><div class="val">${aiN.macros.fats}</div><div class="lbl">FAT</div></div>
+                        <div class="macro-box"><div class="val text-primary break-all text-sm">${calories}</div><div class="lbl">KCAL</div></div>
+                        <div class="macro-box"><div class="val">${pro}</div><div class="lbl">PRO</div></div>
+                        <div class="macro-box"><div class="val">${carb}</div><div class="lbl">CARB</div></div>
+                        <div class="macro-box"><div class="val">${fat}</div><div class="lbl">FAT</div></div>
                     `;
-                    document.getElementById('res-nutrition-plan').innerHTML = aiN.guidelines.map(g => `<li><i class="fa-solid fa-check text-primary"></i> ${safeT(g)}</li>`).join('');
+                    const guidelines = (aiN.guidelines && Array.isArray(aiN.guidelines) && aiN.guidelines.length) ? aiN.guidelines : [];
+                    document.getElementById('res-nutrition-plan').innerHTML = guidelines.length
+                        ? `<div class="text-[0.65rem] uppercase tracking-widest text-primary font-bold mb-2">${safeT("Guidelines")}</div><ul class="protocol-list font-mono text-sm">${guidelines.map(g => `<li><i class="fa-solid fa-check text-primary"></i> ${safeT(g)}</li>`).join('')}</ul>`
+                        : `<p class="text-secondary text-sm font-mono">${safeT("Focus on whole foods and hit your macro targets above.")}</p>`;
                 }
 
                 // Render AI Training Plan
@@ -1605,6 +1710,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const modalSaveLogBtn = document.getElementById('modal-save-log-btn');
     if (modalSaveLogBtn) modalSaveLogBtn.addEventListener('click', (e) => { e.preventDefault(); dashModule.submitCheckin(); });
+
+    // --- Allergies step: "No restrictions" vs others mutually exclusive ---
+    document.getElementById('wizard-form')?.addEventListener('change', (e) => {
+        const target = e.target;
+        if (target?.getAttribute('name') === 'allergies' && target.type === 'checkbox') {
+            const noneCb = document.querySelector('input[name="allergies"][value="none"]');
+            const allCbs = document.querySelectorAll('input[name="allergies"]');
+            if (target.value === 'none' && target.checked) {
+                allCbs.forEach(cb => { if (cb !== target) cb.checked = false; });
+            } else if (target.value !== 'none' && target.checked && noneCb) {
+                noneCb.checked = false;
+            }
+        }
+    });
 
     // --- Wizard Navigation ---
     const btnNextStep = document.getElementById('btn-next-step');

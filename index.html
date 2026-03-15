@@ -207,7 +207,7 @@
                             <div class="progress-bar flex-grow">
                                 <div class="progress-fill" id="wizard-progress"></div>
                             </div>
-                            <span class="step-counter font-mono text-sm font-bold" id="step-counter">1 / 8</span>
+                            <span class="step-counter font-mono text-sm font-bold" id="step-counter">1 / 9</span>
                         </div>
                     </div>
 
@@ -479,11 +479,56 @@
                             </div>
                         </div>
 
-                        <!-- STEP 8: Activity -->
+                        <!-- STEP 8: Allergies & Restrictions -->
                         <div class="wizard-step hidden" id="step-7">
                             <div class="step-indicator mb-6">
                                 <span class="text-primary font-mono font-bold tracking-widest text-xs uppercase"
                                     data-safe-i18n="Step 8">Step 8</span>
+                                <h2 class="text-2xl font-heading font-black mt-2 uppercase tracking-widest"
+                                    data-safe-i18n="Allergies & Restrictions">Allergies & Restrictions</h2>
+                            </div>
+                            <div class="question-block">
+                                <span class="question-label" data-safe-i18n="Select Restrictions / Avoid">Select any foods to avoid or restrictions</span>
+                                <div class="options-grid opts-2">
+                                    <label class="radio-card"><input type="checkbox" name="allergies" value="none" data-allergies-none>
+                                        <div class="radio-card-content"><i class="fa-solid fa-check-circle"></i><span
+                                                class="radio-label" data-safe-i18n="No restrictions">No restrictions</span><span
+                                                class="radio-subtext"
+                                                data-safe-i18n="I have no food allergies or restrictions.">I have no food allergies or restrictions.</span></div>
+                                    </label>
+                                    <label class="radio-card"><input type="checkbox" name="allergies" value="dairy">
+                                        <div class="radio-card-content"><i class="fa-solid fa-cheese"></i><span
+                                                class="radio-label" data-safe-i18n="Dairy">Dairy</span></div>
+                                    </label>
+                                    <label class="radio-card"><input type="checkbox" name="allergies" value="gluten">
+                                        <div class="radio-card-content"><i class="fa-solid fa-wheat-awn"></i><span
+                                                class="radio-label" data-safe-i18n="Gluten">Gluten</span></div>
+                                    </label>
+                                    <label class="radio-card"><input type="checkbox" name="allergies" value="nuts">
+                                        <div class="radio-card-content"><i class="fa-solid fa-seedling"></i><span
+                                                class="radio-label" data-safe-i18n="Nuts">Nuts</span></div>
+                                    </label>
+                                    <label class="radio-card"><input type="checkbox" name="allergies" value="shellfish">
+                                        <div class="radio-card-content"><i class="fa-solid fa-fish"></i><span
+                                                class="radio-label" data-safe-i18n="Shellfish">Shellfish</span></div>
+                                    </label>
+                                    <label class="radio-card"><input type="checkbox" name="allergies" value="soy">
+                                        <div class="radio-card-content"><i class="fa-solid fa-leaf"></i><span
+                                                class="radio-label" data-safe-i18n="Soy">Soy</span></div>
+                                    </label>
+                                    <label class="radio-card"><input type="checkbox" name="allergies" value="eggs">
+                                        <div class="radio-card-content"><i class="fa-solid fa-egg"></i><span
+                                                class="radio-label" data-safe-i18n="Eggs">Eggs</span></div>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- STEP 9: Activity -->
+                        <div class="wizard-step hidden" id="step-8">
+                            <div class="step-indicator mb-6">
+                                <span class="text-primary font-mono font-bold tracking-widest text-xs uppercase"
+                                    data-safe-i18n="Step 9">Step 9</span>
                                 <h2 class="text-2xl font-heading font-black mt-2 uppercase tracking-widest"
                                     data-safe-i18n="Daily Activity Level">Daily Activity Level</h2>
                             </div>
