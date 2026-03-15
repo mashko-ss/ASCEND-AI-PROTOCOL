@@ -1378,55 +1378,50 @@ NUTRITION PLAN RULES:
 // ==========================================
 // 5.5 ACCORDION MODULE (collapsible + scroll-into-view)
 // ==========================================
-// Bind all .accordion-card in dashboard (main sections, nested nutrition, day cards) so each works independently.
+// Single event delegation: each accordion uses its own card instance. No shared IDs, 100% independent toggles.
 const accordionModule = {
+    _bound: false,
+
     bind: () => {
         const view = document.getElementById('view-dashboard');
-        if (!view) return;
+        if (!view || accordionModule._bound) return;
+        accordionModule._bound = true;
 
-        view.querySelectorAll('.accordion-card').forEach((card) => {
-            const trigger = card.querySelector('.accordion-trigger');
+        view.addEventListener('click', (e) => {
+            const trigger = e.target.closest('.accordion-trigger');
             if (!trigger) return;
-
-            const open = () => {
-                const wasClosed = card.classList.contains('is-closed');
-                card.classList.remove('is-closed');
-                card.classList.add('is-open');
-                trigger.setAttribute('aria-expanded', 'true');
-                if (wasClosed) {
-                    const body = card.querySelector('.accordion-body');
-                    if (body) {
-                        body.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                    }
-                }
-            };
-
-            const close = () => {
-                card.classList.add('is-closed');
-                card.classList.remove('is-open');
-                trigger.setAttribute('aria-expanded', 'false');
-            };
-
-            const toggle = () => {
-                if (card.classList.contains('is-closed')) {
-                    open();
-                } else {
-                    close();
-                }
-            };
-
-            trigger.addEventListener('click', (e) => {
-                e.preventDefault();
-                toggle();
-            });
-
-            trigger.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault();
-                    toggle();
-                }
-            });
+            const card = trigger.closest('.accordion-card');
+            if (!card) return;
+            e.preventDefault();
+            e.stopPropagation();
+            accordionModule._toggleOne(card, trigger);
         });
+
+        view.addEventListener('keydown', (e) => {
+            const trigger = e.target.closest('.accordion-trigger');
+            if (!trigger) return;
+            if (e.key !== 'Enter' && e.key !== ' ') return;
+            const card = trigger.closest('.accordion-card');
+            if (!card) return;
+            e.preventDefault();
+            accordionModule._toggleOne(card, trigger);
+        });
+    },
+
+    _toggleOne: (card, trigger) => {
+        const body = card.querySelector('.accordion-body');
+        const wasClosed = card.classList.contains('is-closed');
+
+        if (wasClosed) {
+            card.classList.remove('is-closed');
+            card.classList.add('is-open');
+            trigger.setAttribute('aria-expanded', 'true');
+            if (body) body.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        } else {
+            card.classList.add('is-closed');
+            card.classList.remove('is-open');
+            trigger.setAttribute('aria-expanded', 'false');
+        }
     },
 
     initDashboardAccordions: () => {
@@ -1675,6 +1670,9 @@ const dashModule = {
         document.querySelectorAll('.dash-tab').forEach(t => t.classList.remove('active'));
         document.querySelector('.sidebar-link[data-tab="active-protocol"]')?.classList.add('active');
         document.getElementById('tab-active-protocol')?.classList.add('active');
+
+        // Ensure accordion delegation is bound (works for static + dynamically injected accordions)
+        accordionModule.bind();
     },
 
     renderTelemetry: (user) => {
@@ -1735,7 +1733,7 @@ const dashModule = {
             }, 100);
 
             const safeT = window.safeI18nT || langModule.t;
-            const placeholderBox = document.querySelector('.border-dashed');
+            const placeholderBox = document.getElementById('progress-tracker-placeholder');
             if (placeholderBox) {
                 placeholderBox.innerHTML = `
                     <div>
