@@ -207,19 +207,95 @@
                             <div class="progress-bar flex-grow">
                                 <div class="progress-fill" id="wizard-progress"></div>
                             </div>
-                            <span class="step-counter font-mono text-sm font-bold" id="step-counter">1 / 9</span>
+                            <span class="step-counter font-mono text-sm font-bold" id="step-counter">1 / 8</span>
                         </div>
                     </div>
 
                     <div class="wizard-scroll-area" id="wizard-form">
 
-                        <!-- STEP 1: Goal -->
+                        <!-- STEP 1: Personal Stats (Gender, Age, Weight, Height) -->
                         <div class="wizard-step active" id="step-0">
                             <div class="step-indicator mb-6">
                                 <span class="text-primary font-mono font-bold tracking-widest text-xs uppercase"
                                     data-safe-i18n="Step 1">Step 1</span>
                                 <h2 class="text-2xl font-heading font-black mt-2 uppercase tracking-widest"
-                                    data-safe-i18n="Training Goal">Training Goal</h2>
+                                    data-safe-i18n="Personal Stats">Personal Stats</h2>
+                            </div>
+                            <div class="question-block">
+                                <span class="question-label" data-safe-i18n="Gender">Gender</span>
+                                <div class="options-grid opts-2">
+                                    <label class="radio-card"><input type="radio" name="gender" value="male">
+                                        <div class="radio-card-content"><i class="fa-solid fa-person"></i><span
+                                                class="radio-label" data-safe-i18n="Male">Male</span></div>
+                                    </label>
+                                    <label class="radio-card"><input type="radio" name="gender" value="female">
+                                        <div class="radio-card-content"><i class="fa-solid fa-person-dress"></i><span
+                                                class="radio-label" data-safe-i18n="Female">Female</span></div>
+                                    </label>
+                                </div>
+                                <div class="form-row gap-4 mt-6 grid grid-cols-2 md:grid-cols-4">
+                                    <div class="form-group">
+                                        <label class="font-mono tracking-widest text-xs uppercase" data-safe-i18n="Age">Age</label>
+                                        <input type="number" name="age" id="input-age" class="input-modern font-mono" min="13" max="120" placeholder="30">
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="font-mono tracking-widest text-xs uppercase" data-safe-i18n="Weight (kg)">Weight (kg)</label>
+                                        <input type="number" name="weight" id="input-weight" class="input-modern font-mono" min="30" max="300" step="0.1" placeholder="82">
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="font-mono tracking-widest text-xs uppercase" data-safe-i18n="Height (cm)">Height (cm)</label>
+                                        <input type="number" name="height" id="input-height" class="input-modern font-mono" min="100" max="250" placeholder="178">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- STEP 2: Daily Activity Level -->
+                        <div class="wizard-step hidden" id="step-1">
+                            <div class="step-indicator mb-6">
+                                <span class="text-primary font-mono font-bold tracking-widest text-xs uppercase"
+                                    data-safe-i18n="Step 2">Step 2</span>
+                                <h2 class="text-2xl font-heading font-black mt-2 uppercase tracking-widest"
+                                    data-safe-i18n="Daily Activity Level">Daily Activity Level</h2>
+                            </div>
+                            <div class="question-block">
+                                <span class="question-label" data-safe-i18n="Activity Outside of Training">Activity Outside of Training</span>
+                                <div class="options-grid">
+                                    <label class="radio-card"><input type="radio" name="activity" value="sedentary">
+                                        <div class="radio-card-content"><i class="fa-solid fa-chair"></i><span
+                                                class="radio-label" data-safe-i18n="Sedentary">Sedentary</span><span
+                                                class="radio-subtext"
+                                                data-safe-i18n="Mostly sitting / little movement">Mostly sitting / little movement</span></div>
+                                    </label>
+                                    <label class="radio-card"><input type="radio" name="activity" value="lightly">
+                                        <div class="radio-card-content"><i class="fa-solid fa-person-walking"></i><span
+                                                class="radio-label" data-safe-i18n="Lightly Active">Lightly Active</span><span
+                                                class="radio-subtext"
+                                                data-safe-i18n="Light activity (walking, light workouts)">Light activity (walking, light workouts)</span></div>
+                                    </label>
+                                    <label class="radio-card"><input type="radio" name="activity" value="moderate">
+                                        <div class="radio-card-content"><i class="fa-solid fa-person-walking"></i><span
+                                                class="radio-label" data-safe-i18n="Moderately Active">Moderately Active</span><span
+                                                class="radio-subtext"
+                                                data-safe-i18n="Regular movement or active job">Regular movement or active job</span></div>
+                                    </label>
+                                    <label class="radio-card"><input type="radio" name="activity" value="highly">
+                                        <div class="radio-card-content"><i class="fa-solid fa-person-running"></i><span
+                                                class="radio-label" data-safe-i18n="Very Active">Very Active</span><span
+                                                class="radio-subtext"
+                                                data-safe-i18n="Hard physical work or intense daily activity">Hard physical work or intense daily activity</span></div>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- STEP 3: Primary Goal -->
+                        <div class="wizard-step hidden" id="step-2">
+                            <div class="step-indicator mb-6">
+                                <span class="text-primary font-mono font-bold tracking-widest text-xs uppercase"
+                                    data-safe-i18n="Step 3">Step 3</span>
+                                <h2 class="text-2xl font-heading font-black mt-2 uppercase tracking-widest"
+                                    data-safe-i18n="Primary Goal">Primary Goal</h2>
                             </div>
                             <div class="question-block">
                                 <span class="question-label" data-safe-i18n="Primary Focus">Primary Focus</span>
@@ -228,123 +304,133 @@
                                         <div class="radio-card-content"><i class="fa-solid fa-fire"></i><span
                                                 class="radio-label" data-safe-i18n="Fat Loss">Fat Loss</span><span
                                                 class="radio-subtext"
-                                                data-safe-i18n="Lose fat while preserving muscle.">Lose fat while
-                                                preserving muscle.</span></div>
+                                                data-safe-i18n="Lose fat while preserving muscle.">Lose fat while preserving muscle.</span></div>
                                     </label>
-                                    <label class="radio-card"><input type="radio" name="primary_goal"
-                                            value="muscle_gain">
+                                    <label class="radio-card"><input type="radio" name="primary_goal" value="muscle_gain">
                                         <div class="radio-card-content"><i class="fa-solid fa-dumbbell"></i><span
-                                                class="radio-label" data-safe-i18n="Build Muscle">Build
-                                                Muscle</span><span class="radio-subtext"
-                                                data-safe-i18n="Gain muscle and strength.">Gain muscle and
-                                                strength.</span></div>
+                                                class="radio-label" data-safe-i18n="Build Muscle">Build Muscle</span><span
+                                                class="radio-subtext"
+                                                data-safe-i18n="Gain muscle and strength.">Gain muscle and strength.</span></div>
                                     </label>
                                     <label class="radio-card"><input type="radio" name="primary_goal" value="recomp">
-                                        <div class="radio-card-content"><i
-                                                class="fa-solid fa-scale-unbalanced"></i><span class="radio-label"
-                                                data-safe-i18n="Recomposition">Recomposition</span><span
+                                        <div class="radio-card-content"><i class="fa-solid fa-scale-unbalanced"></i><span
+                                                class="radio-label" data-safe-i18n="Recomposition">Recomposition</span><span
                                                 class="radio-subtext"
-                                                data-safe-i18n="Lose fat and gain muscle at the same time.">Lose fat and
-                                                gain muscle at the same time.</span></div>
+                                                data-safe-i18n="Lose fat and gain muscle at the same time.">Lose fat and gain muscle at the same time.</span></div>
                                     </label>
                                     <label class="radio-card"><input type="radio" name="primary_goal" value="longevity">
                                         <div class="radio-card-content"><i class="fa-solid fa-heart-pulse"></i><span
-                                                class="radio-label" data-safe-i18n="Health & Longevity">Health &
-                                                Longevity</span><span class="radio-subtext"
-                                                data-safe-i18n="Optimize healthspan and vitality.">Optimize healthspan
-                                                and vitality.</span></div>
+                                                class="radio-label" data-safe-i18n="Health & Longevity">Health & Longevity</span><span
+                                                class="radio-subtext"
+                                                data-safe-i18n="Optimize healthspan and vitality.">Optimize healthspan and vitality.</span></div>
                                     </label>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- STEP 2: Experience -->
-                        <div class="wizard-step hidden" id="step-1">
-                            <div class="step-indicator mb-6">
-                                <span class="text-primary font-mono font-bold tracking-widest text-xs uppercase"
-                                    data-safe-i18n="Step 2">Step 2</span>
-                                <h2 class="text-2xl font-heading font-black mt-2 uppercase tracking-widest"
-                                    data-safe-i18n="Experience Level">Experience Level</h2>
-                            </div>
-                            <div class="question-block">
-                                <span class="question-label" data-safe-i18n="Training Experience">Training
-                                    Experience</span>
-                                <div class="options-grid">
-                                    <label class="radio-card"><input type="radio" name="experience" value="beginner">
-                                        <div class="radio-card-content"><i class="fa-solid fa-seedling"></i><span
-                                                class="radio-label" data-safe-i18n="Beginner">Beginner</span><span
-                                                class="radio-subtext"
-                                                data-safe-i18n="New to training, learning the basics.">New to training,
-                                                learning the basics.</span></div>
-                                    </label>
-                                    <label class="radio-card"><input type="radio" name="experience"
-                                            value="intermediate">
-                                        <div class="radio-card-content"><i class="fa-solid fa-bolt"></i><span
-                                                class="radio-label"
-                                                data-safe-i18n="Intermediate">Intermediate</span><span
-                                                class="radio-subtext"
-                                                data-safe-i18n="Consistent training for a few months.">Consistent
-                                                training for a few months.</span></div>
-                                    </label>
-                                    <label class="radio-card"><input type="radio" name="experience" value="advanced">
-                                        <div class="radio-card-content"><i
-                                                class="fa-solid fa-fire-flame-curved"></i><span class="radio-label"
-                                                data-safe-i18n="Advanced">Advanced</span><span class="radio-subtext"
-                                                data-safe-i18n="Several years of training experience.">Several years of
-                                                training experience.</span></div>
-                                    </label>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- STEP 3: Equipment -->
-                        <div class="wizard-step hidden" id="step-2">
-                            <div class="step-indicator mb-6">
-                                <span class="text-primary font-mono font-bold tracking-widest text-xs uppercase"
-                                    data-safe-i18n="Step 3">Step 3</span>
-                                <h2 class="text-2xl font-heading font-black mt-2 uppercase tracking-widest"
-                                    data-safe-i18n="Available Equipment">Available Equipment</h2>
-                            </div>
-                            <div class="question-block">
-                                <span class="question-label" data-safe-i18n="Equipment Access">Equipment Access</span>
-                                <div class="options-grid">
-                                    <label class="radio-card"><input type="radio" name="equipment" value="full">
-                                        <div class="radio-card-content"><i class="fa-solid fa-building"></i><span
-                                                class="radio-label" data-safe-i18n="Full Gym">Full Gym</span><span
-                                                class="radio-subtext"
-                                                data-safe-i18n="A proper gym with machines and free weights.">A proper
-                                                gym with machines and free weights.</span></div>
-                                    </label>
-                                    <label class="radio-card"><input type="radio" name="equipment" value="home">
-                                        <div class="radio-card-content"><i class="fa-solid fa-warehouse"></i><span
-                                                class="radio-label" data-safe-i18n="Home Gym">Home Gym</span><span
-                                                class="radio-subtext"
-                                                data-safe-i18n="Basic setup with dumbbells or a barbell.">Basic setup
-                                                with dumbbells or a barbell.</span></div>
-                                    </label>
-                                    <label class="radio-card"><input type="radio" name="equipment" value="bodyweight">
-                                        <div class="radio-card-content"><i class="fa-solid fa-child-reaching"></i><span
-                                                class="radio-label"
-                                                data-safe-i18n="Bodyweight/Minimal">Bodyweight/Minimal</span><span
-                                                class="radio-subtext" data-safe-i18n="No equipment, just your body.">No
-                                                equipment, just your body.</span></div>
-                                    </label>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- STEP 4: Days -->
+                        <!-- STEP 4: Target Focus (weak muscle groups / priorities) -->
                         <div class="wizard-step hidden" id="step-3">
                             <div class="step-indicator mb-6">
                                 <span class="text-primary font-mono font-bold tracking-widest text-xs uppercase"
                                     data-safe-i18n="Step 4">Step 4</span>
                                 <h2 class="text-2xl font-heading font-black mt-2 uppercase tracking-widest"
-                                    data-safe-i18n="Days per Week">Days per Week</h2>
+                                    data-safe-i18n="Target Focus">Target Focus</h2>
                             </div>
                             <div class="question-block">
-                                <span class="question-label" data-safe-i18n="Training Days Per Week">Training Days Per
-                                    Week</span>
+                                <span class="question-label" data-safe-i18n="Weak muscle groups or priorities">Weak muscle groups or priorities</span>
                                 <div class="options-grid opts-2">
+                                    <label class="radio-card"><input type="radio" name="target_focus" value="chest">
+                                        <div class="radio-card-content"><i class="fa-solid fa-dumbbell"></i><span
+                                                class="radio-label" data-safe-i18n="Chest">Chest</span></div>
+                                    </label>
+                                    <label class="radio-card"><input type="radio" name="target_focus" value="legs">
+                                        <div class="radio-card-content"><i class="fa-solid fa-person-walking"></i><span
+                                                class="radio-label" data-safe-i18n="Legs">Legs</span></div>
+                                    </label>
+                                    <label class="radio-card"><input type="radio" name="target_focus" value="core">
+                                        <div class="radio-card-content"><i class="fa-solid fa-compact-disc"></i><span
+                                                class="radio-label" data-safe-i18n="Core">Core</span></div>
+                                    </label>
+                                    <label class="radio-card"><input type="radio" name="target_focus" value="back">
+                                        <div class="radio-card-content"><i class="fa-solid fa-spa"></i><span
+                                                class="radio-label" data-safe-i18n="Back">Back</span></div>
+                                    </label>
+                                    <label class="radio-card"><input type="radio" name="target_focus" value="shoulders">
+                                        <div class="radio-card-content"><i class="fa-solid fa-arrows-up-down-left-right"></i><span
+                                                class="radio-label" data-safe-i18n="Shoulders">Shoulders</span></div>
+                                    </label>
+                                    <label class="radio-card"><input type="radio" name="target_focus" value="overall">
+                                        <div class="radio-card-content"><i class="fa-solid fa-circle-dot"></i><span
+                                                class="radio-label" data-safe-i18n="Overall">Overall</span></div>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- STEP 5: Experience & Equipment -->
+                        <div class="wizard-step hidden" id="step-4">
+                            <div class="step-indicator mb-6">
+                                <span class="text-primary font-mono font-bold tracking-widest text-xs uppercase"
+                                    data-safe-i18n="Step 5">Step 5</span>
+                                <h2 class="text-2xl font-heading font-black mt-2 uppercase tracking-widest"
+                                    data-safe-i18n="Experience & Equipment">Experience & Equipment</h2>
+                            </div>
+                            <div class="question-block">
+                                <span class="question-label" data-safe-i18n="Training Experience">Training Experience</span>
+                                <div class="options-grid mb-6">
+                                    <label class="radio-card"><input type="radio" name="experience" value="beginner">
+                                        <div class="radio-card-content"><i class="fa-solid fa-seedling"></i><span
+                                                class="radio-label" data-safe-i18n="Beginner">Beginner</span><span
+                                                class="radio-subtext"
+                                                data-safe-i18n="New to training, learning the basics.">New to training, learning the basics.</span></div>
+                                    </label>
+                                    <label class="radio-card"><input type="radio" name="experience" value="intermediate">
+                                        <div class="radio-card-content"><i class="fa-solid fa-bolt"></i><span
+                                                class="radio-label" data-safe-i18n="Intermediate">Intermediate</span><span
+                                                class="radio-subtext"
+                                                data-safe-i18n="Consistent training for a few months.">Consistent training for a few months.</span></div>
+                                    </label>
+                                    <label class="radio-card"><input type="radio" name="experience" value="advanced">
+                                        <div class="radio-card-content"><i class="fa-solid fa-fire-flame-curved"></i><span
+                                                class="radio-label" data-safe-i18n="Advanced">Advanced</span><span
+                                                class="radio-subtext"
+                                                data-safe-i18n="Several years of training experience.">Several years of training experience.</span></div>
+                                    </label>
+                                </div>
+                                <span class="question-label block mt-4" data-safe-i18n="Equipment Access">Equipment Access</span>
+                                <div class="options-grid">
+                                    <label class="radio-card"><input type="radio" name="equipment" value="full">
+                                        <div class="radio-card-content"><i class="fa-solid fa-building"></i><span
+                                                class="radio-label" data-safe-i18n="Full Gym">Full Gym</span><span
+                                                class="radio-subtext"
+                                                data-safe-i18n="A proper gym with machines and free weights.">A proper gym with machines and free weights.</span></div>
+                                    </label>
+                                    <label class="radio-card"><input type="radio" name="equipment" value="home">
+                                        <div class="radio-card-content"><i class="fa-solid fa-warehouse"></i><span
+                                                class="radio-label" data-safe-i18n="Home Gym">Home Gym</span><span
+                                                class="radio-subtext"
+                                                data-safe-i18n="Basic setup with dumbbells or a barbell.">Basic setup with dumbbells or a barbell.</span></div>
+                                    </label>
+                                    <label class="radio-card"><input type="radio" name="equipment" value="bodyweight">
+                                        <div class="radio-card-content"><i class="fa-solid fa-child-reaching"></i><span
+                                                class="radio-label" data-safe-i18n="Bodyweight/Minimal">Bodyweight/Minimal</span><span
+                                                class="radio-subtext" data-safe-i18n="No equipment, just your body.">No equipment, just your body.</span></div>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- STEP 6: Schedule (Days per week + Session duration) -->
+                        <div class="wizard-step hidden" id="step-5">
+                            <div class="step-indicator mb-6">
+                                <span class="text-primary font-mono font-bold tracking-widest text-xs uppercase"
+                                    data-safe-i18n="Step 6">Step 6</span>
+                                <h2 class="text-2xl font-heading font-black mt-2 uppercase tracking-widest"
+                                    data-safe-i18n="Schedule">Schedule</h2>
+                            </div>
+                            <div class="question-block">
+                                <span class="question-label" data-safe-i18n="Training Days Per Week">Training Days Per Week</span>
+                                <div class="options-grid opts-2 mb-6">
                                     <label class="radio-card"><input type="radio" name="days" value="2">
                                         <div class="radio-card-content"><i class="fa-solid fa-calendar-day"></i><span
                                                 class="radio-label" data-safe-i18n="2 Days">2 Days</span></div>
@@ -366,23 +452,10 @@
                                                 class="radio-label" data-safe-i18n="6 Days">6 Days</span></div>
                                     </label>
                                 </div>
-                            </div>
-                        </div>
-
-                        <!-- STEP 5: Duration -->
-                        <div class="wizard-step hidden" id="step-4">
-                            <div class="step-indicator mb-6">
-                                <span class="text-primary font-mono font-bold tracking-widest text-xs uppercase"
-                                    data-safe-i18n="Step 5">Step 5</span>
-                                <h2 class="text-2xl font-heading font-black mt-2 uppercase tracking-widest"
-                                    data-safe-i18n="Session Duration">Session Duration</h2>
-                            </div>
-                            <div class="question-block">
-                                <span class="question-label" data-safe-i18n="Available Session Duration">Available
-                                    Session Duration</span>
+                                <span class="question-label block mt-4" data-safe-i18n="Available Session Duration">Available Session Duration</span>
                                 <div class="options-grid opts-2">
                                     <label class="radio-card"><input type="radio" name="duration" value="30">
-                                        <div class="radio-card-content"><i class="fa-solid fa-stopwatch-20"></i><span
+                                        <div class="radio-card-content"><i class="fa-solid fa-stopwatch"></i><span
                                                 class="radio-label" data-safe-i18n="30 Minutes">30 Minutes</span></div>
                                     </label>
                                     <label class="radio-card"><input type="radio" name="duration" value="45">
@@ -395,167 +468,115 @@
                                     </label>
                                     <label class="radio-card"><input type="radio" name="duration" value="90">
                                         <div class="radio-card-content"><i class="fa-solid fa-hourglass"></i><span
-                                                class="radio-label" data-safe-i18n="90+ Minutes">90+ Minutes</span>
-                                        </div>
+                                                class="radio-label" data-safe-i18n="90+ Minutes">90+ Minutes</span></div>
                                     </label>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- STEP 6: Weight Goal -->
-                        <div class="wizard-step hidden" id="step-5">
-                            <div class="step-indicator mb-6">
-                                <span class="text-primary font-mono font-bold tracking-widest text-xs uppercase"
-                                    data-safe-i18n="Step 6">Step 6</span>
-                                <h2 class="text-2xl font-heading font-black mt-2 uppercase tracking-widest"
-                                    data-safe-i18n="Weight Goal">Weight Goal</h2>
-                            </div>
-                            <div class="question-block">
-                                <span class="question-label" data-safe-i18n="Bodyweight Focus">Bodyweight Focus</span>
-                                <div class="options-grid">
-                                    <label class="radio-card"><input type="radio" name="weight_goal" value="lose">
-                                        <div class="radio-card-content"><i class="fa-solid fa-arrow-down"></i><span
-                                                class="radio-label" data-safe-i18n="Lose Fat">Lose Fat</span><span
-                                                class="radio-subtext"
-                                                data-safe-i18n="Drop bodyweight and lean out.">Drop bodyweight and lean
-                                                out.</span></div>
-                                    </label>
-                                    <label class="radio-card"><input type="radio" name="weight_goal" value="maintain">
-                                        <div class="radio-card-content"><i class="fa-solid fa-equals"></i><span
-                                                class="radio-label" data-safe-i18n="Maintain">Maintain</span><span
-                                                class="radio-subtext"
-                                                data-safe-i18n="Stay around my current weight.">Stay around my current
-                                                weight.</span></div>
-                                    </label>
-                                    <label class="radio-card"><input type="radio" name="weight_goal" value="gain">
-                                        <div class="radio-card-content"><i class="fa-solid fa-arrow-up"></i><span
-                                                class="radio-label" data-safe-i18n="Build Muscle">Build
-                                                Muscle</span><span class="radio-subtext"
-                                                data-safe-i18n="Increase bodyweight and size.">Increase bodyweight and
-                                                size.</span></div>
-                                    </label>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- STEP 7: Diet -->
+                        <!-- STEP 7: Limitations & Injuries -->
                         <div class="wizard-step hidden" id="step-6">
                             <div class="step-indicator mb-6">
                                 <span class="text-primary font-mono font-bold tracking-widest text-xs uppercase"
                                     data-safe-i18n="Step 7">Step 7</span>
                                 <h2 class="text-2xl font-heading font-black mt-2 uppercase tracking-widest"
-                                    data-safe-i18n="Dietary Preference">Dietary Preference</h2>
+                                    data-safe-i18n="Limitations & Injuries">Limitations & Injuries</h2>
                             </div>
                             <div class="question-block">
-                                <span class="question-label" data-safe-i18n="Nutrition Style">Nutrition Style</span>
-                                <div class="options-grid">
-                                    <label class="radio-card"><input type="radio" name="diet" value="standard">
-                                        <div class="radio-card-content"><i class="fa-solid fa-utensils"></i><span
-                                                class="radio-label" data-safe-i18n="Standard / Balanced">Standard /
-                                                Balanced</span><span class="radio-subtext"
-                                                data-safe-i18n="A balanced mix of everything.">A balanced mix of
-                                                everything.</span></div>
-                                    </label>
-                                    <label class="radio-card"><input type="radio" name="diet" value="vegetarian">
-                                        <div class="radio-card-content"><i class="fa-solid fa-carrot"></i><span
-                                                class="radio-label" data-safe-i18n="Vegetarian">Vegetarian</span><span
+                                <span class="question-label" data-safe-i18n="Select Injuries/Limitations">Specific joint pains or limitations</span>
+                                <div class="options-grid opts-2">
+                                    <label class="radio-card"><input type="radio" name="limitations" value="none">
+                                        <div class="radio-card-content"><i class="fa-solid fa-check-circle"></i><span
+                                                class="radio-label" data-safe-i18n="None">None</span><span
                                                 class="radio-subtext"
-                                                data-safe-i18n="No meat, but dairy and eggs are okay.">No meat, but
-                                                dairy and eggs are okay.</span></div>
+                                                data-safe-i18n="No injuries or limitations">No injuries or limitations.</span></div>
                                     </label>
-                                    <label class="radio-card"><input type="radio" name="diet" value="vegan">
-                                        <div class="radio-card-content"><i class="fa-solid fa-leaf"></i><span
-                                                class="radio-label" data-safe-i18n="Vegan">Vegan</span><span
-                                                class="radio-subtext" data-safe-i18n="Strictly plant-based.">Strictly
-                                                plant-based.</span></div>
+                                    <label class="radio-card"><input type="radio" name="limitations" value="lower_back">
+                                        <div class="radio-card-content"><i class="fa-solid fa-bone"></i><span
+                                                class="radio-label" data-safe-i18n="Lower Back / Spine">Lower Back / Spine</span></div>
                                     </label>
-                                    <label class="radio-card"><input type="radio" name="diet" value="keto">
-                                        <div class="radio-card-content"><i class="fa-solid fa-bacon"></i><span
-                                                class="radio-label" data-safe-i18n="Keto">Keto</span><span
-                                                class="radio-subtext" data-safe-i18n="Very low carb, high fat.">Very low
-                                                carb, high fat.</span></div>
+                                    <label class="radio-card"><input type="radio" name="limitations" value="knees">
+                                        <div class="radio-card-content"><i class="fa-solid fa-person-walking"></i><span
+                                                class="radio-label" data-safe-i18n="Knees">Knees</span></div>
+                                    </label>
+                                    <label class="radio-card"><input type="radio" name="limitations" value="shoulders">
+                                        <div class="radio-card-content"><i class="fa-solid fa-arrows-up-down-left-right"></i><span
+                                                class="radio-label" data-safe-i18n="Shoulders">Shoulders</span></div>
+                                    </label>
+                                    <label class="radio-card"><input type="radio" name="limitations" value="wrist_elbow">
+                                        <div class="radio-card-content"><i class="fa-solid fa-hand"></i><span
+                                                class="radio-label" data-safe-i18n="Wrist/Elbow">Wrist/Elbow</span></div>
+                                    </label>
+                                    <label class="radio-card"><input type="radio" name="limitations" value="hips">
+                                        <div class="radio-card-content"><i class="fa-solid fa-person"></i><span
+                                                class="radio-label" data-safe-i18n="Hips">Hips</span></div>
+                                    </label>
+                                    <label class="radio-card"><input type="radio" name="limitations" value="ankles">
+                                        <div class="radio-card-content"><i class="fa-solid fa-shoe-prints"></i><span
+                                                class="radio-label" data-safe-i18n="Ankles">Ankles</span></div>
                                     </label>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- STEP 8: Allergies & Restrictions -->
+                        <!-- STEP 8: Dietary Needs -->
                         <div class="wizard-step hidden" id="step-7">
                             <div class="step-indicator mb-6">
                                 <span class="text-primary font-mono font-bold tracking-widest text-xs uppercase"
                                     data-safe-i18n="Step 8">Step 8</span>
                                 <h2 class="text-2xl font-heading font-black mt-2 uppercase tracking-widest"
-                                    data-safe-i18n="Allergies & Restrictions">Allergies & Restrictions</h2>
+                                    data-safe-i18n="Dietary Needs">Dietary Needs</h2>
                             </div>
                             <div class="question-block">
-                                <span class="question-label" data-safe-i18n="Select Restrictions / Avoid">Select any foods to avoid or restrictions</span>
-                                <div class="options-grid opts-2">
-                                    <label class="radio-card"><input type="checkbox" name="allergies" value="none" data-allergies-none>
-                                        <div class="radio-card-content"><i class="fa-solid fa-check-circle"></i><span
-                                                class="radio-label" data-safe-i18n="No restrictions">No restrictions</span><span
+                                <span class="question-label" data-safe-i18n="Dietary preference and allergies">Dietary preference and allergies</span>
+                                <div class="options-grid mb-4">
+                                    <label class="radio-card"><input type="radio" name="diet" value="standard">
+                                        <div class="radio-card-content"><i class="fa-solid fa-utensils"></i><span
+                                                class="radio-label" data-safe-i18n="Standard / Balanced">Standard / Balanced</span><span
                                                 class="radio-subtext"
-                                                data-safe-i18n="I have no food allergies or restrictions.">I have no food allergies or restrictions.</span></div>
+                                                data-safe-i18n="A balanced mix of everything.">A balanced mix of everything.</span></div>
                                     </label>
-                                    <label class="radio-card"><input type="checkbox" name="allergies" value="dairy">
-                                        <div class="radio-card-content"><i class="fa-solid fa-cheese"></i><span
-                                                class="radio-label" data-safe-i18n="Dairy">Dairy</span></div>
-                                    </label>
-                                    <label class="radio-card"><input type="checkbox" name="allergies" value="gluten">
-                                        <div class="radio-card-content"><i class="fa-solid fa-wheat-awn"></i><span
-                                                class="radio-label" data-safe-i18n="Gluten">Gluten</span></div>
-                                    </label>
-                                    <label class="radio-card"><input type="checkbox" name="allergies" value="nuts">
-                                        <div class="radio-card-content"><i class="fa-solid fa-seedling"></i><span
-                                                class="radio-label" data-safe-i18n="Nuts">Nuts</span></div>
-                                    </label>
-                                    <label class="radio-card"><input type="checkbox" name="allergies" value="shellfish">
-                                        <div class="radio-card-content"><i class="fa-solid fa-fish"></i><span
-                                                class="radio-label" data-safe-i18n="Shellfish">Shellfish</span></div>
-                                    </label>
-                                    <label class="radio-card"><input type="checkbox" name="allergies" value="soy">
+                                    <label class="radio-card"><input type="radio" name="diet" value="vegan">
                                         <div class="radio-card-content"><i class="fa-solid fa-leaf"></i><span
-                                                class="radio-label" data-safe-i18n="Soy">Soy</span></div>
+                                                class="radio-label" data-safe-i18n="Vegan">Vegan</span><span
+                                                class="radio-subtext" data-safe-i18n="Strictly plant-based.">Strictly plant-based.</span></div>
                                     </label>
-                                    <label class="radio-card"><input type="checkbox" name="allergies" value="eggs">
-                                        <div class="radio-card-content"><i class="fa-solid fa-egg"></i><span
-                                                class="radio-label" data-safe-i18n="Eggs">Eggs</span></div>
+                                    <label class="radio-card"><input type="radio" name="diet" value="vegetarian">
+                                        <div class="radio-card-content"><i class="fa-solid fa-carrot"></i><span
+                                                class="radio-label" data-safe-i18n="Vegetarian">Vegetarian</span></div>
+                                    </label>
+                                    <label class="radio-card"><input type="radio" name="diet" value="gluten_free">
+                                        <div class="radio-card-content"><i class="fa-solid fa-wheat-awn"></i><span
+                                                class="radio-label" data-safe-i18n="Gluten-free">Gluten-free</span></div>
+                                    </label>
+                                    <label class="radio-card"><input type="radio" name="diet" value="keto">
+                                        <div class="radio-card-content"><i class="fa-solid fa-bacon"></i><span
+                                                class="radio-label" data-safe-i18n="Keto">Keto</span></div>
                                     </label>
                                 </div>
-                            </div>
-                        </div>
-
-                        <!-- STEP 9: Activity -->
-                        <div class="wizard-step hidden" id="step-8">
-                            <div class="step-indicator mb-6">
-                                <span class="text-primary font-mono font-bold tracking-widest text-xs uppercase"
-                                    data-safe-i18n="Step 9">Step 9</span>
-                                <h2 class="text-2xl font-heading font-black mt-2 uppercase tracking-widest"
-                                    data-safe-i18n="Daily Activity Level">Daily Activity Level</h2>
-                            </div>
-                            <div class="question-block">
-                                <span class="question-label" data-safe-i18n="Activity Outside of Training">Activity
-                                    Outside of Training</span>
-                                <div class="options-grid">
-                                    <label class="radio-card"><input type="radio" name="activity" value="sedentary">
-                                        <div class="radio-card-content"><i class="fa-solid fa-chair"></i><span
-                                                class="radio-label" data-safe-i18n="Sedentary">Sedentary</span><span
-                                                class="radio-subtext"
-                                                data-safe-i18n="Mostly sitting / little movement">Mostly sitting /
-                                                little movement</span></div>
+                                <span class="question-label block mt-4" data-safe-i18n="Select Restrictions / Avoid">Allergies to avoid (optional)</span>
+                                <div class="options-grid opts-2">
+                                    <label class="radio-card"><input type="checkbox" name="allergies" value="none" data-allergies-none">
+                                        <div class="radio-card-content"><i class="fa-solid fa-check-circle"></i><span
+                                                class="radio-label" data-safe-i18n="No restrictions">No restrictions</span></div>
                                     </label>
-                                    <label class="radio-card"><input type="radio" name="activity" value="moderate">
-                                        <div class="radio-card-content"><i class="fa-solid fa-person-walking"></i><span
-                                                class="radio-label" data-safe-i18n="Moderately Active">Moderately
-                                                Active</span><span class="radio-subtext"
-                                                data-safe-i18n="Regular movement or active job">Regular movement or
-                                                active job</span></div>
+                                    <label class="radio-card"><input type="checkbox" name="allergies" value="dairy">
+                                        <div class="radio-card-content"><i class="fa-solid fa-cheese"></i><span class="radio-label" data-safe-i18n="Dairy">Dairy</span></div>
                                     </label>
-                                    <label class="radio-card"><input type="radio" name="activity" value="highly">
-                                        <div class="radio-card-content"><i class="fa-solid fa-person-running"></i><span
-                                                class="radio-label" data-safe-i18n="Highly Active">Highly
-                                                Active</span><span class="radio-subtext"
-                                                data-safe-i18n="Hard physical work or intense daily activity">Hard
-                                                physical work or intense daily activity</span></div>
+                                    <label class="radio-card"><input type="checkbox" name="allergies" value="gluten">
+                                        <div class="radio-card-content"><i class="fa-solid fa-wheat-awn"></i><span class="radio-label" data-safe-i18n="Gluten">Gluten</span></div>
+                                    </label>
+                                    <label class="radio-card"><input type="checkbox" name="allergies" value="nuts">
+                                        <div class="radio-card-content"><i class="fa-solid fa-seedling"></i><span class="radio-label" data-safe-i18n="Nuts">Nuts</span></div>
+                                    </label>
+                                    <label class="radio-card"><input type="checkbox" name="allergies" value="shellfish">
+                                        <div class="radio-card-content"><i class="fa-solid fa-fish"></i><span class="radio-label" data-safe-i18n="Shellfish">Shellfish</span></div>
+                                    </label>
+                                    <label class="radio-card"><input type="checkbox" name="allergies" value="soy">
+                                        <div class="radio-card-content"><i class="fa-solid fa-leaf"></i><span class="radio-label" data-safe-i18n="Soy">Soy</span></div>
+                                    </label>
+                                    <label class="radio-card"><input type="checkbox" name="allergies" value="eggs">
+                                        <div class="radio-card-content"><i class="fa-solid fa-egg"></i><span class="radio-label" data-safe-i18n="Eggs">Eggs</span></div>
                                     </label>
                                 </div>
                             </div>

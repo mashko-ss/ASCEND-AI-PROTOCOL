@@ -941,7 +941,7 @@ const authModule = {
 // ==========================================
 const wizardModule = {
     current: 0,
-    totalSteps: 9,
+    totalSteps: 8,
     data: {},
 
     init: () => {
@@ -955,7 +955,7 @@ const wizardModule = {
             wizardModule.data = {};
         }
 
-        // Restore physical radio checked statuses
+        // Restore form state: radios, checkboxes, and text inputs
         Object.keys(wizardModule.data).forEach(key => {
             if (key === 'allergies') {
                 const val = wizardModule.data.allergies;
@@ -964,10 +964,15 @@ const wizardModule = {
                     if (el) el.checked = true;
                 } else if (val) {
                     val.split(',').forEach(v => {
-                        const el = document.querySelector(`input[name="allergies"][value="${v.trim()}"]`);
+                        const el = document.querySelector(`input[name="allergies"][value="${String(v).trim()}"]`);
                         if (el) el.checked = true;
                     });
                 }
+                return;
+            }
+            if (key === 'age' || key === 'weight' || key === 'height') {
+                const input = document.getElementById(`input-${key}`);
+                if (input) input.value = wizardModule.data[key];
                 return;
             }
             const radio = document.querySelector(`input[name="${key}"][value="${wizardModule.data[key]}"]`);
@@ -1013,8 +1018,27 @@ const wizardModule = {
         const currentStepEl = document.getElementById(`step-${wizardModule.current}`);
         if (!currentStepEl) return false;
 
-        // Step 7: Allergies & Restrictions (checkboxes, optional)
+        // Step 0: Personal Stats (gender + age, weight, height inputs)
+        if (wizardModule.current === 0) {
+            const genderEl = currentStepEl.querySelector('input[name="gender"]:checked');
+            const ageEl = document.getElementById('input-age');
+            const weightEl = document.getElementById('input-weight');
+            const heightEl = document.getElementById('input-height');
+            if (!genderEl || !ageEl?.value?.trim() || !weightEl?.value?.trim() || !heightEl?.value?.trim()) {
+                return false;
+            }
+            wizardModule.data.gender = genderEl.value;
+            wizardModule.data.age = ageEl.value.trim();
+            wizardModule.data.weight = weightEl.value.trim();
+            wizardModule.data.height = heightEl.value.trim();
+            return true;
+        }
+
+        // Step 7: Dietary Needs (diet radio + allergies checkboxes)
         if (wizardModule.current === 7) {
+            const dietRadio = currentStepEl.querySelector('input[name="diet"]:checked');
+            if (!dietRadio) return false;
+            wizardModule.data.diet = dietRadio.value;
             const checkboxes = currentStepEl.querySelectorAll('input[name="allergies"]:checked');
             const values = Array.from(checkboxes).map(c => c.value);
             if (values.includes('none') || values.length === 0) {
@@ -1025,18 +1049,19 @@ const wizardModule = {
             return true;
         }
 
+        // Steps 1–6: single radio per step
         const checked = currentStepEl.querySelector('input[type="radio"]:checked');
         if (checked) {
             wizardModule.data[checked.name] = checked.value;
             return true;
         }
 
-        return false; // No selection made inside the active step card bounds
+        return false;
     },
 
     next: () => {
         if (!wizardModule.captureStep()) {
-            alert(langModule.t('Please make a selection to proceed.'));
+            alert(langModule.t('Please complete all visible fields to proceed.'));
             return;
         }
 
@@ -1051,11 +1076,28 @@ const wizardModule = {
     },
 
     prev: () => {
-        // Silently snag value when going backwards, don't throw fail alerts
+        // Silently capture current step when going backwards
         const currentStepEl = document.getElementById(`step-${wizardModule.current}`);
         if (currentStepEl) {
-            const checked = currentStepEl.querySelector('input[type="radio"]:checked');
-            if (checked) wizardModule.data[checked.name] = checked.value;
+            if (wizardModule.current === 0) {
+                const genderEl = currentStepEl.querySelector('input[name="gender"]:checked');
+                const ageEl = document.getElementById('input-age');
+                const weightEl = document.getElementById('input-weight');
+                const heightEl = document.getElementById('input-height');
+                if (genderEl) wizardModule.data.gender = genderEl.value;
+                if (ageEl?.value?.trim()) wizardModule.data.age = ageEl.value.trim();
+                if (weightEl?.value?.trim()) wizardModule.data.weight = weightEl.value.trim();
+                if (heightEl?.value?.trim()) wizardModule.data.height = heightEl.value.trim();
+            } else if (wizardModule.current === 7) {
+                const dietRadio = currentStepEl.querySelector('input[name="diet"]:checked');
+                if (dietRadio) wizardModule.data.diet = dietRadio.value;
+                const checkboxes = currentStepEl.querySelectorAll('input[name="allergies"]:checked');
+                const values = Array.from(checkboxes).map(c => c.value);
+                wizardModule.data.allergies = (values.includes('none') || values.length === 0) ? 'none' : values.filter(v => v !== 'none').join(',');
+            } else {
+                const checked = currentStepEl.querySelector('input[type="radio"]:checked');
+                if (checked) wizardModule.data[checked.name] = checked.value;
+            }
         }
 
         if (wizardModule.current > 0) {
@@ -1332,24 +1374,41 @@ NUTRITION PLAN RULES:
     },
 
     compile: (a) => {
-        // Fallback generic values since text inputs (age/weight) are removed in favor of strict 8-step cards
-        let tdee = a.activity === 'highly' ? 3000 : (a.activity === 'moderate' ? 2500 : 2000);
-        let calories = a.weight_goal === 'lose' ? tdee - 500 : (a.weight_goal === 'gain' ? tdee + 300 : tdee);
-
-        const protein = a.weight_goal === 'lose' ? 180 : 160;
+        // Elite 8-step data: gender, age, weight, height, activity, primary_goal, target_focus, experience, equipment, days, duration, limitations, diet, allergies
+        const weightNum = parseFloat(a.weight) || 80;
+        const heightNum = parseFloat(a.height) || 175;
+        const ageNum = parseInt(a.age, 10) || 30;
+        let tdee = 2000;
+        if (a.activity === 'highly') tdee = 3000;
+        else if (a.activity === 'moderate' || a.activity === 'lightly') tdee = 2500;
+        else if (a.activity === 'sedentary') tdee = 2000;
+        const goal = a.primary_goal || 'recomp';
+        let calories = goal === 'fat_loss' ? tdee - 500 : (goal === 'muscle_gain' ? tdee + 300 : tdee);
+        const protein = goal === 'fat_loss' ? 180 : 160;
 
         const protocol = {
-            meta: { goal: a.primary_goal || 'recomp', tier: (a.experience || 'beginner').toUpperCase(), days: a.days || '3', style: (a.equipment || 'minimal').toUpperCase() },
-            nutrition: {
-                cals: calories, pro: protein,
-                carbs: Math.round((calories * 0.4) / 4), fats: Math.round((calories * 0.25) / 9),
-                diet: a.diet || 'balanced', structure: 'Flexible'
+            meta: {
+                goal: goal,
+                tier: (a.experience || 'beginner').toUpperCase(),
+                days: a.days || '3',
+                style: (a.equipment || 'bodyweight').toUpperCase(),
+                target_focus: a.target_focus || 'overall',
+                limitations: a.limitations || 'none'
             },
-            training: [], recovery: []
+            nutrition: {
+                cals: calories,
+                pro: protein,
+                carbs: Math.round((calories * 0.4) / 4),
+                fats: Math.round((calories * 0.25) / 9),
+                diet: a.diet || 'standard',
+                structure: 'Flexible',
+                allergies: a.allergies || 'none'
+            },
+            training: [],
+            recovery: []
         };
 
-        // Build Training Arrays
-        let numDays = parseInt(a.days || 3);
+        let numDays = parseInt(a.days || 3, 10);
         const isBg = langModule.currentLanguage === 'bg';
         const dayNames = isBg ? ['ПОНЕДЕЛНИК', 'ВТОРНИК', 'СРЯДА', 'ЧЕТВЪРТЪК', 'ПЕТЪК', 'СЪБОТА', 'НЕДЕЛЯ'] : ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
@@ -1358,7 +1417,6 @@ NUTRITION PLAN RULES:
             let descKey = i === 0
                 ? (isBg ? `Фокус: ${a.primary_goal}` : `Focusing on ${a.primary_goal}`)
                 : (isBg ? "Подобрявайте формата си." : "Build up your fitness.");
-
             protocol.training.push({
                 day: dayNames[i] || `Day ${i + 1}`,
                 name: n,
@@ -1366,11 +1424,12 @@ NUTRITION PLAN RULES:
             });
         }
 
-        // Build Recovery Arrays
-        const sleep = a.activity === 'highly' ? '8.5' : '7.5';
+        const sleep = (a.activity === 'highly' || a.activity === 'moderate') ? '8.5' : '7.5';
         protocol.recovery.push(isBg ? `Стремете се към ~${sleep} часа качествен сън.` : `Aim for ${sleep} hours of quality sleep.`);
         protocol.recovery.push(isBg ? `Ежедневна подвижност: ~10 мин разтягане.` : `Daily mobility: 10 mins dedicated stretching.`);
-
+        if (a.limitations && a.limitations !== 'none') {
+            protocol.recovery.push(isBg ? `Ограничения: ${a.limitations}.` : `Limitations: ${a.limitations}.`);
+        }
         return protocol;
     }
 };
@@ -1378,34 +1437,65 @@ NUTRITION PLAN RULES:
 // ==========================================
 // 5.5 ACCORDION MODULE (collapsible + scroll-into-view)
 // ==========================================
-// Single event delegation: each accordion uses its own card instance. No shared IDs, 100% independent toggles.
+// Accordion: 100% independent toggles. Day cards use strict .day-card scoping so one never affects another.
 const accordionModule = {
     _bound: false,
+    _boundTraining: false,
 
     bind: () => {
         const view = document.getElementById('view-dashboard');
-        if (!view || accordionModule._bound) return;
-        accordionModule._bound = true;
+        if (!view) return;
 
-        view.addEventListener('click', (e) => {
-            const trigger = e.target.closest('.accordion-trigger');
-            if (!trigger) return;
-            const card = trigger.closest('.accordion-card');
-            if (!card) return;
-            e.preventDefault();
-            e.stopPropagation();
-            accordionModule._toggleOne(card, trigger);
-        });
+        // Day cards: strict delegation on #res-training-plan so each day opens/closes alone
+        const trainingPlanEl = document.getElementById('res-training-plan');
+        if (trainingPlanEl && !accordionModule._boundTraining) {
+            accordionModule._boundTraining = true;
+            trainingPlanEl.addEventListener('click', (e) => {
+                const trigger = e.target.closest('.accordion-trigger');
+                if (!trigger) return;
+                const card = trigger.closest('.day-card');
+                if (!card) return;
+                e.preventDefault();
+                e.stopPropagation();
+                accordionModule._toggleOne(card, trigger);
+            });
+            trainingPlanEl.addEventListener('keydown', (e) => {
+                if (e.key !== 'Enter' && e.key !== ' ') return;
+                const trigger = e.target.closest('.accordion-trigger');
+                if (!trigger) return;
+                const card = trigger.closest('.day-card');
+                if (!card) return;
+                e.preventDefault();
+                e.stopPropagation();
+                accordionModule._toggleOne(card, trigger);
+            });
+        }
 
-        view.addEventListener('keydown', (e) => {
-            const trigger = e.target.closest('.accordion-trigger');
-            if (!trigger) return;
-            if (e.key !== 'Enter' && e.key !== ' ') return;
-            const card = trigger.closest('.accordion-card');
-            if (!card) return;
-            e.preventDefault();
-            accordionModule._toggleOne(card, trigger);
-        });
+        // All other accordions (nutrition, recovery, training header)
+        if (!accordionModule._bound) {
+            accordionModule._bound = true;
+            view.addEventListener('click', (e) => {
+                if (e.target.closest('#res-training-plan')) return;
+                const trigger = e.target.closest('.accordion-trigger');
+                if (!trigger) return;
+                const card = trigger.closest('.accordion-card');
+                if (!card) return;
+                e.preventDefault();
+                e.stopPropagation();
+                accordionModule._toggleOne(card, trigger);
+            });
+
+            view.addEventListener('keydown', (e) => {
+                if (e.target.closest('#res-training-plan')) return;
+                const trigger = e.target.closest('.accordion-trigger');
+                if (!trigger) return;
+                if (e.key !== 'Enter' && e.key !== ' ') return;
+                const card = trigger.closest('.accordion-card');
+                if (!card) return;
+                e.preventDefault();
+                accordionModule._toggleOne(card, trigger);
+            });
+        }
     },
 
     _toggleOne: (card, trigger) => {
@@ -1488,9 +1578,12 @@ const dashModule = {
                 // Render AI Nutrition Plan (dynamic rich HTML — no static "Calculating...")
                 if (p.aiResult.nutrition_plan) {
                     const aiN = p.aiResult.nutrition_plan;
-                    const calories = (aiN.daily_calories && !String(aiN.daily_calories).toLowerCase().includes('calculating') && !String(aiN.daily_calories).toLowerCase().includes('tbd'))
+                    let calories = (aiN.daily_calories && !String(aiN.daily_calories).toLowerCase().includes('calculating') && !String(aiN.daily_calories).toLowerCase().includes('tbd'))
                         ? aiN.daily_calories
                         : (p.nutrition ? `${p.nutrition.cals} kcal` : '—');
+                    if (typeof calories === 'number' || (typeof calories === 'string' && calories.trim() && !/kcal$/i.test(calories))) {
+                        calories = String(calories).trim() + ' kcal';
+                    }
                     const pro = (aiN.macros && aiN.macros.protein && !String(aiN.macros.protein).toLowerCase().includes('tbd')) ? aiN.macros.protein : (p.nutrition ? `${p.nutrition.pro}g` : '—');
                     const carb = (aiN.macros && aiN.macros.carbs && !String(aiN.macros.carbs).toLowerCase().includes('tbd')) ? aiN.macros.carbs : (p.nutrition ? `${p.nutrition.carbs}g` : '—');
                     const fat = (aiN.macros && aiN.macros.fats && !String(aiN.macros.fats).toLowerCase().includes('tbd')) ? aiN.macros.fats : (p.nutrition ? `${p.nutrition.fats}g` : '—');
@@ -1616,7 +1709,7 @@ const dashModule = {
             } else {
                 // Fallback rendering
                 document.getElementById('res-macros').innerHTML = `
-                    <div class="macro-box"><div class="val text-primary">${p.nutrition.cals}</div><div class="lbl">KCAL</div></div>
+                    <div class="macro-box"><div class="val text-primary">${p.nutrition.cals} kcal</div><div class="lbl">KCAL</div></div>
                     <div class="macro-box"><div class="val">${p.nutrition.pro}g</div><div class="lbl">PRO</div></div>
                     <div class="macro-box"><div class="val">${p.nutrition.carbs}g</div><div class="lbl">CARB</div></div>
                     <div class="macro-box"><div class="val">${p.nutrition.fats}g</div><div class="lbl">FAT</div></div>

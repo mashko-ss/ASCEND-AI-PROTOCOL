@@ -1315,6 +1315,7 @@ body.dashboard-active .dashboard-main {
     overflow: hidden;
     max-height: 5000px;
     transition: max-height var(--transition-normal), opacity var(--transition-normal);
+    flex: 0 1 auto;
 }
 
 .day-card.accordion-card.is-closed .day-body {
@@ -1616,7 +1617,7 @@ body.dashboard-active .dashboard-main {
 }
 
 .macro-box {
-    min-width: 0;
+    min-width: 4.5rem;
     text-align: center;
     display: flex;
     flex-direction: column;
@@ -1625,6 +1626,8 @@ body.dashboard-active .dashboard-main {
     gap: 0.35rem;
     padding: 0.6rem 0.5rem;
     box-sizing: border-box;
+    overflow: visible;
+    text-overflow: clip;
 }
 
 .macro-box:not(:last-child) {
@@ -1636,8 +1639,9 @@ body.dashboard-active .dashboard-main {
     font-weight: 700;
     font-family: var(--font-mono);
     line-height: 1.25;
-    min-width: 0;
-    width: 100%;
+    overflow: visible;
+    text-overflow: clip;
+    white-space: nowrap;
 }
 .macro-box:first-child .val {
     font-size: clamp(0.85rem, 2.4vw, 1.15rem);
@@ -1796,6 +1800,8 @@ body.dashboard-active .dashboard-main {
     border: 1px solid var(--border-color);
     border-radius: var(--radius-sm);
     overflow: hidden;
+    align-self: start;
+    height: max-content;
 }
 
 /* Static day cards (Training Plan): always open, no accordion */
