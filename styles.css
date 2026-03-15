@@ -1097,7 +1097,9 @@ body.dashboard-active .dashboard-main {
     transition: all var(--transition-fast);
     height: 100%;
     justify-content: center;
-    text-align: center;
+    text-align: center !important;
+    white-space: normal !important;
+    word-wrap: break-word !important;
 }
 
 .radio-card-content i {
@@ -1113,6 +1115,9 @@ body.dashboard-active .dashboard-main {
     font-size: 1.5rem;
     color: var(--text-secondary);
     text-transform: uppercase;
+    white-space: normal !important;
+    word-wrap: break-word !important;
+    text-align: center !important;
 }
 
 .radio-subtext {
@@ -1640,7 +1645,7 @@ body.dashboard-active .dashboard-main {
 }
 
 .macro-box {
-    min-width: 4.5rem;
+    min-width: 0 !important;
     text-align: center;
     display: flex;
     flex-direction: column;
@@ -1649,7 +1654,7 @@ body.dashboard-active .dashboard-main {
     gap: 0.35rem;
     padding: 10px 5px !important;
     box-sizing: border-box;
-    overflow: visible;
+    overflow: hidden !important;
     text-overflow: clip;
 }
 
@@ -1658,17 +1663,17 @@ body.dashboard-active .dashboard-main {
 }
 
 .macro-box .val {
-    font-size: clamp(1rem, 1.5vw, 1.5rem) !important;
+    font-size: 1.2rem !important;
     font-weight: 700;
     font-family: var(--font-mono);
     line-height: 1.25;
-    overflow: visible;
-    text-overflow: clip;
+    overflow: hidden !important;
+    text-overflow: ellipsis;
     white-space: nowrap !important;
     text-align: center;
 }
 .macro-box:first-child .val {
-    font-size: clamp(1rem, 1.5vw, 1.5rem) !important;
+    font-size: 1.2rem !important;
 }
 
 .macro-box .lbl {
@@ -1812,8 +1817,9 @@ body.dashboard-active .dashboard-main {
     align-items: flex-start !important;
 }
 
-/* Parent of daily workout cards: prevent row stretch when one accordion expands */
-.module-cards-grid {
+/* Parent of daily workout cards: prevent row stretch when one accordion expands — closed days stay compact */
+.module-cards-grid,
+#res-training-plan {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
     gap: 20px;
