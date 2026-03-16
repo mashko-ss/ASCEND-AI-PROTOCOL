@@ -1042,54 +1042,46 @@ body.dashboard-active .dashboard-main {
 }
 
 /* ============================================
-   ASSESSMENT OPTION CARDS (Step 7 & 8)
-   Clean layout: text wraps inside card boundaries.
-   No horizontal overflow for long labels (WRIST/ELBOW, STANDARD/BALANCED).
+   ASSESSMENT OPTION CARDS (Step 6 & 7)
+   Responsive grid: mathematically distributes options (6 DAYS, WRIST/ELBOW, etc.)
+   No dropping to new rows; symmetry preserved.
    ============================================ */
 .options-grid {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 12px;
-    align-items: stretch;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 10px;
     min-width: 0;
 }
 
 .options-grid.opts-2 {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 12px;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 10px;
 }
 
 .options-grid.opts-3 {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 12px;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 10px;
 }
 
 .options-grid.opts-4 {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 12px;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 10px;
 }
 
-@media (max-width: 640px) {
-    .options-grid.opts-2,
-    .options-grid.opts-3,
-    .options-grid.opts-4 {
-        grid-template-columns: repeat(2, 1fr);
-    }
-}
-
-/* Cards without opts-* use flex wrap */
-.options-grid:not([class*="opts-"]) {
-    display: flex;
-    flex-wrap: wrap;
+.options-grid.opts-2.opts-4 {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 10px;
 }
 
 .radio-card,
 .option-card {
     min-width: 0;
-    flex: 1 1 auto;
+    height: 100%;
+    display: flex;
 }
 
 .radio-card input,
@@ -1099,23 +1091,23 @@ body.dashboard-active .dashboard-main {
 }
 
 .radio-card-content {
+    height: 100%;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
+    text-align: center;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
     padding: 10px;
     background: var(--bg-base);
     border: 1px solid var(--border-color);
     border-radius: var(--radius-sm);
     cursor: pointer;
     transition: all var(--transition-fast);
-    height: 100%;
     min-width: 0;
     box-sizing: border-box;
     white-space: normal;
-    word-wrap: break-word;
-    overflow-wrap: break-word;
-    text-align: center;
 }
 
 .radio-card-content i {
@@ -1684,7 +1676,6 @@ body.dashboard-active .dashboard-main {
 
 .macro-box {
     min-width: 0;
-    overflow: hidden;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -1695,13 +1686,12 @@ body.dashboard-active .dashboard-main {
 }
 
 .macro-box .val {
-    font-size: clamp(0.9rem, 2vw, 1.2rem);
+    font-size: clamp(0.9rem, 1.5vw, 1.2rem);
     font-weight: 700;
     font-family: var(--font-mono);
     line-height: 1.25;
     white-space: nowrap;
     overflow: hidden;
-    text-overflow: ellipsis;
     text-align: center;
     max-width: 100%;
 }
@@ -1715,7 +1705,6 @@ body.dashboard-active .dashboard-main {
     letter-spacing: 0.05em;
     white-space: nowrap;
     overflow: hidden;
-    text-overflow: ellipsis;
     line-height: 1.2;
     text-align: center;
     max-width: 100%;
@@ -1835,6 +1824,7 @@ body.dashboard-active .dashboard-main {
 /* ============================================
    WORKOUT DAYS ACCORDION
    Closed days stay compact — no vertical stretch to match opened days.
+   Parent: align-items flex-start. Cards: height max-content, align-self flex-start.
    ============================================ */
 .scrolling-modules-container {
     padding: 1.5rem;

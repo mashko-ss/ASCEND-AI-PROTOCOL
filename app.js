@@ -1457,6 +1457,7 @@ NUTRITION PLAN RULES:
 // 5.5 ACCORDION MODULE (collapsible + scroll-into-view)
 // ==========================================
 // Accordion: 100% independent toggles. Opening one accordion toggles ONLY that card's content; siblings are never affected.
+// Uses event.currentTarget and precise DOM traversal (ID mapping) so ONLY the clicked day's content is toggled.
 const accordionModule = {
     _bound: false,
     _boundTraining: false,
@@ -1465,15 +1466,18 @@ const accordionModule = {
         const view = document.getElementById('view-dashboard');
         if (!view) return;
 
-        // Day cards: strict delegation on #res-training-plan — each day opens/closes only its own .accordion-body; siblings untouched
+        // Day cards: strict delegation on #res-training-plan — each day opens/closes only its own content; siblings untouched
         const trainingPlanEl = document.getElementById('res-training-plan');
         if (trainingPlanEl && !accordionModule._boundTraining) {
             accordionModule._boundTraining = true;
             trainingPlanEl.addEventListener('click', (e) => {
                 const trigger = e.target.closest('.accordion-trigger');
                 if (!trigger) return;
-                const card = trigger.closest('.day-card');
-                if (!card) return;
+                if (!trainingPlanEl.contains(trigger)) return;
+                const accordionId = trigger.getAttribute('data-accordion-id');
+                if (!accordionId) return;
+                const card = document.getElementById(accordionId);
+                if (!card || !card.classList.contains('day-card')) return;
                 e.preventDefault();
                 e.stopPropagation();
                 accordionModule._toggleOne(card, trigger);
@@ -1482,8 +1486,11 @@ const accordionModule = {
                 if (e.key !== 'Enter' && e.key !== ' ') return;
                 const trigger = e.target.closest('.accordion-trigger');
                 if (!trigger) return;
-                const card = trigger.closest('.day-card');
-                if (!card) return;
+                if (!trainingPlanEl.contains(trigger)) return;
+                const accordionId = trigger.getAttribute('data-accordion-id');
+                if (!accordionId) return;
+                const card = document.getElementById(accordionId);
+                if (!card || !card.classList.contains('day-card')) return;
                 e.preventDefault();
                 e.stopPropagation();
                 accordionModule._toggleOne(card, trigger);
@@ -1497,7 +1504,8 @@ const accordionModule = {
                 if (e.target.closest('#res-training-plan')) return;
                 const trigger = e.target.closest('.accordion-trigger');
                 if (!trigger) return;
-                const card = trigger.closest('.accordion-card');
+                const accordionId = trigger.getAttribute('data-accordion-id');
+                const card = accordionId ? document.getElementById(accordionId) : trigger.closest('.accordion-card');
                 if (!card) return;
                 e.preventDefault();
                 e.stopPropagation();
@@ -1509,7 +1517,8 @@ const accordionModule = {
                 const trigger = e.target.closest('.accordion-trigger');
                 if (!trigger) return;
                 if (e.key !== 'Enter' && e.key !== ' ') return;
-                const card = trigger.closest('.accordion-card');
+                const accordionId = trigger.getAttribute('data-accordion-id');
+                const card = accordionId ? document.getElementById(accordionId) : trigger.closest('.accordion-card');
                 if (!card) return;
                 e.preventDefault();
                 accordionModule._toggleOne(card, trigger);
@@ -1518,8 +1527,9 @@ const accordionModule = {
     },
 
     _toggleOne: (card, trigger) => {
-        // Precise DOM traversal: content is the direct next sibling of the clicked header
-        const body = trigger.nextElementSibling;
+        // Precise DOM traversal: use data-accordion-id to find body by ID (e.g. accordion-day-0-body)
+        const accordionId = trigger.getAttribute('data-accordion-id');
+        const body = accordionId ? document.getElementById(accordionId + '-body') : trigger.nextElementSibling;
         const wasClosed = card.classList.contains('is-closed');
 
         if (wasClosed) {
