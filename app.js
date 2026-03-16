@@ -3,7 +3,7 @@
  * Architecture: Vanilla JS + Robust LocalStorage Simulation
  */
 
-import { toDashboardFormat } from './src/lib/ai/index.js';
+import { toDashboardFormat, saveProgressEntry, evaluateProgressFromLatest, getProgressHistory } from './src/lib/ai/index.js';
 
 // Global App Namespace established early to prevent ReferenceErrors
 window.app = window.app || {};
@@ -147,6 +147,17 @@ const langModule = {
             "meals/day": "meals/day",
             "water": "water",
             "WARNINGS": "WARNINGS",
+            "Weekly Progress": "Weekly Progress",
+            "Strength Change": "Strength Change",
+            "Fatigue": "Fatigue",
+            "Sleep": "Sleep",
+            "Adherence": "Adherence",
+            "Injuries / Notes": "Injuries / Notes",
+            "Progress History": "Progress History",
+            "No entries yet": "No entries yet.",
+            "Adaptation Recommendations": "Adaptation Recommendations",
+            "Deload week recommended": "Deload week recommended",
+            "No changes recommended": "No changes recommended",
             "Recovery Plan": "Recovery Plan",
             "Poor": "Poor",
             "Average": "Average",
@@ -434,6 +445,17 @@ const langModule = {
             "meals/day": "храни/ден",
             "water": "вода",
             "WARNINGS": "ПРЕДУПРЕЖДЕНИЯ",
+            "Weekly Progress": "Седмичен прогрес",
+            "Strength Change": "Промяна в силата",
+            "Fatigue": "Умора",
+            "Sleep": "Сън",
+            "Adherence": "Спазване",
+            "Injuries / Notes": "Контузии / Бележки",
+            "Progress History": "История на прогреса",
+            "No entries yet": "Няма записи.",
+            "Adaptation Recommendations": "Препоръки за адаптация",
+            "Deload week recommended": "Препоръчва се седмица за възстановяване",
+            "No changes recommended": "Няма препоръчани промени",
             "Recovery Plan": "План за възстановяване",
             "Poor": "Слабо",
             "Average": "Средно",
@@ -1623,6 +1645,46 @@ const nutritionRenderers = {
 };
 
 // ==========================================
+// 5.7 PROGRESS RENDERERS (Phase 5)
+// ==========================================
+const progressRenderers = {
+    renderProgressHistory: (entries, safeT) => {
+        if (!entries || entries.length === 0) {
+            return '<p class="text-muted" data-safe-i18n="No entries yet">No entries yet.</p>';
+        }
+        const rows = entries.slice(0, 10).map((e) => {
+            const inj = (e.injuries && e.injuries.length) ? ` · ${e.injuries.join(', ')}` : '';
+            return `<div class="flex justify-between py-1 border-b border-border-light text-[0.65rem]"><span>W${e.weekNumber} ${e.date}</span><span>${e.bodyWeight} kg · ${e.adherence}% · F${e.fatigueLevel}/S${e.sleepScore}</span></div>`;
+        }).join('');
+        return `<div class="space-y-0">${rows}</div>`;
+    },
+    renderAdaptiveSummary: (result, safeT) => {
+        if (!result) return '';
+        const parts = [];
+        const t = result.trainingAdjustments || {};
+        if (t.volumeChange !== 0 || t.intensityChange !== 0 || t.loadProgression !== 0) {
+            const v = t.volumeChange > 0 ? `+${(t.volumeChange * 100).toFixed(0)}%` : (t.volumeChange * 100).toFixed(0) + '%';
+            const i = t.intensityChange > 0 ? `+${(t.intensityChange * 100).toFixed(0)}%` : (t.intensityChange * 100).toFixed(0) + '%';
+            parts.push(`<p><i class="fa-solid fa-dumbbell text-primary mr-1"></i> ${safeT('Training')}: vol ${v}, intensity ${i}${t.loadProgression ? `, load ${t.loadProgression > 0 ? '+' : ''}${t.loadProgression}%` : ''}</p>`);
+        }
+        const c = result.cardioAdjustments || {};
+        if (c.cardioMinutesChange !== 0) {
+            parts.push(`<p><i class="fa-solid fa-heart-pulse text-primary mr-1"></i> ${safeT('Cardio')}: ${c.cardioMinutesChange > 0 ? '+' : ''}${c.cardioMinutesChange} min</p>`);
+        }
+        const n = result.nutritionAdjustments || {};
+        if (n.calorieChange !== 0) {
+            parts.push(`<p><i class="fa-solid fa-utensils text-primary mr-1"></i> ${safeT('Calories')}: ${n.calorieChange > 0 ? '+' : ''}${n.calorieChange} kcal</p>`);
+        }
+        if (result.triggerDeload) {
+            parts.push(`<p class="text-warning"><i class="fa-solid fa-pause text-warning mr-1"></i> ${safeT('Deload week recommended')}</p>`);
+        }
+        const rec = result.recoveryRecommendations || [];
+        rec.forEach((r) => parts.push(`<p class="text-secondary"><i class="fa-solid fa-check text-primary mr-1"></i> ${safeT(r)}</p>`));
+        return parts.length ? parts.join('') : '<p class="text-muted">' + (safeT('No changes recommended') || 'No changes recommended') + '</p>';
+    }
+};
+
+// ==========================================
 // 6. DASHBOARD & UI ORCHESTRATION
 // ==========================================
 const dashModule = {
@@ -1865,6 +1927,26 @@ const dashModule = {
                 });
                 document.getElementById('res-training-plan').innerHTML = modulesHtml;
             }
+
+            // Phase 5: Progress history + adaptive summary
+            const progressHistoryEl = document.getElementById('progress-history-list');
+            const adaptiveSummaryEl = document.getElementById('adaptive-summary-container');
+            const adaptiveContentEl = document.getElementById('adaptive-summary-content');
+            if (progressHistoryEl) {
+                const entries = getProgressHistory(user.email);
+                progressHistoryEl.innerHTML = progressRenderers.renderProgressHistory(entries, safeT);
+            }
+            if (adaptiveSummaryEl && adaptiveContentEl) {
+                const userProfile = p.meta ? { goal: p.meta.goal, weight: p.nutrition?.cals ? 80 : 80 } : { goal: 'recomposition', weight: 80 };
+                const adaptation = evaluateProgressFromLatest(user.email, userProfile, p.apiPlan);
+                if (adaptation) {
+                    adaptiveSummaryEl.classList.remove('hidden');
+                    adaptiveContentEl.innerHTML = progressRenderers.renderAdaptiveSummary(adaptation, safeT);
+                } else {
+                    adaptiveSummaryEl.classList.add('hidden');
+                }
+            }
+
             accordionModule.bind();
         }
 
@@ -1941,17 +2023,7 @@ const dashModule = {
                 document.getElementById('tracker-adh-bar').style.backgroundColor = adhNum > 85 ? 'var(--success)' : (adhNum > 70 ? 'var(--warning)' : 'var(--danger)');
             }, 100);
 
-            const safeT = window.safeI18nT || langModule.t;
-            const placeholderBox = document.getElementById('progress-tracker-placeholder');
-            if (placeholderBox) {
-                placeholderBox.innerHTML = `
-                    <div>
-                        <i class="fa-solid fa-radar text-primary text-3xl mb-2"></i>
-                        <h4 class="text-xs font-bold uppercase text-primary font-mono tracking-widest mt-2"><span data-safe-i18n="Overall Consistency">${safeT("Overall Consistency")}</span>: ${Math.round((realA + realWC) / 2) || realA}%</h4>
-                        <p class="text-[0.65rem] text-muted mt-1 uppercase font-mono tracking-widest"><span data-safe-i18n="Diet">${safeT("Diet")}</span>: ${realA}% | <span data-safe-i18n="Training">${safeT("Training")}</span>: ${realWC}%</p>
-                    </div>
-                `;
-            }
+            // Telemetry stats displayed in Progress tab KPIs; progress form is in Recovery card
         } else {
             tb.innerHTML = '';
             empty.classList.remove('hidden');
@@ -2176,6 +2248,54 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const modalSaveLogBtn = document.getElementById('modal-save-log-btn');
     if (modalSaveLogBtn) modalSaveLogBtn.addEventListener('click', (e) => { e.preventDefault(); dashModule.submitCheckin(); });
+
+    // --- Phase 5: Progress entry form ---
+    const progressFatigue = document.getElementById('progress-fatigue');
+    const progressSleep = document.getElementById('progress-sleep');
+    if (progressFatigue && document.getElementById('progress-fatigue-out')) {
+        progressFatigue.addEventListener('input', () => { document.getElementById('progress-fatigue-out').textContent = progressFatigue.value; });
+    }
+    if (progressSleep && document.getElementById('progress-sleep-out')) {
+        progressSleep.addEventListener('input', () => { document.getElementById('progress-sleep-out').textContent = progressSleep.value; });
+    }
+    const progressForm = document.getElementById('progress-entry-form');
+    if (progressForm) {
+        progressForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const user = db.getCurrentUser();
+            if (!user) return;
+            const entry = {
+                bodyWeight: document.getElementById('progress-body-weight')?.value,
+                strengthChange: document.getElementById('progress-strength-change')?.value || 0,
+                fatigueLevel: document.getElementById('progress-fatigue')?.value || 5,
+                adherence: document.getElementById('progress-adherence')?.value,
+                sleepScore: document.getElementById('progress-sleep')?.value || 7,
+                injuries: (document.getElementById('progress-injuries')?.value || '').trim() ? [document.getElementById('progress-injuries').value.trim()] : []
+            };
+            const result = saveProgressEntry(entry, user.email);
+            if (!result.success) {
+                alert((result.errors || []).join('\n'));
+                return;
+            }
+            const adaptation = evaluateProgressFromLatest(user.email, { goal: user.active_protocol?.meta?.goal || 'recomposition', weight: 80 }, user.active_protocol?.apiPlan);
+            const adaptiveSummaryEl = document.getElementById('adaptive-summary-container');
+            const adaptiveContentEl = document.getElementById('adaptive-summary-content');
+            const safeT = window.safeI18nT || langModule.t;
+            if (adaptiveSummaryEl && adaptiveContentEl && adaptation) {
+                adaptiveSummaryEl.classList.remove('hidden');
+                adaptiveContentEl.innerHTML = progressRenderers.renderAdaptiveSummary(adaptation, safeT);
+            }
+            const progressHistoryEl = document.getElementById('progress-history-list');
+            if (progressHistoryEl) {
+                progressHistoryEl.innerHTML = progressRenderers.renderProgressHistory(getProgressHistory(user.email), safeT);
+            }
+            progressForm.reset();
+            document.getElementById('progress-fatigue').value = 5;
+            document.getElementById('progress-sleep').value = 7;
+            document.getElementById('progress-fatigue-out').textContent = '5';
+            document.getElementById('progress-sleep-out').textContent = '7';
+        });
+    }
 
     // --- Allergies step: "No restrictions" vs others mutually exclusive ---
     document.getElementById('wizard-form')?.addEventListener('change', (e) => {

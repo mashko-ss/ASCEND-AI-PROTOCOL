@@ -11,6 +11,7 @@ import { generateFallbackPlan } from './fallbackPlan.js';
 import { savePlanResult } from './savePlanResult.js';
 import { generateNutritionPlan } from './generateNutritionPlan.js';
 import { evaluateProgress, evaluateProgressWithLog } from './adaptiveEngine.js';
+import { getLatestProgress, getProgressHistory, saveProgressEntry, validateProgressEntry, clearProgressHistory } from './progressTracker.js';
 
 /**
  * Main entry: run the full AI engine pipeline on raw form data.
@@ -156,4 +157,29 @@ export function toDashboardFormat(plan, rawInput = {}) {
     return { workout_plan, nutrition_plan };
 }
 
-export { normalizeInput, classifyUser, generatePlan, generateRulePlan, validatePlan, generateFallbackPlan, savePlanResult, generateNutritionPlan, evaluateProgress, evaluateProgressWithLog };
+/**
+ * Evaluate progress using latest stored entry. Feeds progressTracker data into adaptive engine.
+ * @param {string} userId - Current user id/email
+ * @param {Object} userProfile - { goal, weight, ... }
+ * @param {Object} currentPlan - Plan with planMeta, weeklyPlan
+ * @returns {Object|null} Adaptation result or null if no progress data
+ */
+export function evaluateProgressFromLatest(userId, userProfile, currentPlan) {
+    const latest = getLatestProgress(userId);
+    if (!latest) return null;
+    const history = getProgressHistory(userId);
+    const baseline = history.length > 1 ? history[history.length - 1] : latest;
+    const progressData = {
+        bodyWeight: latest.bodyWeight,
+        baselineWeight: baseline?.bodyWeight ?? latest.bodyWeight,
+        strengthChange: latest.strengthChange ?? 0,
+        fatigueLevel: latest.fatigueLevel ?? 5,
+        adherence: latest.adherence ?? 100,
+        sleepScore: latest.sleepScore ?? 7,
+        injuries: latest.injuries ?? [],
+        weeksSinceStart: history.length
+    };
+    return evaluateProgress(userProfile, currentPlan, progressData);
+}
+
+export { normalizeInput, classifyUser, generatePlan, generateRulePlan, validatePlan, generateFallbackPlan, savePlanResult, generateNutritionPlan, evaluateProgress, evaluateProgressWithLog, evaluateProgressFromLatest, getProgressHistory, getLatestProgress, saveProgressEntry, validateProgressEntry, clearProgressHistory };

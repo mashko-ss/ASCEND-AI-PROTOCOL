@@ -1771,6 +1771,11 @@ body.dashboard-active .dashboard-main {
     letter-spacing: 0.08em;
 }
 
+/* Phase 5: Progress tracking form */
+.progress-form .input-modern { min-width: 4rem; }
+.progress-form .range-slider { width: 6rem; }
+#progress-history-list .space-y-0 > div:last-child { border-bottom: none; }
+
 /* Phase 3: Nutrition meta row (meals/day, hydration) */
 .nutrition-meta-row {
     display: flex;
