@@ -182,4 +182,4 @@ export function evaluateProgressFromLatest(userId, userProfile, currentPlan) {
     return evaluateProgress(userProfile, currentPlan, progressData);
 }
 
-export { normalizeInput, classifyUser, generatePlan, generateRulePlan, validatePlan, generateFallbackPlan, savePlanResult, generateNutritionPlan, evaluateProgress, evaluateProgressWithLog, evaluateProgressFromLatest, getProgressHistory, getLatestProgress, saveProgressEntry, validateProgressEntry, clearProgressHistory };
+export { normalizeInput, classifyUser, generatePlan, generateRulePlan, validatePlan, generateFallbackPlan, savePlanResult, generateNutritionPlan, evaluateProgress, evaluateProgressWithLog, getProgressHistory, getLatestProgress, saveProgressEntry, validateProgressEntry, clearProgressHistory };
