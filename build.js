@@ -1,4 +1,4 @@
-const fs = require('fs');
+import fs from 'fs';
 
 // This script runs during the Vercel build process.
 // It takes the environment variables securely configured in the Vercel dashboard

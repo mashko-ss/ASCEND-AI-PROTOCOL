@@ -5,7 +5,7 @@
 
 import { normalizeInput } from './normalizeInput.js';
 import { classifyUser } from './classifyUser.js';
-import { generatePlan } from './generatePlan.js';
+import { generatePlan, generateRulePlan } from './generatePlan.js';
 import { validatePlan } from './validatePlan.js';
 import { generateFallbackPlan } from './fallbackPlan.js';
 import { savePlanResult } from './savePlanResult.js';
@@ -13,13 +13,13 @@ import { savePlanResult } from './savePlanResult.js';
 /**
  * Main entry: run the full AI engine pipeline on raw form data.
  * @param {Object} rawInput - Raw assessment form data (e.g. wizardModule.data)
- * @returns {Object} { success, plan, normalizedInput, classification, validation, saveResult, error }
+ * @returns {Promise<Object>} { success, plan, normalizedInput, classification, validation, saveResult, error }
  */
-export function runEngine(rawInput) {
+export async function runEngine(rawInput) {
     try {
         const normalizedInput = normalizeInput(rawInput);
         const classification = classifyUser(normalizedInput);
-        let plan = generatePlan(normalizedInput);
+        let plan = await generatePlan(normalizedInput);
         const validation = validatePlan(plan);
 
         if (!validation.valid) {
@@ -147,4 +147,4 @@ export function toDashboardFormat(plan, rawInput = {}) {
     return { workout_plan, nutrition_plan };
 }
 
-export { normalizeInput, classifyUser, generatePlan, validatePlan, generateFallbackPlan, savePlanResult };
+export { normalizeInput, classifyUser, generatePlan, generateRulePlan, validatePlan, generateFallbackPlan, savePlanResult };

@@ -2,10 +2,14 @@
   "name": "ascend-ai-protocol",
   "version": "1.0.0",
   "description": "Personal Training & Nutrition Planner",
+  "type": "module",
   "scripts": {
     "build": "node build.js"
   },
   "engines": {
     "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "openai": "^4.77.0"
   }
 }

@@ -1,20 +1,69 @@
 /**
  * ASCEND AI PROTOCOL - AI Engine Generate Plan
- * Rule-based weekly training plan generation. No AI/OpenAI calls.
+ * Phase 2: Tries OpenAI first when available; rule engine always fallback.
  */
 
 import { toSafeArray } from './utils.js';
 import { getMaxExercisesForDuration, getEquipmentCompatibleTypes } from './rules.js';
 import { classifyUser } from './classifyUser.js';
+import { createChatCompletion, isOpenAIAvailable } from '../openai/client.js';
+import { buildPlanMessages } from '../openai/promptBuilder.js';
+import { validatePlan } from './validatePlan.js';
 
 const DAY_NAMES_EN = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
 /**
- * Generate a structured weekly training plan from normalized input.
- * @param {Object} normalizedInput - From normalizeInput()
- * @returns {Object} Generated plan (planMeta, userSummary, weeklyPlan, progressionRules, recoveryGuidance, warnings)
+ * Parse AI response text into plan object. Never trust raw output.
+ * @param {string} text
+ * @returns {Object|null}
  */
-export function generatePlan(normalizedInput) {
+function parseAIResponse(text) {
+    if (!text || typeof text !== 'string') return null;
+    const trimmed = text.trim();
+    const jsonMatch = trimmed.match(/```(?:json)?\s*([\s\S]*?)```/) || [null, trimmed];
+    const jsonStr = (jsonMatch[1] || trimmed).trim();
+    try {
+        const parsed = JSON.parse(jsonStr);
+        return parsed && typeof parsed === 'object' ? parsed : null;
+    } catch {
+        return null;
+    }
+}
+
+/**
+ * Generate a structured weekly training plan from normalized input.
+ * If OpenAI available: tries AI first; falls back to rule engine on failure.
+ * @param {Object} normalizedInput - From normalizeInput()
+ * @returns {Promise<Object>} Generated plan (planMeta, userSummary, weeklyPlan, progressionRules, recoveryGuidance, warnings)
+ */
+export async function generatePlan(normalizedInput) {
+    if (isOpenAIAvailable()) {
+        try {
+            const classification = classifyUser(normalizedInput);
+            const messages = buildPlanMessages(normalizedInput, classification);
+            const result = await createChatCompletion({ messages });
+            if (result.success && result.text) {
+                const rawPlan = parseAIResponse(result.text);
+                if (rawPlan) {
+                    const validation = validatePlan(rawPlan);
+                    if (validation.valid && validation.sanitizedPlan) {
+                        return validation.sanitizedPlan;
+                    }
+                }
+            }
+        } catch {
+            /* fall through to rule engine */
+        }
+    }
+    return generateRulePlan(normalizedInput);
+}
+
+/**
+ * Rule-based plan generation. Always available as fallback.
+ * @param {Object} normalizedInput - From normalizeInput()
+ * @returns {Object} Generated plan
+ */
+export function generateRulePlan(normalizedInput) {
     const input = normalizedInput || {};
     const classification = classifyUser(input);
 

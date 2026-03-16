@@ -1315,9 +1315,9 @@ NUTRITION PLAN RULES:
         const overlay = document.getElementById('loading-overlay');
         overlay.classList.add('active');
 
-        // Phase 1: Rule-based AI Engine (no OpenAI)
+        // Phase 1/2: AI Engine (OpenAI when server-side; rule-based fallback on client)
         console.log("Gathering user profile data for AI Engine:", JSON.stringify(data, null, 2));
-        const engineResult = runEngine(data);
+        const engineResult = await runEngine(data);
         const aiResult = toDashboardFormat(engineResult.plan, data);
 
         console.log("==========================================");
