@@ -3,6 +3,8 @@
  * Architecture: Vanilla JS + Robust LocalStorage Simulation
  */
 
+import { runEngine, toDashboardFormat } from './src/lib/ai/index.js';
+
 // Global App Namespace established early to prevent ReferenceErrors
 window.app = window.app || {};
 
@@ -1313,12 +1315,13 @@ NUTRITION PLAN RULES:
         const overlay = document.getElementById('loading-overlay');
         overlay.classList.add('active');
 
-        // NEW LOGIC: Await the AI prompt engine and log the strictly formatted JSON
-        console.log("Gathering user profile data for AI:", JSON.stringify(data, null, 2));
-        const aiResult = await algorithm.generateAIProtocol(data);
+        // Phase 1: Rule-based AI Engine (no OpenAI)
+        console.log("Gathering user profile data for AI Engine:", JSON.stringify(data, null, 2));
+        const engineResult = runEngine(data);
+        const aiResult = toDashboardFormat(engineResult.plan, data);
 
         console.log("==========================================");
-        console.log("🔥 FINAL AI GENERATED PROTOCOL (JSON) 🔥");
+        console.log("🔥 AI ENGINE PROTOCOL (Rule-based) 🔥");
         console.log("==========================================");
         console.log(JSON.stringify(aiResult, null, 2));
         console.log("==========================================");
@@ -1587,8 +1590,8 @@ const dashModule = {
 
             const safeT = window.safeI18nT || langModule.t;
             // Populate Protocol Context
-            const titleMap = { fat_loss: safeT("PLAN: FAT LOSS"), muscle_gain: safeT("PLAN: BUILD MUSCLE"), recomp: safeT("PLAN: BODY RECOMPOSITION"), military: safeT("PLAN: OVERALL FITNESS") };
-            document.getElementById('dash-mission-type').textContent = titleMap[p.meta.goal];
+            const titleMap = { fat_loss: safeT("PLAN: FAT LOSS"), muscle_gain: safeT("PLAN: BUILD MUSCLE"), recomp: safeT("PLAN: BODY RECOMPOSITION"), longevity: safeT("PLAN: OVERALL FITNESS"), military: safeT("PLAN: OVERALL FITNESS") };
+            document.getElementById('dash-mission-type').textContent = titleMap[p.meta.goal] || safeT("PLAN: OVERALL FITNESS");
             document.getElementById('dash-tier').textContent = safeT(p.meta.tier) + " " + safeT("LEVEL");
             document.getElementById('res-training-style').textContent = safeT(p.meta.style);
 
@@ -1876,12 +1879,12 @@ const dashModule = {
         let html = '';
         const safeT = window.safeI18nT || langModule.t;
         user.history.forEach((h, i) => {
-            const titleMap = { fat_loss: safeT("PLAN: FAT LOSS"), muscle_gain: safeT("PLAN: BUILD MUSCLE"), recomp: safeT("PLAN: BODY RECOMPOSITION"), military: safeT("PLAN: OVERALL FITNESS") };
+            const titleMap = { fat_loss: safeT("PLAN: FAT LOSS"), muscle_gain: safeT("PLAN: BUILD MUSCLE"), recomp: safeT("PLAN: BODY RECOMPOSITION"), longevity: safeT("PLAN: OVERALL FITNESS"), military: safeT("PLAN: OVERALL FITNESS") };
             html += `
             <div class="history-card">
                 <div>
                     <span class="badge mb-2">${safeT("ARCHIVED")}</span>
-                    <h4 class="text-xl font-heading font-black tracking-widest">${titleMap[h.meta.goal]}</h4>
+                    <h4 class="text-xl font-heading font-black tracking-widest">${titleMap[h.meta.goal] || safeT("PLAN: OVERALL FITNESS")}</h4>
                     <p class="text-secondary text-xs uppercase font-mono mt-1">${safeT("Deployed")}: ${h.created_at}</p>
                 </div>
                 <div class="flex gap-2 flex-wrap">
