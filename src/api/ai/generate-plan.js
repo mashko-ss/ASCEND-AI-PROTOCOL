@@ -8,10 +8,10 @@
 import { normalizeInput } from '../../lib/ai/normalizeInput.js';
 import { classifyUser } from '../../lib/ai/classifyUser.js';
 import { validatePlan } from '../../lib/ai/validatePlan.js';
-import { generateRulePlan } from '../../lib/ai/generatePlan.js';
+import { generateRulePlan, ensureUniqueDayExercises } from '../../lib/ai/generatePlan.js';
 import { generateFallbackPlan } from '../../lib/ai/fallbackPlan.js';
-import { createChatCompletion, isOpenAIAvailable } from '../../lib/openai/client.js';
-import { buildPlanMessages } from '../../lib/openai/promptBuilder.js';
+import { createResponse, isOpenAIAvailable } from '../../lib/openai/client.js';
+import { buildPlanPrompt } from '../../lib/openai/promptBuilder.js';
 
 /**
  * Parse AI response text into plan object. Never trust raw output.
@@ -36,31 +36,43 @@ function parseAIResponse(text) {
  * Try AI generation. Returns plan if valid, null otherwise.
  * @param {Object} normalizedInput
  * @param {Object} classification
- * @returns {Promise<{ plan: Object|null, source: 'ai' }>}
+ * @returns {Promise<{ plan: Object|null, source: 'ai', debugStage?: string, debugMessage?: string }>}
  */
 async function tryAIGeneration(normalizedInput, classification) {
     if (!isOpenAIAvailable()) {
-        return { plan: null, source: 'ai' };
+        return { plan: null, source: 'ai', debugStage: 'missing_key', debugMessage: 'OPENAI_API_KEY not set or empty' };
     }
 
-    const messages = buildPlanMessages(normalizedInput, classification);
-    const result = await createChatCompletion({ messages });
+    const { system, user } = buildPlanPrompt(normalizedInput, classification);
+    const result = await createResponse({
+        prompt: user,
+        instructions: system
+    });
 
-    if (!result.success || !result.text) {
-        return { plan: null, source: 'ai' };
+    if (!result.success) {
+        const errMsg = result.error || 'Unknown error';
+        let stage = 'request_failed';
+        if (errMsg.includes('not available')) stage = 'request_not_sent';
+        else if (errMsg.includes('model') || errMsg.includes('404')) stage = 'invalid_model';
+        return { plan: null, source: 'ai', debugStage: stage, debugMessage: errMsg };
+    }
+
+    if (!result.text) {
+        return { plan: null, source: 'ai', debugStage: 'invalid_response', debugMessage: 'Empty response from OpenAI' };
     }
 
     const rawPlan = parseAIResponse(result.text);
     if (!rawPlan) {
-        return { plan: null, source: 'ai' };
+        return { plan: null, source: 'ai', debugStage: 'parse_failed', debugMessage: 'Could not parse AI output as JSON' };
     }
 
     const validation = validatePlan(rawPlan);
     if (!validation.valid || !validation.sanitizedPlan) {
-        return { plan: null, source: 'ai' };
+        const errList = validation.errors?.length ? validation.errors.join('; ') : 'Validation failed';
+        return { plan: null, source: 'ai', debugStage: 'validation_failed', debugMessage: errList };
     }
 
-    return { plan: validation.sanitizedPlan, source: 'ai' };
+    return { plan: validation.sanitizedPlan, source: 'ai', debugStage: 'ai_success' };
 }
 
 /**
@@ -72,16 +84,37 @@ export default async function handler(req, res) {
     res.setHeader('Content-Type', 'application/json');
 
     if (req.method !== 'POST') {
-        res.status(405).json({ success: false, error: 'Method not allowed', plan: null });
+        res.status(405).json({ success: false, error: 'Method not allowed', debugStage: null, debugMessage: null, plan: null });
         return;
     }
 
     let rawInput = {};
     try {
         const body = typeof req.body === 'string' ? JSON.parse(req.body || '{}') : (req.body || {});
-        rawInput = body;
+        const up = body.userProfile || body;
+        const src = typeof up === 'object' && up !== null ? up : body;
+        if (src.sex !== undefined || src.heightCm !== undefined || src.weightKg !== undefined) {
+            rawInput = {
+                gender: src.sex ?? src.gender,
+                age: src.age,
+                height: src.heightCm ?? src.height,
+                weight: src.weightKg ?? src.weight,
+                primary_goal: src.goal ?? src.primary_goal,
+                activity: src.preferences?.activity ?? src.activity,
+                target_focus: src.preferences?.target_focus ?? src.target_focus,
+                experience: src.experienceLevel ?? src.experience,
+                equipment: src.equipmentAccess === 'gym' ? 'gym' : (src.equipmentAccess || 'home'),
+                days: src.trainingDaysPerWeek ?? src.days,
+                duration: src.sessionDurationMin ?? src.duration,
+                limitations: src.injuriesOrLimitations ?? src.limitations,
+                diet: src.preferences?.diet ?? src.diet,
+                allergies: src.preferences?.allergies ?? src.allergies
+            };
+        } else {
+            rawInput = src;
+        }
     } catch {
-        res.status(400).json({ success: false, error: 'Invalid JSON body', plan: null });
+        res.status(400).json({ success: false, error: 'Invalid JSON body', debugStage: null, debugMessage: null, plan: null });
         return;
     }
 
@@ -92,10 +125,13 @@ export default async function handler(req, res) {
     const aiResult = await tryAIGeneration(normalizedInput, classification);
 
     if (aiResult.plan) {
+        const plan = ensureUniqueDayExercises(aiResult.plan, normalizedInput);
         res.status(200).json({
             success: true,
             source: 'ai',
-            plan: aiResult.plan
+            debugStage: 'ai_success',
+            debugMessage: null,
+            plan
         });
         return;
     }
@@ -105,14 +141,18 @@ export default async function handler(req, res) {
     const validation = validatePlan(plan);
 
     if (!validation.valid) {
-        plan = generateFallbackPlan();
+        plan = generateFallbackPlan(normalizedInput);
     } else if (validation.sanitizedPlan) {
         plan = validation.sanitizedPlan;
     }
 
+    plan = ensureUniqueDayExercises(plan, normalizedInput);
+
     res.status(200).json({
         success: true,
         source: 'fallback',
+        debugStage: 'fallback_used',
+        debugMessage: aiResult.debugMessage ?? aiResult.debugStage ?? null,
         plan
     });
 }

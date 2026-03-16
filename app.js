@@ -3,7 +3,7 @@
  * Architecture: Vanilla JS + Robust LocalStorage Simulation
  */
 
-import { runEngine, toDashboardFormat } from './src/lib/ai/index.js';
+import { toDashboardFormat } from './src/lib/ai/index.js';
 
 // Global App Namespace established early to prevent ReferenceErrors
 window.app = window.app || {};
@@ -185,6 +185,18 @@ const langModule = {
             "Enter Progress": "Enter Progress",
             "GENERATING PLAN": "GENERATING PLAN",
             "Analyzing status...": "Analyzing your profile...",
+            "Building your workout plan...": "Building your workout plan...",
+            "Finalizing your personal plan...": "Finalizing your personal plan...",
+            "Failed to generate plan. Please try again.": "Failed to generate plan. Please try again.",
+            "API Error": "API Error",
+            "Fallback plan used": "Fallback plan used",
+            "Progression Rules": "Progression Rules",
+            "Recovery Guidance": "Recovery Guidance",
+            "Warnings": "Warnings",
+            "Rest days": "Rest days",
+            "per week": "per week",
+            "Sleep": "Sleep",
+            "hours": "hours",
             "Monday": "Mon",
             "Tuesday": "Tue",
             "Wednesday": "Wed",
@@ -456,6 +468,18 @@ const langModule = {
             "Enter Progress": "Въведи прогрес",
             "GENERATING PLAN": "ГЕНЕРИРАНЕ НА ПЛАН",
             "Analyzing status...": "Анализиране на профила...",
+            "Building your workout plan...": "Изграждане на тренировъчния план...",
+            "Finalizing your personal plan...": "Финализиране на личния план...",
+            "Failed to generate plan. Please try again.": "Грешка при генериране на плана. Моля, опитайте отново.",
+            "API Error": "Грешка при генериране",
+            "Fallback plan used": "Използван е резервен план",
+            "Progression Rules": "Правила за прогресия",
+            "Recovery Guidance": "Насоки за възстановяване",
+            "Warnings": "Предупреждения",
+            "Rest days": "Дни почивка",
+            "per week": "на седмица",
+            "Sleep": "Сън",
+            "hours": "часа",
             "Mon": "ПОН",
             "Tue": "ВТО",
             "Wed": "СРЯ",
@@ -1311,88 +1335,74 @@ NUTRITION PLAN RULES:
         }
     },
 
+    _isGenerating: false,
+
     generate: async (data) => {
+        if (algorithm._isGenerating) return;
+        algorithm._isGenerating = true;
+
         const overlay = document.getElementById('loading-overlay');
-        overlay.classList.add('active');
-
-        // Phase 1/2: AI Engine (OpenAI when server-side; rule-based fallback on client)
-        console.log("Gathering user profile data for AI Engine:", JSON.stringify(data, null, 2));
-        const engineResult = await runEngine(data);
-        const aiResult = toDashboardFormat(engineResult.plan, data);
-
-        console.log("==========================================");
-        console.log("🔥 AI ENGINE PROTOCOL (Rule-based) 🔥");
-        console.log("==========================================");
-        console.log(JSON.stringify(aiResult, null, 2));
-        console.log("==========================================");
-        // 1. Simulate sending the prompt to the AI and waiting for a response (1.5 seconds)
-        setTimeout(() => {
-            console.log("AI Response Received!");
-
-            // 2. This is the generated workout (Mock Data) returned by the AI
-            const aiWorkoutPlan = `
-                <div class="active-workout-plan" style="background: rgba(255, 87, 34, 0.1); border-left: 4px solid #ff5722; padding: 15px; margin-top: 15px; border-radius: 4px;">
-                    <h4 style="color: #fff; margin-bottom: 10px;">DAY 1: UPPER BODY FOCUS</h4>
-                    <ul style="color: #aaa; list-style: none; padding-left: 0;">
-                        <li style="margin-bottom: 8px;"><strong>1. Barbell Bench Press</strong>: 4 sets x 8-10 reps (90s rest)</li>
-                        <li style="margin-bottom: 8px;"><strong>2. Pull-ups</strong>: 3 sets x 8-12 reps (90s rest)</li>
-                        <li style="margin-bottom: 8px;"><strong>3. Overhead Dumbbell Press</strong>: 3 sets x 10-12 reps (60s rest)</li>
-                    </ul>
-                    <hr style="border-color: #333; margin: 15px 0;">
-                    <h4 style="color: #fff; margin-bottom: 10px;">DAY 2: LOWER BODY FOCUS</h4>
-                    <ul style="color: #aaa; list-style: none; padding-left: 0;">
-                        <li style="margin-bottom: 8px;"><strong>1. Barbell Squats</strong>: 4 sets x 6-8 reps (120s rest)</li>
-                        <li style="margin-bottom: 8px;"><strong>2. Romanian Deadlifts</strong>: 3 sets x 10-12 reps (90s rest)</li>
-                    </ul>
-                </div>
-            `;
-
-            // 3. Hide the assessment view and show the final dashboard
-            const assessmentView = document.getElementById('assessment-view');
-            const dashboardView = document.getElementById('dashboard-view');
-
-            if (assessmentView) assessmentView.classList.add('hidden');
-            if (dashboardView) dashboardView.classList.remove('hidden');
-
-            // 4. Replace "Pending your assessment." with the actual workout plan in the Dashboard
-            if (dashboardView) {
-                dashboardView.innerHTML = dashboardView.innerHTML.replace(
-                    'Pending your assessment.',
-                    aiWorkoutPlan
-                );
-            }
-
-            console.log("Dashboard successfully updated with AI Protocol!");
-        }, 1500); // End of setTimeout simulation
-        let p = 0;
+        const nextBtn = document.getElementById('btn-next-step');
         const bar = document.getElementById('cyber-progress-bar');
         const txt = document.getElementById('loading-text');
-        const logs = [langModule.t("Analyzing your profile..."), langModule.t("Calculating nutrition targets..."), langModule.t("Building your workout plan..."), langModule.t("Finalizing your personal plan...")];
-        let l = 0;
 
-        const int = setInterval(() => {
-            p += 2;
-            bar.style.width = p + '%';
-            if (p % 25 === 0 && l < logs.length) { txt.textContent = logs[l]; l++; }
+        overlay?.classList.add('active');
+        if (nextBtn) nextBtn.disabled = true;
 
-            if (p >= 100) {
-                clearInterval(int);
-                const protocol = algorithm.compile(data);
+        try {
+            bar.style.width = '20%';
+            txt.textContent = langModule.t("Analyzing status...");
 
-                // Inject the AI JSON structure into the protocol for dashboard rendering
-                if (aiResult) {
-                    protocol.aiResult = aiResult;
-                }
+            const res = await fetch('/api/ai/generate-plan', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
 
-                db.saveNewProtocol(protocol);
-                db.clearAssessmentState();
+            bar.style.width = '70%';
+            txt.textContent = langModule.t("Building your workout plan...") || "Building your workout plan...";
 
-                setTimeout(() => {
-                    overlay.classList.remove('active');
-                    app.navigate('dashboard');
-                }, 800);
+            const json = await res.json();
+
+            if (json.source || json.debugStage) {
+                console.log('[AI Debug]', { source: json.source, debugStage: json.debugStage, debugMessage: json.debugMessage });
             }
-        }, 30);
+
+            if (!res.ok || !json.success || !json.plan) {
+                throw new Error(json.error || json.debugMessage || langModule.t("Failed to generate plan. Please try again."));
+            }
+
+            bar.style.width = '100%';
+            txt.textContent = langModule.t("Finalizing your personal plan...") || "Finalizing your personal plan...";
+
+            const aiResult = toDashboardFormat(json.plan, data);
+            const protocol = algorithm.compile(data);
+            protocol.aiResult = aiResult;
+            protocol.apiPlan = json.plan;
+            protocol.apiSource = json.source;
+            if (json.plan?.planMeta) {
+                protocol.meta.splitType = json.plan.planMeta.splitType || protocol.meta.style;
+                protocol.meta.days = String(json.plan.planMeta.trainingDaysPerWeek || protocol.meta.days);
+            }
+
+            db.saveNewProtocol(protocol);
+            db.clearAssessmentState();
+
+            setTimeout(() => {
+                overlay?.classList.remove('active');
+                algorithm._isGenerating = false;
+                if (nextBtn) nextBtn.disabled = false;
+                app.navigate('dashboard');
+            }, 600);
+        } catch (err) {
+            overlay?.classList.remove('active');
+            algorithm._isGenerating = false;
+            if (nextBtn) nextBtn.disabled = false;
+
+            const safeMsg = langModule.t("Failed to generate plan. Please try again.");
+            alert(safeMsg);
+            console.error('[AI Generate Error]', err);
+        }
     },
 
     compile: (a) => {
@@ -1593,7 +1603,7 @@ const dashModule = {
             const titleMap = { fat_loss: safeT("PLAN: FAT LOSS"), muscle_gain: safeT("PLAN: BUILD MUSCLE"), recomp: safeT("PLAN: BODY RECOMPOSITION"), longevity: safeT("PLAN: OVERALL FITNESS"), military: safeT("PLAN: OVERALL FITNESS") };
             document.getElementById('dash-mission-type').textContent = titleMap[p.meta.goal] || safeT("PLAN: OVERALL FITNESS");
             document.getElementById('dash-tier').textContent = safeT(p.meta.tier) + " " + safeT("LEVEL");
-            document.getElementById('res-training-style').textContent = safeT(p.meta.style);
+            document.getElementById('res-training-style').textContent = (p.apiPlan?.planMeta?.splitType ? safeT(p.apiPlan.planMeta.splitType.replace(/_/g, ' ')) : safeT(p.meta.style));
 
             // Profile Stats
             document.getElementById('res-profile-stats').innerHTML = `
@@ -1602,11 +1612,53 @@ const dashModule = {
                 <div class="stat-item"><span class="stat-label" data-safe-i18n="Deploy Date">${safeT("Deploy Date")}</span><span class="stat-value">${p.created_at}</span></div>
             `;
 
+            // Fallback notice (subtle, when API used rule engine)
+            const fallbackNotice = document.getElementById('res-fallback-notice');
+            if (fallbackNotice) {
+                if (p.apiSource === 'fallback') {
+                    fallbackNotice.textContent = safeT("Fallback plan used");
+                    fallbackNotice.classList.remove('hidden');
+                } else {
+                    fallbackNotice.classList.add('hidden');
+                }
+            }
+
             // Determine if we have an AI JSON Protocol to render
             if (p.aiResult) {
                 // Remove Pending Assessment message
                 const pendingEl = document.querySelector('#dash-mission-type').nextElementSibling;
                 if (pendingEl) pendingEl.style.display = 'none';
+
+                // Render apiPlan sections (progression, recovery, warnings) when available
+                if (p.apiPlan) {
+                    const rg = p.apiPlan.recoveryGuidance || {};
+                    const pr = p.apiPlan.progressionRules || {};
+                    const warn = Array.isArray(p.apiPlan.warnings) ? p.apiPlan.warnings : [];
+                    let recoveryHtml = '';
+                    if (rg.restDayCount != null || rg.sleepTargetHours || rg.hydrationGuidance) {
+                        recoveryHtml += `<li><i class="fa-solid fa-check text-primary"></i> ${safeT("Rest days")}: ${rg.restDayCount ?? '—'} ${safeT("per week")}</li>`;
+                        if (rg.sleepTargetHours) recoveryHtml += `<li><i class="fa-solid fa-check text-primary"></i> ${safeT("Sleep")}: ${rg.sleepTargetHours} ${safeT("hours")}</li>`;
+                        if (rg.hydrationGuidance) recoveryHtml += `<li><i class="fa-solid fa-check text-primary"></i> ${safeT(rg.hydrationGuidance)}</li>`;
+                    }
+                    if (pr.method || pr.weeklyAdjustment || pr.deloadTrigger) {
+                        recoveryHtml += `<li class="mt-2"><strong class="text-primary text-[0.65rem] uppercase tracking-widest">${safeT("Progression Rules")}</strong></li>`;
+                        if (pr.method) recoveryHtml += `<li><i class="fa-solid fa-arrow-trend-up text-primary"></i> ${safeT(pr.method)}</li>`;
+                        if (pr.weeklyAdjustment) recoveryHtml += `<li><i class="fa-solid fa-arrow-trend-up text-primary"></i> ${safeT(pr.weeklyAdjustment)}</li>`;
+                        if (pr.deloadTrigger) recoveryHtml += `<li><i class="fa-solid fa-arrow-trend-up text-primary"></i> ${safeT(pr.deloadTrigger)}</li>`;
+                    }
+                    if (recoveryHtml) {
+                        document.getElementById('res-recovery-plan').innerHTML = recoveryHtml;
+                    }
+                    if (warn.length > 0) {
+                        const warnEl = document.getElementById('res-recovery-plan');
+                        if (warnEl) {
+                            const warnHtml = `<li class="mt-2 pt-2 border-t border-border-light"><strong class="text-warning text-[0.65rem] uppercase tracking-widest">${safeT("Warnings")}</strong></li>${warn.map(w => `<li><i class="fa-solid fa-triangle-exclamation text-warning"></i> ${safeT(w)}</li>`).join('')}`;
+                            warnEl.insertAdjacentHTML('beforeend', warnHtml);
+                        }
+                    }
+                } else if (p.recovery && p.recovery.length > 0) {
+                    document.getElementById('res-recovery-plan').innerHTML = p.recovery.map(r => `<li><i class="fa-solid fa-check text-primary"></i> ${safeT(r)}</li>`).join('');
+                }
 
                 // Render AI Nutrition Plan (dynamic rich HTML — no static "Calculating...")
                 if (p.aiResult.nutrition_plan) {
@@ -1698,6 +1750,20 @@ const dashModule = {
 
                 // Render AI Training Plan (every day: warm-up protocol at top + exercises with RPE & Tempo)
                 if (p.aiResult.workout_plan) {
+                    // [DEBUG] Log weekly plan before rendering; verify unique day structures
+                    const wp = p.aiResult.workout_plan;
+                    if (typeof wp !== 'undefined' && wp !== null) {
+                        console.log('[ASCEND DEBUG] workout_plan before render:', JSON.stringify(wp.map((d) => ({ day: d.day, focus: d.focus, exNames: (d.exercises || []).map((e) => e?.name) })), null, 2));
+                        const sigs = new Map();
+                        for (let i = 0; i < wp.length; i++) {
+                            const exNames = (wp[i].exercises || []).map((e) => e?.name).filter(Boolean).join('|');
+                            if (exNames && sigs.has(exNames)) {
+                                console.warn('[ASCEND DEBUG] Duplicate day structure detected: day', i, 'matches day', sigs.get(exNames), '- same exercises:', exNames.slice(0, 80) + '...');
+                            } else if (exNames) {
+                                sigs.set(exNames, i);
+                            }
+                        }
+                    }
                     let aiHtml = '';
                     const defaultWarmup = langModule.currentLanguage === 'bg' ? '5 мин леко кардио; динамично разтягане за работещите мускулни групи.' : '5 min light cardio; dynamic stretches for the muscles you\'ll train today.';
                     p.aiResult.workout_plan.forEach((w, idx) => {

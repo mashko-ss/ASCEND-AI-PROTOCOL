@@ -4,3 +4,6 @@ node_modules/
 config.js
 .DS_Store
 
+
+.vercel
+.env*.local
