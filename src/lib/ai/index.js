@@ -16,6 +16,8 @@ import { generateRecommendations } from './recommendationEngine.js';
 import { createProtocol, getActiveProtocol, saveActiveProtocol, advanceProtocolWeek, addProtocolSnapshot, completeProtocol, getProtocolHistory, isDeloadWeek, getNextDeloadWeek } from './protocolEngine.js';
 import { regenerateNextWeekProtocol, buildNextWeekSnapshot, applyAdaptiveAdjustmentsToPlan, applyAdaptiveAdjustmentsToNutrition } from './regenerationEngine.js';
 import { adjustPlanForInjuries, normalizeInjuries, getInjuryWarnings } from './injuryAdjustmentEngine.js';
+import { getInjuryState, saveInjuryState, evaluateInjuryRecovery, buildReintroductionAdjustments, restoreTowardBaseProtocol, isInjuryCleared, processProgressForRecovery, advanceRecoveryWeek } from './injuryRecoveryEngine.js';
+import { createPeriodizationBlock, getWeekPhase, applyPhaseToPlan, getPhaseAdjustments } from './periodizationEngine.js';
 
 /**
  * Main entry: run the full AI engine pipeline on raw form data.
@@ -230,4 +232,4 @@ export function getRecommendationsFromLatest(userId, userProfile, currentPlan) {
     return { adaptation, recommendations };
 }
 
-export { normalizeInput, classifyUser, generatePlan, generateRulePlan, validatePlan, generateFallbackPlan, savePlanResult, generateNutritionPlan, evaluateProgress, evaluateProgressWithLog, getProgressHistory, getLatestProgress, saveProgressEntry, validateProgressEntry, clearProgressHistory, generateRecommendations, createProtocol, getActiveProtocol, saveActiveProtocol, advanceProtocolWeek, addProtocolSnapshot, completeProtocol, getProtocolHistory, isDeloadWeek, getNextDeloadWeek, regenerateNextWeekProtocol, buildNextWeekSnapshot, applyAdaptiveAdjustmentsToPlan, applyAdaptiveAdjustmentsToNutrition, adjustPlanForInjuries, normalizeInjuries, getInjuryWarnings };
+export { normalizeInput, classifyUser, generatePlan, generateRulePlan, validatePlan, generateFallbackPlan, savePlanResult, generateNutritionPlan, evaluateProgress, evaluateProgressWithLog, getProgressHistory, getLatestProgress, saveProgressEntry, validateProgressEntry, clearProgressHistory, generateRecommendations, createProtocol, getActiveProtocol, saveActiveProtocol, advanceProtocolWeek, addProtocolSnapshot, completeProtocol, getProtocolHistory, isDeloadWeek, getNextDeloadWeek, regenerateNextWeekProtocol, buildNextWeekSnapshot, applyAdaptiveAdjustmentsToPlan, applyAdaptiveAdjustmentsToNutrition, adjustPlanForInjuries, normalizeInjuries, getInjuryWarnings, getInjuryState, saveInjuryState, evaluateInjuryRecovery, buildReintroductionAdjustments, restoreTowardBaseProtocol, isInjuryCleared, processProgressForRecovery, advanceRecoveryWeek, createPeriodizationBlock, getWeekPhase, applyPhaseToPlan, getPhaseAdjustments };

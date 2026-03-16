@@ -1,12 +1,14 @@
 /**
  * ASCEND AI PROTOCOL - Protocol Engine
  * Phase 7: Multi-week coaching protocol lifecycle.
- * Manages active protocol state, week tracking, deload detection, and history.
+ * Phase 10: Uses periodization engine for deload week computation.
  */
+
+import { createPeriodizationBlock } from './periodizationEngine.js';
 
 const DB_KEY = 'ascend_protocol_v4_db';
 
-/** Default duration by goal (weeks) */
+/** Default duration by goal (weeks) - fallback if periodization unavailable */
 const DURATION_BY_GOAL = {
     fat_loss: 8,
     muscle_gain: 12,
@@ -41,17 +43,23 @@ function saveDb(state) {
 
 /**
  * Compute deload weeks for protocol duration.
- * Every 4th or 5th week depending on duration.
+ * Phase 10: Uses periodization engine.
  * @param {number} durationWeeks
+ * @param {string} goal - Optional; used by createPeriodizationBlock
  * @returns {number[]}
  */
-function computeDeloadWeeks(durationWeeks) {
-    const deloads = [];
-    const interval = durationWeeks <= 8 ? 4 : 5;
-    for (let w = interval; w < durationWeeks; w += interval) {
-        deloads.push(w);
+function computeDeloadWeeks(durationWeeks, goal = 'recomp') {
+    try {
+        const block = createPeriodizationBlock(goal);
+        return block.deloadWeeks ?? [];
+    } catch {
+        const deloads = [];
+        const interval = durationWeeks <= 8 ? 4 : 5;
+        for (let w = interval; w < durationWeeks; w += interval) {
+            deloads.push(w);
+        }
+        return deloads;
     }
-    return deloads;
 }
 
 /**
@@ -67,7 +75,7 @@ function computeDeloadWeeks(durationWeeks) {
 export function createProtocol(userProfile, trainingPlan, nutritionPlan, fullProtocol, options = {}) {
     const goal = userProfile?.goal || userProfile?.primary_goal || fullProtocol?.meta?.goal || 'recomp';
     const durationWeeks = options.durationWeeks ?? DURATION_BY_GOAL[goal] ?? 8;
-    const deloadWeeks = computeDeloadWeeks(durationWeeks);
+    const deloadWeeks = computeDeloadWeeks(durationWeeks, goal);
     const protocolId = options.protocolId || 'PRT-' + Date.now().toString().slice(-8);
 
     const engineState = {
@@ -80,7 +88,8 @@ export function createProtocol(userProfile, trainingPlan, nutritionPlan, fullPro
         goal,
         planSnapshots: [],
         nutritionSnapshots: [],
-        adaptationHistory: []
+        adaptationHistory: [],
+        basePlan: trainingPlan ? JSON.parse(JSON.stringify(trainingPlan)) : null
     };
 
     return { ...fullProtocol, ...engineState };
@@ -126,7 +135,8 @@ export function advanceProtocolWeek(userId, snapshot = null) {
         const goal = protocol.goal || protocol.meta?.goal || 'recomp';
         protocol = { ...protocol, durationWeeks: DURATION_BY_GOAL[goal] ?? 8 };
     }
-    if (!protocol.deloadWeeks?.length) protocol = { ...protocol, deloadWeeks: computeDeloadWeeks(protocol.durationWeeks) };
+    if (!protocol.deloadWeeks?.length) protocol = { ...protocol, deloadWeeks: computeDeloadWeeks(protocol.durationWeeks, protocol.goal || protocol.meta?.goal || 'recomp') };
+    if (!protocol.basePlan && protocol.apiPlan) protocol = { ...protocol, basePlan: JSON.parse(JSON.stringify(protocol.apiPlan)) };
 
     const currentWeek = (protocol.currentWeek ?? 1) + 1;
     if (currentWeek > (protocol.durationWeeks ?? 8)) {

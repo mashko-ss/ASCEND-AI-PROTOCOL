@@ -679,6 +679,20 @@
                                     </div>
                                 </div>
 
+                                <!-- Recovery Status (Phase 11) -->
+                                <div class="dashboard-card card-span-1 accordion-card is-open" id="accordion-recovery-status">
+                                    <div class="card-header accordion-trigger" data-accordion-id="accordion-recovery-status" tabindex="0" role="button" aria-expanded="true" aria-controls="accordion-recovery-status-body">
+                                        <h3><i class="fa-solid fa-heart-pulse text-primary"></i> <span
+                                                data-safe-i18n="Recovery Status">Recovery Status</span></h3>
+                                        <i class="accordion-chevron fa-solid fa-chevron-down" aria-hidden="true"></i>
+                                    </div>
+                                    <div class="card-body accordion-body" id="accordion-recovery-status-body">
+                                        <div id="recovery-status-content" class="font-mono text-xs text-secondary">
+                                            <!-- Dynamic: injury state, mode, return-to-base -->
+                                        </div>
+                                    </div>
+                                </div>
+
                                 <!-- AI Recommendations (accordion) -->
                                 <div class="dashboard-card card-span-3 accordion-card is-open" id="accordion-ai-recommendations">
                                     <div class="card-header highlight-header accordion-trigger" data-accordion-id="accordion-ai-recommendations" tabindex="0" role="button" aria-expanded="true" aria-controls="accordion-ai-recommendations-body">
@@ -755,7 +769,17 @@
                                                 </div>
                                                 <div>
                                                     <label class="block mb-1"><span data-safe-i18n="Injuries / Notes">Injuries / Notes</span></label>
-                                                    <textarea id="progress-injuries" class="input-modern w-full text-xs" rows="2" placeholder="Optional"></textarea>
+                                                    <textarea id="progress-injuries" class="input-modern w-full text-xs" rows="2" placeholder="e.g. shoulder, knee, lower back"></textarea>
+                                                </div>
+                                                <div class="flex flex-wrap gap-4 items-center">
+                                                    <label class="flex items-center gap-2 cursor-pointer">
+                                                        <input type="checkbox" id="progress-improvement" class="rounded">
+                                                        <span class="text-xs" data-safe-i18n="Feeling better">Feeling better</span>
+                                                    </label>
+                                                    <label class="flex items-center gap-2 cursor-pointer">
+                                                        <input type="checkbox" id="progress-healed" class="rounded">
+                                                        <span class="text-xs" data-safe-i18n="Injury healed">Injury healed</span>
+                                                    </label>
                                                 </div>
                                                 <button type="submit" class="btn btn-primary text-xs uppercase tracking-widest" id="progress-save-btn">
                                                     <i class="fa-solid fa-save mr-1"></i> <span data-safe-i18n="Save Progress">Save Progress</span>

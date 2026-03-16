@@ -11,6 +11,7 @@ import { validatePlan } from '../../lib/ai/validatePlan.js';
 import { generateRulePlan, ensureUniqueDayExercises } from '../../lib/ai/generatePlan.js';
 import { generateFallbackPlan } from '../../lib/ai/fallbackPlan.js';
 import { adjustPlanForInjuries, normalizeInjuries } from '../../lib/ai/injuryAdjustmentEngine.js';
+import { getWeekPhase, applyPhaseToPlan } from '../../lib/ai/periodizationEngine.js';
 import { createResponse, isOpenAIAvailable } from '../../lib/openai/client.js';
 import { buildPlanPrompt } from '../../lib/openai/promptBuilder.js';
 
@@ -127,6 +128,10 @@ export default async function handler(req, res) {
 
     if (aiResult.plan) {
         let plan = ensureUniqueDayExercises(aiResult.plan, normalizedInput);
+        // Phase 10: Apply periodization for week 1
+        const goal = classification.goal || 'recomp';
+        const phaseResult = applyPhaseToPlan(plan, getWeekPhase(goal, 1));
+        plan = phaseResult.adjustedPlan || plan;
         // Phase 9: Injury adjustment when limitations exist
         const injuries = normalizeInjuries(normalizedInput.limitations, []);
         if (injuries.length > 0) {

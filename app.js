@@ -3,7 +3,7 @@
  * Architecture: Vanilla JS + Robust LocalStorage Simulation
  */
 
-import { toDashboardFormat, saveProgressEntry, evaluateProgressFromLatest, getRecommendationsFromLatest, getProgressHistory, createProtocol, advanceProtocolWeek, getNextDeloadWeek, regenerateNextWeekProtocol } from './src/lib/ai/index.js';
+import { toDashboardFormat, saveProgressEntry, evaluateProgressFromLatest, getRecommendationsFromLatest, getProgressHistory, createProtocol, advanceProtocolWeek, getNextDeloadWeek, regenerateNextWeekProtocol, getInjuryState, processProgressForRecovery } from './src/lib/ai/index.js';
 
 // Global App Namespace established early to prevent ReferenceErrors
 window.app = window.app || {};
@@ -1773,6 +1773,33 @@ const progressRenderers = {
                 </div>
             </div>`;
         }).join('');
+    },
+    renderRecoveryStatus: (state, safeT) => {
+        if (!state) return '<p class="text-muted" data-safe-i18n="No recovery data">No recovery data.</p>';
+        const s = state.injuryState || 'none';
+        const modeMap = { none: safeT('Base'), cleared: safeT('Base'), detected: safeT('Adjusted'), active: safeT('Adjusted'), improving: safeT('Adjusted'), reintroduction: safeT('Reintroduction') };
+        const stateMap = { none: safeT('No injury'), detected: safeT('Injury detected'), active: safeT('Injury active'), improving: safeT('Improving'), reintroduction: safeT('Reintroduction'), cleared: safeT('Cleared') };
+        const mode = modeMap[s] || safeT('Base');
+        const stateLabel = stateMap[s] || s;
+        const injuries = (state.activeInjuries || []).length ? state.activeInjuries.join(', ') : safeT('None');
+        const returnWeek = state.returnToBaseWeek || 0;
+        let html = `<div class="space-y-2"><p><strong>${safeT('State')}:</strong> ${stateLabel}</p><p><strong>${safeT('Mode')}:</strong> ${mode}</p><p><strong>${safeT('Active injuries')}:</strong> ${injuries}</p>`;
+        if (returnWeek > 0) html += `<p><strong>${safeT('Return-to-base week')}:</strong> ${returnWeek}</p>`;
+        if (state.notes) html += `<p class="text-muted text-[0.65rem]">${state.notes}</p>`;
+        html += '</div>';
+        return html;
+    },
+    renderRecoveryTransition: (state, safeT) => {
+        if (!state || state.injuryState === 'none') return '';
+        const s = state.injuryState || 'none';
+        const tips = { detected: safeT('Plan adjusted for injury. Log progress weekly.'), active: safeT('Continue injury-adjusted training. Check "Feeling better" when improved.'), improving: safeT('Check "Injury healed" when ready to return.'), reintroduction: safeT('Gradual return: 60–70% week 1, 80–90% week 2.'), cleared: safeT('Back to base protocol.') };
+        return tips[s] ? `<p class="text-xs text-secondary mt-2">${tips[s]}</p>` : '';
+    },
+    renderReturnToBaseInfo: (state, safeT) => {
+        if (!state || state.injuryState !== 'reintroduction') return '';
+        const w = state.returnToBaseWeek || 1;
+        const pct = w === 1 ? '60–70%' : '80–90%';
+        return `<p class="text-xs text-primary mt-4"><i class="fa-solid fa-info-circle mr-1"></i> ${safeT('Reintroduction')}: ${pct} ${safeT('of volume this week')}.</p>`;
     }
 };
 
@@ -1914,6 +1941,15 @@ const dashModule = {
             const protocolStatusEl = document.getElementById('protocol-status-content');
             if (protocolStatusEl) {
                 protocolStatusEl.innerHTML = protocolRenderers.renderProtocolStatus(p, safeT) + protocolRenderers.renderProtocolTimeline(p, safeT);
+            }
+
+            // Recovery Status card (Phase 11)
+            const recoveryStatusEl = document.getElementById('recovery-status-content');
+            if (recoveryStatusEl && typeof getInjuryState === 'function') {
+                const recoveryState = getInjuryState(user.email);
+                recoveryStatusEl.innerHTML = progressRenderers.renderRecoveryStatus(recoveryState, safeT) +
+                    progressRenderers.renderRecoveryTransition(recoveryState, safeT) +
+                    progressRenderers.renderReturnToBaseInfo(recoveryState, safeT);
             }
 
             // Latest Regeneration Result (Phase 8)
@@ -2499,19 +2535,24 @@ function initApp() {
             e.preventDefault();
             const user = db.getCurrentUser();
             if (!user) return;
+            const injuriesRaw = (document.getElementById('progress-injuries')?.value || '').trim();
             const entry = {
                 bodyWeight: document.getElementById('progress-body-weight')?.value,
                 strengthChange: document.getElementById('progress-strength-change')?.value || 0,
                 fatigueLevel: document.getElementById('progress-fatigue')?.value || 5,
                 adherence: document.getElementById('progress-adherence')?.value,
                 sleepScore: document.getElementById('progress-sleep')?.value || 7,
-                injuries: (document.getElementById('progress-injuries')?.value || '').trim() ? [document.getElementById('progress-injuries').value.trim()] : []
+                injuries: injuriesRaw ? injuriesRaw.split(/[,\s]+/).map(s => s.trim()).filter(Boolean) : [],
+                improvementFlag: document.getElementById('progress-improvement')?.checked || false,
+                healedFlag: document.getElementById('progress-healed')?.checked || false,
+                notes: injuriesRaw
             };
             const result = saveProgressEntry(entry, user.email);
             if (!result.success) {
                 alert((result.errors || []).join('\n'));
                 return;
             }
+            processProgressForRecovery(user.email, entry, user.active_protocol?.meta?.limitations || 'none', user.active_protocol?.basePlan || user.active_protocol?.apiPlan);
             const userProfile = { goal: user.active_protocol?.meta?.goal || 'recomposition', weight: 80, limitations: user.active_protocol?.meta?.limitations || 'none' };
             const recResult = getRecommendationsFromLatest(user.email, userProfile, user.active_protocol?.apiPlan);
             const adaptiveSummaryEl = document.getElementById('adaptive-summary-container');
@@ -2538,6 +2579,14 @@ function initApp() {
             document.getElementById('progress-sleep').value = 7;
             document.getElementById('progress-fatigue-out').textContent = '5';
             document.getElementById('progress-sleep-out').textContent = '7';
+            const impEl = document.getElementById('progress-improvement');
+            const healedEl = document.getElementById('progress-healed');
+            if (impEl) impEl.checked = false;
+            if (healedEl) healedEl.checked = false;
+            const recoveryCard = document.getElementById('recovery-status-content');
+            if (recoveryCard && typeof progressRenderers.renderRecoveryStatus === 'function') {
+                recoveryCard.innerHTML = progressRenderers.renderRecoveryStatus(getInjuryState(user.email), safeT);
+            }
         });
     }
 

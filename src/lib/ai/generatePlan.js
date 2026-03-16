@@ -9,6 +9,7 @@ import { classifyUser } from './classifyUser.js';
 import { createResponse, isOpenAIAvailable } from '../openai/client.js';
 import { buildPlanPrompt } from '../openai/promptBuilder.js';
 import { validatePlan } from './validatePlan.js';
+import { getWeekPhase, applyPhaseToPlan } from './periodizationEngine.js';
 
 const DAY_NAMES_EN = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
@@ -94,7 +95,7 @@ export async function generatePlan(normalizedInput) {
                 if (rawPlan) {
                     const validation = validatePlan(rawPlan);
                     if (validation.valid && validation.sanitizedPlan) {
-                        return validation.sanitizedPlan;
+                        return applyPhaseForWeek1(validation.sanitizedPlan, classification.goal || 'recomp');
                     }
                 }
             }
@@ -103,6 +104,18 @@ export async function generatePlan(normalizedInput) {
         }
     }
     return generateRulePlan(normalizedInput);
+}
+
+/**
+ * Apply Phase 10 periodization for week 1.
+ * @param {Object} plan
+ * @param {string} goal
+ * @returns {Object}
+ */
+function applyPhaseForWeek1(plan, goal) {
+    const phase = getWeekPhase(goal, 1);
+    const result = applyPhaseToPlan(plan, phase);
+    return result.adjustedPlan || plan;
 }
 
 /**
@@ -159,7 +172,7 @@ export function generateRulePlan(normalizedInput) {
     const recoveryGuidance = getRecoveryGuidance(trainingDaysPerWeek, recoveryProfile);
     const warnings = buildWarnings(input, classification);
 
-    return {
+    let plan = {
         planMeta,
         userSummary,
         weeklyPlan,
@@ -167,6 +180,11 @@ export function generateRulePlan(normalizedInput) {
         recoveryGuidance,
         warnings
     };
+
+    // Phase 10: Apply periodization for week 1
+    plan = applyPhaseForWeek1(plan, goal);
+
+    return plan;
 }
 
 function buildWeeklyPlan(opts) {

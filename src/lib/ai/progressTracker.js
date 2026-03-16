@@ -96,7 +96,10 @@ export function saveProgressEntry(entry, userId) {
         fatigueLevel: Math.max(1, Math.min(10, parseFloat(entry.fatigueLevel) || 5)),
         adherence: Math.max(0, Math.min(100, parseFloat(entry.adherence) || 100)),
         sleepScore: Math.max(1, Math.min(10, parseFloat(entry.sleepScore) || 7)),
-        injuries: Array.isArray(entry.injuries) ? entry.injuries : (entry.injuries ? [String(entry.injuries)] : [])
+        injuries: Array.isArray(entry.injuries) ? entry.injuries : (entry.injuries ? [String(entry.injuries)] : []),
+        improvementFlag: !!entry.improvementFlag,
+        healedFlag: !!entry.healedFlag,
+        notes: String(entry.notes || '').trim()
     };
     entries.unshift(normalized);
     saveEntries(userId, entries);

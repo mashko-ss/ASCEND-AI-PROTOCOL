@@ -6,6 +6,7 @@
  */
 
 import { getInjuryWarnings, normalizeInjuries } from './injuryAdjustmentEngine.js';
+import { shouldTriggerDeload as periodizationShouldTriggerDeload } from './periodizationEngine.js';
 
 /** Strength change thresholds: positive = improving, 0 = plateau, negative = regression */
 const STRENGTH_INCREASING = 1;
@@ -131,18 +132,14 @@ function evaluateFatigueAndSleep(fatigueLevel, sleepScore) {
 
 /**
  * Check if deload week should be triggered.
+ * Phase 10: Delegates to periodization engine for unified logic.
  * @param {number} weeksSinceStart
  * @param {Object} progressData
  * @returns {boolean}
  */
 function shouldTriggerDeload(weeksSinceStart, progressData) {
-    const { fatigueLevel, strengthChange } = progressData;
     if (weeksSinceStart <= 0) return false;
-    const cycleLength = (DELOAD_WEEK_INTERVAL.min + DELOAD_WEEK_INTERVAL.max) / 2;
-    const isDeloadWeek = weeksSinceStart > 0 && weeksSinceStart % Math.round(cycleLength) === 0;
-    const fatigueDeload = fatigueLevel >= FATIGUE_HIGH_THRESHOLD;
-    const regressionDeload = strengthChange <= STRENGTH_REGRESSION;
-    return isDeloadWeek || fatigueDeload || regressionDeload;
+    return periodizationShouldTriggerDeload({ ...progressData, weeksSinceStart });
 }
 
 /**

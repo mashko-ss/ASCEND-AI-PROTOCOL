@@ -8,6 +8,8 @@ import { generateRecommendations } from './recommendationEngine.js';
 import { getLatestProgress, getProgressHistory } from './progressTracker.js';
 import { getActiveProtocol, advanceProtocolWeek } from './protocolEngine.js';
 import { adjustPlanForInjuries, normalizeInjuries } from './injuryAdjustmentEngine.js';
+import { getWeekPhase, applyPhaseToPlan } from './periodizationEngine.js';
+import { getInjuryState, restoreTowardBaseProtocol, advanceRecoveryWeek } from './injuryRecoveryEngine.js';
 
 /** Deload: volume and intensity reduction factors */
 const DELOAD_VOLUME_FACTOR = 0.5;
@@ -118,6 +120,7 @@ export function applyAdaptiveAdjustmentsToNutrition(nutritionPlan, adaptation, r
 /**
  * Build next week snapshot with optional adaptive adjustments.
  * Phase 9: Injury adjustment applied when injuries/limitations exist.
+ * Phase 10: Periodization phase applied for next week.
  * @param {Object} protocol - Active protocol
  * @param {number} weekNumber - Week being completed
  * @param {Object} progressData - Latest progress or null
@@ -125,20 +128,28 @@ export function applyAdaptiveAdjustmentsToNutrition(nutritionPlan, adaptation, r
  * @param {Array} recommendations - Recommendation array
  * @param {Object} userProfile - { goal, weight, ... }
  * @param {Object} rawInput - Raw form data for nutrition
+ * @param {string} userId - User id for injury recovery state (Phase 11)
  * @returns {{ week, date, trainingPlan, nutritionPlan, adaptation, recommendations, isDeload, regenerationResult }}
  */
-export function buildNextWeekSnapshot(protocol, weekNumber, progressData, adaptation, recommendations, userProfile = {}, rawInput = {}) {
+export function buildNextWeekSnapshot(protocol, weekNumber, progressData, adaptation, recommendations, userProfile = {}, rawInput = {}, userId = '') {
     const nextWeek = weekNumber + 1;
     const isDeload = isDeloadWeek(protocol, nextWeek);
+    const goal = userProfile?.goal || userProfile?.primary_goal || protocol.meta?.goal || protocol.goal || 'recomp';
     const currentPlan = protocol.apiPlan;
     const currentNutrition = protocol.aiResult?.nutrition_plan || protocol.nutrition;
 
     let trainingPlan = currentPlan ? JSON.parse(JSON.stringify(currentPlan)) : null;
     let nutritionPlan = currentNutrition ? JSON.parse(JSON.stringify(currentNutrition)) : null;
 
+    // Phase 10: Apply periodization phase for next week (before adaptive)
+    const phase = getWeekPhase(goal, nextWeek, protocol.deloadWeeks);
+    const phaseResult = applyPhaseToPlan(currentPlan, phase);
+    trainingPlan = phaseResult.adjustedPlan || trainingPlan;
+
     const regenerationResult = {
         week: nextWeek,
         isDeload,
+        phase,
         volumeChange: 0,
         intensityChange: 0,
         calorieChange: 0,
@@ -146,11 +157,11 @@ export function buildNextWeekSnapshot(protocol, weekNumber, progressData, adapta
     };
 
     if (isDeload) {
-        trainingPlan = applyAdaptiveAdjustmentsToPlan(currentPlan, null, true);
+        trainingPlan = applyAdaptiveAdjustmentsToPlan(trainingPlan, null, true);
         regenerationResult.volumeChange = (DELOAD_VOLUME_FACTOR - 1) * 100;
         regenerationResult.intensityChange = (DELOAD_INTENSITY_FACTOR - 1) * 100;
     } else if (adaptation) {
-        trainingPlan = applyAdaptiveAdjustmentsToPlan(currentPlan, adaptation, false);
+        trainingPlan = applyAdaptiveAdjustmentsToPlan(trainingPlan, adaptation, false);
         nutritionPlan = applyAdaptiveAdjustmentsToNutrition(currentNutrition, adaptation, rawInput);
 
         const t = adaptation.trainingAdjustments || {};
@@ -163,11 +174,23 @@ export function buildNextWeekSnapshot(protocol, weekNumber, progressData, adapta
     }
 
     // Phase 9: Injury adjustment when injuries/limitations exist
+    // Phase 11: Injury recovery - use recovery state for reintroduction/cleared
     const assessmentLimitation = protocol.meta?.limitations || rawInput.limitations || 'none';
     const progressInjuries = progressData?.injuries ?? [];
     const injuries = normalizeInjuries(assessmentLimitation, progressInjuries);
     const hasFatigue = (progressData?.fatigueLevel ?? 5) >= 7;
-    if (injuries.length > 0 && trainingPlan) {
+
+    const basePlan = protocol.basePlan || currentPlan;
+    const recoveryState = getInjuryState(userId);
+    const { plan: recoveryPlan, mode: recoveryMode } = restoreTowardBaseProtocol(
+        basePlan,
+        trainingPlan,
+        recoveryState
+    );
+
+    if (recoveryMode === 'reintroduction' || recoveryMode === 'base') {
+        trainingPlan = recoveryPlan;
+    } else if (injuries.length > 0 && trainingPlan) {
         const injuryResult = adjustPlanForInjuries(trainingPlan, injuries, {
             reduceVolumeOnFatigue: hasFatigue || injuries.includes('general_fatigue')
         });
@@ -241,8 +264,11 @@ export function regenerateNextWeekProtocol(userId, userProfile, currentProtocol 
         adaptation,
         recommendations,
         userProfile,
-        rawInput
+        rawInput,
+        userId
     );
+
+    advanceRecoveryWeek(userId);
 
     const result = advanceProtocolWeek(userId, {
         ...snapshot,
