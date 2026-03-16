@@ -1243,6 +1243,21 @@ body.dashboard-active .dashboard-main {
     overflow-x: hidden;
 }
 
+/* Dashboard toolbar: Back button */
+.dashboard-toolbar {
+    flex-shrink: 0;
+}
+
+.btn-back {
+    color: var(--text-secondary);
+    padding: 0.5rem 1rem;
+}
+
+.btn-back:hover {
+    color: var(--accent-primary);
+    background: var(--bg-surface-hover);
+}
+
 /* Premium scrollbar for dashboard main */
 .dashboard-main::-webkit-scrollbar {
     width: 8px;
@@ -1304,9 +1319,16 @@ body.dashboard-active .dashboard-main {
     color: var(--accent-primary);
 }
 
+/* Chevron rotation when directly in trigger (no toggle-icon wrapper) */
+.accordion-card.is-open .accordion-trigger > .accordion-chevron {
+    transform: rotate(180deg);
+    color: var(--accent-primary);
+}
+
 .accordion-chevron {
     font-size: 0.75rem;
     color: inherit;
+    transition: transform var(--transition-normal), color var(--transition-normal);
 }
 
 .accordion-body {

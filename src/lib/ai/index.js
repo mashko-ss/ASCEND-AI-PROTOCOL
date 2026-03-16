@@ -12,6 +12,10 @@ import { savePlanResult } from './savePlanResult.js';
 import { generateNutritionPlan } from './generateNutritionPlan.js';
 import { evaluateProgress, evaluateProgressWithLog } from './adaptiveEngine.js';
 import { getLatestProgress, getProgressHistory, saveProgressEntry, validateProgressEntry, clearProgressHistory } from './progressTracker.js';
+import { generateRecommendations } from './recommendationEngine.js';
+import { createProtocol, getActiveProtocol, saveActiveProtocol, advanceProtocolWeek, addProtocolSnapshot, completeProtocol, getProtocolHistory, isDeloadWeek, getNextDeloadWeek } from './protocolEngine.js';
+import { regenerateNextWeekProtocol, buildNextWeekSnapshot, applyAdaptiveAdjustmentsToPlan, applyAdaptiveAdjustmentsToNutrition } from './regenerationEngine.js';
+import { adjustPlanForInjuries, normalizeInjuries, getInjuryWarnings } from './injuryAdjustmentEngine.js';
 
 /**
  * Main entry: run the full AI engine pipeline on raw form data.
@@ -23,6 +27,19 @@ export async function runEngine(rawInput) {
         const normalizedInput = normalizeInput(rawInput);
         const classification = classifyUser(normalizedInput);
         let plan = await generatePlan(normalizedInput);
+
+        // Phase 9: Injury adjustment when limitations exist
+        const injuries = normalizeInjuries(normalizedInput.limitations, []);
+        if (injuries.length > 0) {
+            const injuryResult = adjustPlanForInjuries(plan, injuries);
+            if (injuryResult.adjustedPlan) {
+                plan = injuryResult.adjustedPlan;
+                if (injuryResult.warnings?.length) {
+                    plan.warnings = [...(plan.warnings || []), ...injuryResult.warnings];
+                }
+            }
+        }
+
         const validation = validatePlan(plan);
 
         if (!validation.valid) {
@@ -182,4 +199,35 @@ export function evaluateProgressFromLatest(userId, userProfile, currentPlan) {
     return evaluateProgress(userProfile, currentPlan, progressData);
 }
 
-export { normalizeInput, classifyUser, generatePlan, generateRulePlan, validatePlan, generateFallbackPlan, savePlanResult, generateNutritionPlan, evaluateProgress, evaluateProgressWithLog, getProgressHistory, getLatestProgress, saveProgressEntry, validateProgressEntry, clearProgressHistory };
+/**
+ * Evaluate progress from latest entry and generate coaching recommendations.
+ * Integrates adaptive engine with recommendation engine.
+ * @param {string} userId - Current user id/email
+ * @param {Object} userProfile - { goal, weight, ... }
+ * @param {Object} currentPlan - Plan with planMeta, weeklyPlan
+ * @returns {{ adaptation: Object, recommendations: Array }|null} Or null if no progress data
+ */
+export function getRecommendationsFromLatest(userId, userProfile, currentPlan) {
+    const adaptation = evaluateProgressFromLatest(userId, userProfile, currentPlan);
+    if (!adaptation) return null;
+    const latest = getLatestProgress(userId);
+    if (!latest) return { adaptation, recommendations: [] };
+    const history = getProgressHistory(userId);
+    const baseline = history.length > 1 ? history[history.length - 1] : latest;
+    const progressData = {
+        bodyWeight: latest.bodyWeight,
+        baselineWeight: baseline?.bodyWeight ?? latest.bodyWeight,
+        strengthChange: latest.strengthChange ?? 0,
+        fatigueLevel: latest.fatigueLevel ?? 5,
+        adherence: latest.adherence ?? 100,
+        sleepScore: latest.sleepScore ?? 7,
+        injuries: latest.injuries ?? [],
+        weeksSinceStart: history.length,
+        limitations: userProfile?.limitations || currentPlan?.planMeta?.limitations || 'none'
+    };
+    const goal = userProfile?.goal || userProfile?.primary_goal || currentPlan?.planMeta?.goal || 'recomposition';
+    const recommendations = generateRecommendations(adaptation, progressData, goal);
+    return { adaptation, recommendations };
+}
+
+export { normalizeInput, classifyUser, generatePlan, generateRulePlan, validatePlan, generateFallbackPlan, savePlanResult, generateNutritionPlan, evaluateProgress, evaluateProgressWithLog, getProgressHistory, getLatestProgress, saveProgressEntry, validateProgressEntry, clearProgressHistory, generateRecommendations, createProtocol, getActiveProtocol, saveActiveProtocol, advanceProtocolWeek, addProtocolSnapshot, completeProtocol, getProtocolHistory, isDeloadWeek, getNextDeloadWeek, regenerateNextWeekProtocol, buildNextWeekSnapshot, applyAdaptiveAdjustmentsToPlan, applyAdaptiveAdjustmentsToNutrition, adjustPlanForInjuries, normalizeInjuries, getInjuryWarnings };

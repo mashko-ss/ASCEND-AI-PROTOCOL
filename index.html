@@ -596,13 +596,13 @@
                         </div>
 
                         <nav class="sidebar-nav mt-8">
-                            <a href="#" class="sidebar-link active" id="tab-btn-protocol"><i
+                            <a href="#" class="sidebar-link active" id="tab-btn-protocol" data-tab="active-protocol"><i
                                     class="fa-solid fa-crosshairs w-5 text-center"></i> <span
                                     data-safe-i18n="Your Plan">Your Plan</span></a>
-                            <a href="#" class="sidebar-link" id="tab-btn-progress"><i
+                            <a href="#" class="sidebar-link" id="tab-btn-progress" data-tab="progress-tracker"><i
                                     class="fa-solid fa-chart-line w-5 text-center"></i> <span
                                     data-safe-i18n="Your Progress">Your Progress</span></a>
-                            <a href="#" class="sidebar-link" id="tab-btn-history"><i
+                            <a href="#" class="sidebar-link" id="tab-btn-history" data-tab="history"><i
                                     class="fa-solid fa-database w-5 text-center"></i> <span
                                     data-safe-i18n="Plan History">Plan History</span></a>
                         </nav>
@@ -618,6 +618,11 @@
 
                     <!-- Main Content -->
                     <main class="dashboard-main">
+                        <div class="dashboard-toolbar flex-between items-center mb-4">
+                            <button class="btn btn-ghost btn-back font-mono text-xs uppercase tracking-widest" id="dashboard-back-btn" aria-label="Back to main dashboard">
+                                <i class="fa-solid fa-arrow-left mr-2"></i> <span data-safe-i18n="Back">Back</span>
+                            </button>
+                        </div>
 
                         <!-- TAB: ACTIVE PROTOCOL -->
                         <div class="dash-tab active" id="tab-active-protocol">
@@ -647,6 +652,43 @@
                                         <div class="flex-grow grid grid-cols-4 gap-4 mobile-grid-2"
                                             id="res-profile-stats">
                                             <!-- Dynamics -->
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Protocol Status (accordion) -->
+                                <div class="dashboard-card card-span-3 accordion-card is-open" id="accordion-protocol-status">
+                                    <div class="card-header highlight-header flex-between items-center accordion-trigger" data-accordion-id="accordion-protocol-status" tabindex="0" role="button" aria-expanded="true" aria-controls="accordion-protocol-status-body">
+                                        <h3><i class="fa-solid fa-calendar-week text-primary"></i> <span
+                                                data-safe-i18n="Protocol Status">Protocol Status</span></h3>
+                                        <span class="flex items-center gap-2">
+                                            <button type="button" class="btn btn-outline font-mono text-xs uppercase" id="advance-week-btn" onclick="event.stopPropagation()">
+                                                <i class="fa-solid fa-forward-step mr-1"></i> <span data-safe-i18n="Advance Week">Advance Week</span>
+                                            </button>
+                                            <i class="accordion-chevron fa-solid fa-chevron-down" aria-hidden="true"></i>
+                                        </span>
+                                    </div>
+                                    <div class="card-body accordion-body" id="accordion-protocol-status-body">
+                                        <div id="protocol-status-content" class="font-mono text-sm">
+                                            <p class="text-muted" data-safe-i18n="No active protocol">No active protocol.</p>
+                                        </div>
+                                        <div id="latest-regeneration-result" class="mt-4 pt-4 border-t border-border-color hidden">
+                                            <h5 class="text-[0.65rem] uppercase tracking-widest text-primary font-bold mb-2" data-safe-i18n="Latest Regeneration Result">Latest Regeneration Result</h5>
+                                            <div id="latest-regeneration-content" class="text-xs text-secondary"></div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- AI Recommendations (accordion) -->
+                                <div class="dashboard-card card-span-3 accordion-card is-open" id="accordion-ai-recommendations">
+                                    <div class="card-header highlight-header accordion-trigger" data-accordion-id="accordion-ai-recommendations" tabindex="0" role="button" aria-expanded="true" aria-controls="accordion-ai-recommendations-body">
+                                        <h3><i class="fa-solid fa-robot text-primary"></i> <span
+                                                data-safe-i18n="AI Recommendations">AI Recommendations</span></h3>
+                                        <i class="accordion-chevron fa-solid fa-chevron-down" aria-hidden="true"></i>
+                                    </div>
+                                    <div class="card-body accordion-body" id="accordion-ai-recommendations-body">
+                                        <div id="ai-recommendations-content" class="space-y-3 font-mono text-sm">
+                                            <p class="text-muted" data-safe-i18n="Log progress to see personalized recommendations">Log progress to see personalized recommendations.</p>
                                         </div>
                                     </div>
                                 </div>
@@ -719,10 +761,15 @@
                                                     <i class="fa-solid fa-save mr-1"></i> <span data-safe-i18n="Save Progress">Save Progress</span>
                                                 </button>
                                             </form>
-                                            <div id="progress-history-container" class="mt-4 border-t border-border-color pt-4">
-                                                <h5 class="text-[0.65rem] uppercase tracking-widest text-muted mb-2" data-safe-i18n="Progress History">Progress History</h5>
-                                                <div id="progress-history-list" class="text-xs text-secondary font-mono">
-                                                    <p class="text-muted" data-safe-i18n="No entries yet">No entries yet.</p>
+                                            <div id="accordion-progress-history" class="mt-4 border-t border-border-color pt-4 nested-accordion accordion-card is-closed">
+                                                <div class="nested-accordion-trigger accordion-trigger" data-accordion-id="accordion-progress-history" tabindex="0" role="button" aria-expanded="false" aria-controls="accordion-progress-history-body">
+                                                    <h5 class="text-[0.65rem] uppercase tracking-widest text-muted mb-0" data-safe-i18n="Progress History">Progress History</h5>
+                                                    <span class="accordion-toggle-icon" aria-hidden="true"><i class="accordion-chevron fa-solid fa-chevron-down" aria-hidden="true"></i></span>
+                                                </div>
+                                                <div class="accordion-body nested-accordion-body" id="accordion-progress-history-body">
+                                                    <div id="progress-history-list" class="text-xs text-secondary font-mono mt-2">
+                                                        <p class="text-muted" data-safe-i18n="No entries yet">No entries yet.</p>
+                                                    </div>
                                                 </div>
                                             </div>
                                             <div id="adaptive-summary-container" class="mt-4 border-t border-border-color pt-4 hidden">

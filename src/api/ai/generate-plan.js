@@ -10,6 +10,7 @@ import { classifyUser } from '../../lib/ai/classifyUser.js';
 import { validatePlan } from '../../lib/ai/validatePlan.js';
 import { generateRulePlan, ensureUniqueDayExercises } from '../../lib/ai/generatePlan.js';
 import { generateFallbackPlan } from '../../lib/ai/fallbackPlan.js';
+import { adjustPlanForInjuries, normalizeInjuries } from '../../lib/ai/injuryAdjustmentEngine.js';
 import { createResponse, isOpenAIAvailable } from '../../lib/openai/client.js';
 import { buildPlanPrompt } from '../../lib/openai/promptBuilder.js';
 
@@ -125,7 +126,18 @@ export default async function handler(req, res) {
     const aiResult = await tryAIGeneration(normalizedInput, classification);
 
     if (aiResult.plan) {
-        const plan = ensureUniqueDayExercises(aiResult.plan, normalizedInput);
+        let plan = ensureUniqueDayExercises(aiResult.plan, normalizedInput);
+        // Phase 9: Injury adjustment when limitations exist
+        const injuries = normalizeInjuries(normalizedInput.limitations, []);
+        if (injuries.length > 0) {
+            const injuryResult = adjustPlanForInjuries(plan, injuries);
+            if (injuryResult.adjustedPlan) {
+                plan = injuryResult.adjustedPlan;
+                if (injuryResult.warnings?.length) {
+                    plan.warnings = [...(plan.warnings || []), ...injuryResult.warnings];
+                }
+            }
+        }
         res.status(200).json({
             success: true,
             source: 'ai',
@@ -147,6 +159,18 @@ export default async function handler(req, res) {
     }
 
     plan = ensureUniqueDayExercises(plan, normalizedInput);
+
+    // Phase 9: Injury adjustment when limitations exist
+    const injuries = normalizeInjuries(normalizedInput.limitations, []);
+    if (injuries.length > 0) {
+        const injuryResult = adjustPlanForInjuries(plan, injuries);
+        if (injuryResult.adjustedPlan) {
+            plan = injuryResult.adjustedPlan;
+            if (injuryResult.warnings?.length) {
+                plan.warnings = [...(plan.warnings || []), ...injuryResult.warnings];
+            }
+        }
+    }
 
     res.status(200).json({
         success: true,

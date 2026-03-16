@@ -1,8 +1,11 @@
 /**
  * ASCEND AI PROTOCOL - Adaptive Progression Engine
  * Phase 4: Evaluate progress signals and return adaptation recommendations.
+ * Phase 9: Integrates injury warnings when injuries exist.
  * Deterministic rules. No OpenAI required.
  */
+
+import { getInjuryWarnings, normalizeInjuries } from './injuryAdjustmentEngine.js';
 
 /** Strength change thresholds: positive = improving, 0 = plateau, negative = regression */
 const STRENGTH_INCREASING = 1;
@@ -144,12 +147,16 @@ function shouldTriggerDeload(weeksSinceStart, progressData) {
 
 /**
  * Build recovery recommendations from injuries.
- * @param {string[]} injuries
+ * Phase 9: Uses injury adjustment engine for specific warnings.
+ * @param {string[]} injuries - Raw injury strings from progress
+ * @param {string} assessmentLimitation - From assessment (e.g. 'shoulders', 'lower_back')
  * @returns {string[]}
  */
-function getInjuryRecommendations(injuries) {
-    if (!injuries || injuries.length === 0) return [];
-    return ['Modify or avoid exercises that aggravate reported areas. Consider extra mobility work.'];
+function getInjuryRecommendations(injuries, assessmentLimitation = 'none') {
+    if (!injuries?.length && (!assessmentLimitation || assessmentLimitation === 'none')) return [];
+    const normalized = normalizeInjuries(assessmentLimitation, injuries);
+    if (normalized.length === 0) return ['Modify or avoid exercises that aggravate reported areas. Consider extra mobility work.'];
+    return getInjuryWarnings(normalized);
 }
 
 /**
@@ -192,8 +199,9 @@ export function evaluateProgress(userProfile, currentPlan, progressData) {
     trainingAdjustments.intensityChange += fatigueAdj.intensityChange;
     recoveryRecommendations.push(...fatigueAdj.recoveryRecommendations);
 
-    // Injury flags
-    recoveryRecommendations.push(...getInjuryRecommendations(prog.injuries));
+    // Injury flags (Phase 9: uses injury engine for specific warnings)
+    const assessmentLimitation = profile.limitations || plan.planMeta?.limitations || 'none';
+    recoveryRecommendations.push(...getInjuryRecommendations(prog.injuries, assessmentLimitation));
 
     // Deload system
     const triggerDeload = shouldTriggerDeload(weeksSinceStart, prog);

@@ -3,7 +3,7 @@
  * Architecture: Vanilla JS + Robust LocalStorage Simulation
  */
 
-import { toDashboardFormat, saveProgressEntry, evaluateProgressFromLatest, getProgressHistory } from './src/lib/ai/index.js';
+import { toDashboardFormat, saveProgressEntry, evaluateProgressFromLatest, getRecommendationsFromLatest, getProgressHistory, createProtocol, advanceProtocolWeek, getNextDeloadWeek, regenerateNextWeekProtocol } from './src/lib/ai/index.js';
 
 // Global App Namespace established early to prevent ReferenceErrors
 window.app = window.app || {};
@@ -238,7 +238,32 @@ const langModule = {
             "Days / Wk": "Days / Wk",
             "Status": "Status",
             "Active": "Active",
+            "Completed": "Completed",
+            "Paused": "Paused",
             "Deploy Date": "Deploy Date",
+            "Protocol Status": "Protocol Status",
+            "Advance Week": "Advance Week",
+            "Current Week": "Current Week",
+            "Goal": "Goal",
+            "Next Deload": "Next Deload",
+            "Start Date": "Start Date",
+            "No active protocol": "No active protocol.",
+            "None": "None",
+            "Muscle Gain": "Muscle Gain",
+            "Recomposition": "Recomposition",
+            "Longevity": "Longevity",
+            "Endurance": "Endurance",
+            "Week": "Week",
+            "No snapshots yet": "No snapshots yet.",
+            "Adaptation recorded": "Adaptation recorded",
+            "Action": "Action",
+            "Latest Regeneration Result": "Latest Regeneration Result",
+            "Deload": "Deload",
+            "Volume": "Volume",
+            "Intensity": "Intensity",
+            "Calories": "Calories",
+            "Cardio": "Cardio",
+            "No": "No",
             "Balanced Nutrition": "Balanced Nutrition",
             "Keto Diet": "Keto Diet",
             "Intermittent Fasting": "Intermittent Fasting",
@@ -1415,7 +1440,9 @@ NUTRITION PLAN RULES:
                 protocol.meta.days = String(json.plan.planMeta.trainingDaysPerWeek || protocol.meta.days);
             }
 
-            db.saveNewProtocol(protocol);
+            const userProfile = { goal: data.primary_goal, primary_goal: data.primary_goal, ...data };
+            const enhancedProtocol = createProtocol(userProfile, json.plan, aiResult.nutrition_plan, protocol, {});
+            db.saveNewProtocol(enhancedProtocol);
             db.clearAssessmentState();
 
             setTimeout(() => {
@@ -1601,6 +1628,50 @@ const accordionModule = {
 };
 
 // ==========================================
+// 5.5.1 DASHBOARD HELPER FUNCTIONS (accordion + back navigation)
+// ==========================================
+function setupAccordionBehavior() {
+    accordionModule.bind();
+}
+
+function toggleAccordion(id) {
+    const card = document.getElementById(id);
+    if (!card) return;
+    const trigger = card.querySelector('.accordion-trigger');
+    if (!trigger) return;
+    accordionModule._toggleOne(card, trigger);
+}
+
+function handleBackNavigation() {
+    // 1. If modal is open, close it
+    const modal = document.getElementById('modal-checkin');
+    if (modal?.classList.contains('active')) {
+        toggleModal('modal-checkin', false);
+        return;
+    }
+
+    // 2. If on Progress or History tab, switch to main dashboard (Your Plan)
+    const activeTab = document.querySelector('.dash-tab.active');
+    const activeTabId = activeTab?.id;
+    if (activeTabId === 'tab-progress-tracker' || activeTabId === 'tab-history') {
+        dashModule.switchTab('active-protocol', null);
+        document.querySelectorAll('.sidebar-link').forEach(l => l.classList.remove('active'));
+        document.querySelector('.sidebar-link[data-tab="active-protocol"]')?.classList.add('active');
+        return;
+    }
+
+    // 3. Fallback: scroll to main dashboard top
+    const dashboardMain = document.querySelector('.dashboard-main');
+    if (dashboardMain) {
+        dashboardMain.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+    const viewDashboard = document.getElementById('view-dashboard');
+    if (viewDashboard) {
+        viewDashboard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+}
+
+// ==========================================
 // 5.6 NUTRITION RENDERERS (Phase 3)
 // ==========================================
 const nutritionRenderers = {
@@ -1681,6 +1752,119 @@ const progressRenderers = {
         const rec = result.recoveryRecommendations || [];
         rec.forEach((r) => parts.push(`<p class="text-secondary"><i class="fa-solid fa-check text-primary mr-1"></i> ${safeT(r)}</p>`));
         return parts.length ? parts.join('') : '<p class="text-muted">' + (safeT('No changes recommended') || 'No changes recommended') + '</p>';
+    },
+    renderRecommendations: (recommendations, safeT) => {
+        if (!recommendations || recommendations.length === 0) {
+            return '<p class="text-muted" data-safe-i18n="No recommendations at this time">No recommendations at this time.</p>';
+        }
+        const typeIcons = { training: 'fa-dumbbell', nutrition: 'fa-utensils', recovery: 'fa-shield-heart' };
+        const priorityClasses = { high: 'text-warning', medium: 'text-primary', low: 'text-secondary' };
+        return recommendations.map((r) => {
+            const icon = typeIcons[r.type] || 'fa-circle';
+            const pClass = priorityClasses[r.priority] || 'text-secondary';
+            return `<div class="recommendation-item p-3 rounded border border-border-light bg-surface-hover">
+                <div class="flex items-start gap-2">
+                    <i class="fa-solid ${icon} text-primary mt-0.5"></i>
+                    <div class="flex-grow">
+                        <p class="font-bold text-xs uppercase tracking-widest ${pClass}">${safeT(r.type)} · ${safeT(r.priority)}</p>
+                        <p class="text-secondary text-xs mt-1">${safeT(r.message)}</p>
+                        <p class="text-primary font-mono text-xs mt-2"><strong>${safeT('Action')}:</strong> ${safeT(r.action)}</p>
+                    </div>
+                </div>
+            </div>`;
+        }).join('');
+    }
+};
+
+// ==========================================
+// 5.8 PROTOCOL RENDERERS (Phase 7)
+// ==========================================
+const protocolRenderers = {
+    renderProtocolStatus: (protocol, safeT) => {
+        if (!protocol) return '<p class="text-muted" data-safe-i18n="No active protocol">No active protocol.</p>';
+        const currentWeek = protocol.currentWeek ?? 1;
+        const durationWeeks = protocol.durationWeeks ?? 8;
+        const goal = protocol.goal || protocol.meta?.goal || 'recomp';
+        const status = protocol.status || 'active';
+        const startDate = protocol.createdAt || protocol.created_at || '—';
+        const nextDeload = getNextDeloadWeek(protocol);
+        const goalMap = { fat_loss: safeT('Fat Loss'), muscle_gain: safeT('Muscle Gain'), recomp: safeT('Recomposition'), longevity: safeT('Longevity'), endurance: safeT('Endurance') };
+        const statusMap = { active: safeT('Active'), completed: safeT('Completed'), paused: safeT('Paused') };
+        return `
+            <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+                <div class="p-3 rounded bg-surface-hover border border-border-light">
+                    <p class="text-[0.65rem] uppercase tracking-widest text-muted">${safeT('Current Week')}</p>
+                    <p class="text-xl font-bold text-primary font-mono">${currentWeek} / ${durationWeeks}</p>
+                </div>
+                <div class="p-3 rounded bg-surface-hover border border-border-light">
+                    <p class="text-[0.65rem] uppercase tracking-widest text-muted">${safeT('Goal')}</p>
+                    <p class="font-bold">${goalMap[goal] || goal}</p>
+                </div>
+                <div class="p-3 rounded bg-surface-hover border border-border-light">
+                    <p class="text-[0.65rem] uppercase tracking-widest text-muted">${safeT('Status')}</p>
+                    <p class="font-bold text-success">${statusMap[status] || status}</p>
+                </div>
+                <div class="p-3 rounded bg-surface-hover border border-border-light">
+                    <p class="text-[0.65rem] uppercase tracking-widest text-muted">${safeT('Next Deload')}</p>
+                    <p class="font-mono">${nextDeload ? `Week ${nextDeload}` : safeT('None')}</p>
+                </div>
+                <div class="p-3 rounded bg-surface-hover border border-border-light">
+                    <p class="text-[0.65rem] uppercase tracking-widest text-muted">${safeT('Start Date')}</p>
+                    <p class="font-mono">${startDate}</p>
+                </div>
+            </div>
+        `;
+    },
+    renderProtocolTimeline: (protocol, safeT) => {
+        if (!protocol) return '';
+        const durationWeeks = protocol.durationWeeks ?? 8;
+        const currentWeek = protocol.currentWeek ?? 1;
+        const deloadWeeks = protocol.deloadWeeks || [];
+        let html = '<div class="flex gap-1 flex-wrap mt-2">';
+        for (let w = 1; w <= durationWeeks; w++) {
+            const isCurrent = w === currentWeek;
+            const isDeload = deloadWeeks.includes(w);
+            const isPast = w < currentWeek;
+            let cls = 'w-6 h-6 rounded text-[0.6rem] flex items-center justify-center font-mono font-bold ';
+            if (isCurrent) cls += 'bg-primary text-base';
+            else if (isDeload) cls += 'bg-warning/20 text-warning border border-warning';
+            else if (isPast) cls += 'bg-surface-hover text-muted';
+            else cls += 'bg-surface-hover text-secondary';
+            html += `<span class="${cls}" title="${safeT('Week')} ${w}${isDeload ? ' (Deload)' : ''}">${w}</span>`;
+        }
+        html += '</div>';
+        return html;
+    },
+    renderProtocolSnapshots: (protocol, safeT) => {
+        if (!protocol?.planSnapshots?.length) return '<p class="text-muted text-xs">' + (safeT('No snapshots yet') || 'No snapshots yet') + '</p>';
+        return protocol.planSnapshots.map((s) => `
+            <div class="p-2 rounded border border-border-light bg-surface-hover text-xs mb-2">
+                <span class="font-bold text-primary">W${s.week}</span> ${s.date}
+                ${s.adaptation ? '<span class="text-muted ml-2">' + safeT('Adaptation recorded') + '</span>' : ''}
+            </div>
+        `).join('');
+    },
+    renderLatestRegeneration: (protocol, safeT) => {
+        const snapshots = protocol?.planSnapshots || [];
+        const last = snapshots[snapshots.length - 1];
+        const rr = last?.regenerationResult;
+        if (!rr || typeof rr !== 'object') return null;
+        const vol = rr.volumeChange ?? 0;
+        const int = rr.intensityChange ?? 0;
+        const cal = rr.calorieChange ?? 0;
+        const volStr = vol !== 0 ? `${vol > 0 ? '+' : ''}${vol}%` : '0%';
+        const intStr = int !== 0 ? `${int > 0 ? '+' : ''}${int}%` : '0%';
+        const calStr = cal !== 0 ? `${cal > 0 ? '+' : ''}${cal} kcal` : '0';
+        return `
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-2">
+                <div class="p-2 rounded bg-surface-hover"><span class="text-muted">${safeT('Week')}</span> <strong>${rr.week}</strong></div>
+                <div class="p-2 rounded bg-surface-hover"><span class="text-muted">${safeT('Deload')}</span> <strong>${rr.isDeload ? safeT('Yes') : safeT('No')}</strong></div>
+                <div class="p-2 rounded bg-surface-hover"><span class="text-muted">${safeT('Volume')}</span> <strong>${volStr}</strong></div>
+                <div class="p-2 rounded bg-surface-hover"><span class="text-muted">${safeT('Intensity')}</span> <strong>${intStr}</strong></div>
+                <div class="p-2 rounded bg-surface-hover"><span class="text-muted">${safeT('Calories')}</span> <strong>${calStr}</strong></div>
+                ${(rr.cardioChange ?? 0) !== 0 ? `<div class="p-2 rounded bg-surface-hover"><span class="text-muted">${safeT('Cardio')}</span> <strong>${(rr.cardioChange ?? 0) > 0 ? '+' : ''}${rr.cardioChange ?? 0} min</strong></div>` : ''}
+            </div>
+        `;
     }
 };
 
@@ -1725,6 +1909,25 @@ const dashModule = {
                 <div class="stat-item"><span class="stat-label" data-safe-i18n="Status">${safeT("Status")}</span><span class="stat-value text-success"><i class="fa-solid fa-check text-success mr-1 text-xs"></i> ${safeT("Active")}</span></div>
                 <div class="stat-item"><span class="stat-label" data-safe-i18n="Deploy Date">${safeT("Deploy Date")}</span><span class="stat-value">${p.created_at}</span></div>
             `;
+
+            // Protocol Status card (Phase 7)
+            const protocolStatusEl = document.getElementById('protocol-status-content');
+            if (protocolStatusEl) {
+                protocolStatusEl.innerHTML = protocolRenderers.renderProtocolStatus(p, safeT) + protocolRenderers.renderProtocolTimeline(p, safeT);
+            }
+
+            // Latest Regeneration Result (Phase 8)
+            const regenSection = document.getElementById('latest-regeneration-result');
+            const regenContent = document.getElementById('latest-regeneration-content');
+            if (regenSection && regenContent) {
+                const regenHtml = protocolRenderers.renderLatestRegeneration(p, safeT);
+                if (regenHtml) {
+                    regenSection.classList.remove('hidden');
+                    regenContent.innerHTML = regenHtml;
+                } else {
+                    regenSection.classList.add('hidden');
+                }
+            }
 
             // Fallback notice (subtle, when API used rule engine)
             const fallbackNotice = document.getElementById('res-fallback-notice');
@@ -1937,13 +2140,21 @@ const dashModule = {
                 progressHistoryEl.innerHTML = progressRenderers.renderProgressHistory(entries, safeT);
             }
             if (adaptiveSummaryEl && adaptiveContentEl) {
-                const userProfile = p.meta ? { goal: p.meta.goal, weight: p.nutrition?.cals ? 80 : 80 } : { goal: 'recomposition', weight: 80 };
-                const adaptation = evaluateProgressFromLatest(user.email, userProfile, p.apiPlan);
-                if (adaptation) {
+                const userProfile = p.meta ? { goal: p.meta.goal, weight: p.nutrition?.cals ? 80 : 80, limitations: p.meta?.limitations || 'none' } : { goal: 'recomposition', weight: 80, limitations: 'none' };
+                const result = getRecommendationsFromLatest(user.email, userProfile, p.apiPlan);
+                if (result) {
                     adaptiveSummaryEl.classList.remove('hidden');
-                    adaptiveContentEl.innerHTML = progressRenderers.renderAdaptiveSummary(adaptation, safeT);
+                    adaptiveContentEl.innerHTML = progressRenderers.renderAdaptiveSummary(result.adaptation, safeT);
+                    const recCard = document.getElementById('ai-recommendations-content');
+                    if (recCard) {
+                        recCard.innerHTML = progressRenderers.renderRecommendations(result.recommendations, safeT);
+                    }
                 } else {
                     adaptiveSummaryEl.classList.add('hidden');
+                    const recCard = document.getElementById('ai-recommendations-content');
+                    if (recCard) {
+                        recCard.innerHTML = '<p class="text-muted" data-safe-i18n="Log progress to see personalized recommendations">Log progress to see personalized recommendations.</p>';
+                    }
                 }
             }
 
@@ -2133,7 +2344,7 @@ function toggleModal(modalId, show) {
 // ==========================================
 // 7. BOOTSTRAP & EVENTS
 // ==========================================
-document.addEventListener('DOMContentLoaded', () => {
+function initApp() {
     // Register Service Worker for PWA
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
@@ -2242,6 +2453,30 @@ document.addEventListener('DOMContentLoaded', () => {
     const tabBtnHistory = document.getElementById('tab-btn-history');
     if (tabBtnHistory) tabBtnHistory.addEventListener('click', (e) => { e.preventDefault(); dashModule.switchTab('history', e); });
 
+    // --- Dashboard Back button ---
+    const dashboardBackBtn = document.getElementById('dashboard-back-btn');
+    if (dashboardBackBtn) dashboardBackBtn.addEventListener('click', (e) => { e.preventDefault(); handleBackNavigation(); });
+
+    // --- Phase 7/8: Advance Week (Regeneration Engine) ---
+    const advanceWeekBtn = document.getElementById('advance-week-btn');
+    if (advanceWeekBtn) {
+        advanceWeekBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            const user = db.getCurrentUser();
+            if (!user?.active_protocol) return;
+            const p = user.active_protocol;
+            const userProfile = { goal: p.meta?.goal || p.goal || 'recomposition', weight: 80, primary_goal: p.meta?.goal || p.goal };
+            const result = regenerateNextWeekProtocol(user.email, userProfile, p, p.apiPlan);
+            if (result.status === 'completed') {
+                dashModule.render();
+                return;
+            }
+            if (result.status === 'advanced') {
+                dashModule.render();
+            }
+        });
+    }
+
     // --- Modals ---
     const trackerLogBtn = document.getElementById('tracker-log-btn');
     if (trackerLogBtn) trackerLogBtn.addEventListener('click', (e) => { e.preventDefault(); toggleModal('modal-checkin', true); });
@@ -2277,13 +2512,22 @@ document.addEventListener('DOMContentLoaded', () => {
                 alert((result.errors || []).join('\n'));
                 return;
             }
-            const adaptation = evaluateProgressFromLatest(user.email, { goal: user.active_protocol?.meta?.goal || 'recomposition', weight: 80 }, user.active_protocol?.apiPlan);
+            const userProfile = { goal: user.active_protocol?.meta?.goal || 'recomposition', weight: 80, limitations: user.active_protocol?.meta?.limitations || 'none' };
+            const recResult = getRecommendationsFromLatest(user.email, userProfile, user.active_protocol?.apiPlan);
             const adaptiveSummaryEl = document.getElementById('adaptive-summary-container');
             const adaptiveContentEl = document.getElementById('adaptive-summary-content');
+            const recCard = document.getElementById('ai-recommendations-content');
             const safeT = window.safeI18nT || langModule.t;
-            if (adaptiveSummaryEl && adaptiveContentEl && adaptation) {
-                adaptiveSummaryEl.classList.remove('hidden');
-                adaptiveContentEl.innerHTML = progressRenderers.renderAdaptiveSummary(adaptation, safeT);
+            if (recResult) {
+                if (adaptiveSummaryEl && adaptiveContentEl) {
+                    adaptiveSummaryEl.classList.remove('hidden');
+                    adaptiveContentEl.innerHTML = progressRenderers.renderAdaptiveSummary(recResult.adaptation, safeT);
+                }
+                if (recCard) {
+                    recCard.innerHTML = progressRenderers.renderRecommendations(recResult.recommendations, safeT);
+                }
+            } else if (recCard) {
+                recCard.innerHTML = '<p class="text-muted" data-safe-i18n="Log progress to see personalized recommendations">Log progress to see personalized recommendations.</p>';
             }
             const progressHistoryEl = document.getElementById('progress-history-list');
             if (progressHistoryEl) {
@@ -2330,7 +2574,22 @@ document.addEventListener('DOMContentLoaded', () => {
     } else {
         app.navigate('landing');
     }
-});
+}
+
+// Run init when DOM is ready (handles ES module load-after-DOMContentLoaded race)
+function runInit() {
+    try {
+        initApp();
+    } catch (err) {
+        console.error('[ASCEND] Startup error:', err);
+        throw err;
+    }
+}
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', runInit);
+} else {
+    runInit();
+}
 
 // ==========================================
 // 8. TESTING: AI GENERATION PROTOCOL
