@@ -1771,7 +1771,18 @@ body.dashboard-active .dashboard-main {
     letter-spacing: 0.08em;
 }
 
-/* Nested accordions inside Nutrition Plan (GUIDELINES, MEAL TIMING, SUPPLEMENTS) */
+/* Phase 3: Nutrition meta row (meals/day, hydration) */
+.nutrition-meta-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    align-items: center;
+}
+@media (max-width: 640px) {
+    .nutrition-meta-row { gap: 0.5rem; }
+}
+
+/* Nested accordions inside Nutrition Plan (GUIDELINES, MEAL PLAN, MEAL TIMING, SUPPLEMENTS) */
 .nutrition-plan-sections {
     display: flex;
     flex-direction: column;

@@ -9,6 +9,8 @@ import { generatePlan, generateRulePlan } from './generatePlan.js';
 import { validatePlan } from './validatePlan.js';
 import { generateFallbackPlan } from './fallbackPlan.js';
 import { savePlanResult } from './savePlanResult.js';
+import { generateNutritionPlan } from './generateNutritionPlan.js';
+import { evaluateProgress, evaluateProgressWithLog } from './adaptiveEngine.js';
 
 /**
  * Main entry: run the full AI engine pipeline on raw form data.
@@ -82,11 +84,8 @@ export async function runEngine(rawInput) {
  * @returns {{ workout_plan: Array, nutrition_plan: Object }}
  */
 export function toDashboardFormat(plan, rawInput = {}) {
-    if (!plan || !plan.weeklyPlan) {
-        return { workout_plan: [], nutrition_plan: {} };
-    }
-
-    const workout_plan = plan.weeklyPlan.map((day) => {
+    const workout_plan = (plan?.weeklyPlan && Array.isArray(plan.weeklyPlan))
+        ? plan.weeklyPlan.map((day) => {
         const exercises = [];
         for (const block of day.mainBlocks || []) {
             for (const ex of block.exercises || []) {
@@ -106,45 +105,55 @@ export function toDashboardFormat(plan, rawInput = {}) {
             warmup: (day.warmup || [])[0]?.name || '5 min light cardio; dynamic stretches for the muscles you\'ll train today.',
             exercises
         };
-    });
+    })
+        : [];
 
+    const np = generateNutritionPlan(rawInput);
     const goal = rawInput.primary_goal || plan.planMeta?.goal || 'recomp';
-    const weight = parseFloat(rawInput.weight) || 80;
-    const activity = rawInput.activity || 'moderate';
-    let tdee = 2000;
-    if (activity === 'highly') tdee = 3000;
-    else if (activity === 'moderate' || activity === 'lightly') tdee = 2500;
-    else if (activity === 'sedentary') tdee = 2000;
-    let calories = goal === 'fat_loss' ? tdee - 500 : (goal === 'muscle_gain' ? tdee + 300 : tdee);
-    const protein = goal === 'fat_loss' ? 180 : 160;
+    const supplementStacks = {
+        fat_loss: [
+            { name: 'Caffeine', purpose: 'Performance and focus; supports fat oxidation.', dose: '3–5 mg/kg 30–45 min pre-workout.' },
+            { name: 'Whey or Plant Protein', purpose: 'Preserve muscle while in deficit.', dose: '1–2 scoops as needed.' },
+            { name: 'Vitamin D3', purpose: 'Immune and metabolic support.', dose: '2,000–4,000 IU daily with fat.' },
+            { name: 'Omega-3 (EPA/DHA)', purpose: 'Recovery and body composition.', dose: '2–3 g EPA+DHA daily.' }
+        ],
+        muscle_gain: [
+            { name: 'Creatine Monohydrate', purpose: 'Strength and lean mass; strong evidence.', dose: '5 g daily, any time.' },
+            { name: 'Whey or Plant Protein', purpose: 'Hit daily protein targets.', dose: '1–2 scoops as needed.' },
+            { name: 'Vitamin D3', purpose: 'Bone health, immunity.', dose: '2,000–4,000 IU daily.' },
+            { name: 'Omega-3 (EPA/DHA)', purpose: 'Recovery and joint health.', dose: '2–3 g EPA+DHA daily.' }
+        ],
+        endurance: [
+            { name: 'Electrolytes', purpose: 'Hydration and performance during long sessions.', dose: 'As needed during training.' },
+            { name: 'Vitamin D3', purpose: 'Health and immunity.', dose: '2,000–4,000 IU daily.' },
+            { name: 'Omega-3 (EPA/DHA)', purpose: 'Recovery.', dose: '2–3 g EPA+DHA daily.' },
+            { name: 'Protein', purpose: 'Recovery and muscle maintenance.', dose: 'As needed.' }
+        ]
+    };
+    const supplement_stack = supplementStacks[goal] || supplementStacks.muscle_gain;
 
     const nutrition_plan = {
-        daily_calories: `${calories} kcal`,
+        calories: np.calories,
+        daily_calories: `${np.calories} kcal`,
         macros: {
-            protein: `${protein}g`,
-            carbs: `${Math.round((calories * 0.4) / 4)}g`,
-            fats: `${Math.round((calories * 0.25) / 9)}g`
+            protein: `${np.macros.protein}g`,
+            carbs: `${np.macros.carbs}g`,
+            fats: `${np.macros.fats}g`
         },
-        guidelines: [
-            'Prioritize protein at every meal (aim for 25-40g per meal).',
-            'Eat whole foods 80% of the time; allow flexibility for the rest.',
-            'Stay hydrated: 2.5-3 L water daily, more on training days.',
-            'Time carbs around training for energy and recovery.',
-            'Include fiber-rich vegetables with lunch and dinner.'
-        ],
+        mealsPerDay: np.mealsPerDay,
+        hydrationLiters: np.hydrationLiters,
+        mealPlan: np.mealPlan,
+        notes: np.notes,
+        warnings: np.warnings,
+        guidelines: np.notes,
         meal_timing: {
             pre_workout: '60–90 min before: 30–40g carbs + 15–20g protein (e.g. oats + banana + whey, or rice cakes + Greek yogurt). Caffeine optional 30–45 min pre (3–5 mg/kg).',
             post_workout: 'Within 1–2 hours: 40–60g carbs + 25–40g protein. Example: chicken + rice + vegetables, or whey + banana + toast. Prioritize whole foods when possible.'
         },
-        supplement_stack: [
-            { name: 'Creatine Monohydrate', purpose: 'Strength and lean mass; evidence-based for all goals.', dose: '5 g daily (any time).' },
-            { name: 'Vitamin D3', purpose: 'Bone health, immunity, mood; especially if low sun exposure.', dose: '2,000–4,000 IU with a fat-containing meal.' },
-            { name: 'Omega-3 (EPA/DHA)', purpose: 'Recovery, joint health, body composition.', dose: '2–3 g EPA+DHA combined daily.' },
-            { name: 'Whey or Plant Protein', purpose: 'Convenient way to hit protein targets.', dose: '1–2 scoops as needed to meet daily protein.' }
-        ]
+        supplement_stack
     };
 
     return { workout_plan, nutrition_plan };
 }
 
-export { normalizeInput, classifyUser, generatePlan, generateRulePlan, validatePlan, generateFallbackPlan, savePlanResult };
+export { normalizeInput, classifyUser, generatePlan, generateRulePlan, validatePlan, generateFallbackPlan, savePlanResult, generateNutritionPlan, evaluateProgress, evaluateProgressWithLog };

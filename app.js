@@ -143,6 +143,10 @@ const langModule = {
             "Pending Assessment": "Pending your assessment.",
             "Log Progress": "Log Progress",
             "Nutrition Plan": "Nutrition Plan",
+            "MEAL PLAN": "MEAL PLAN",
+            "meals/day": "meals/day",
+            "water": "water",
+            "WARNINGS": "WARNINGS",
             "Recovery Plan": "Recovery Plan",
             "Poor": "Poor",
             "Average": "Average",
@@ -426,6 +430,10 @@ const langModule = {
             "Pending Assessment": "Очаква вашата настройка.",
             "Log Progress": "Въведи прогрес",
             "Nutrition Plan": "Хранителен план",
+            "MEAL PLAN": "ПЛАН ЗА ХРАНЕНЕ",
+            "meals/day": "храни/ден",
+            "water": "вода",
+            "WARNINGS": "ПРЕДУПРЕЖДЕНИЯ",
             "Recovery Plan": "План за възстановяване",
             "Poor": "Слабо",
             "Average": "Средно",
@@ -1571,6 +1579,50 @@ const accordionModule = {
 };
 
 // ==========================================
+// 5.6 NUTRITION RENDERERS (Phase 3)
+// ==========================================
+const nutritionRenderers = {
+    renderNutritionHeader: (plan, safeT) => {
+        if (!plan) return '';
+        const meals = plan.mealsPerDay ?? 4;
+        const hydration = plan.hydrationLiters ?? 2.5;
+        const mealsLbl = safeT('meals/day') || 'meals/day';
+        const waterLbl = safeT('water') || 'water';
+        return `<div class="nutrition-meta-row flex flex-wrap gap-4 mt-3 mb-3 text-[0.7rem] font-mono text-secondary">
+            <span><i class="fa-solid fa-utensils text-primary mr-1"></i> ${meals} ${mealsLbl}</span>
+            <span><i class="fa-solid fa-droplet text-primary mr-1"></i> ${hydration} L ${waterLbl}</span>
+        </div>`;
+    },
+    renderMacros: (plan, safeT, fallback) => {
+        if (!plan) return fallback || '';
+        let calories = plan.daily_calories || (plan.calories ? `${plan.calories} kcal` : '—');
+        if (typeof calories === 'number') calories = `${calories} kcal`;
+        const pro = plan.macros?.protein ?? fallback?.pro ?? '—';
+        const carb = plan.macros?.carbs ?? fallback?.carbs ?? '—';
+        const fat = plan.macros?.fats ?? fallback?.fats ?? '—';
+        return `<div class="macro-box"><div class="val text-primary">${calories}</div><div class="lbl">KCAL</div></div>
+            <div class="macro-box"><div class="val">${pro}</div><div class="lbl">PRO</div></div>
+            <div class="macro-box"><div class="val">${carb}</div><div class="lbl">CARB</div></div>
+            <div class="macro-box"><div class="val">${fat}</div><div class="lbl">FAT</div></div>`;
+    },
+    renderMealPlan: (plan, safeT) => {
+        if (!plan?.mealPlan || !Array.isArray(plan.mealPlan) || plan.mealPlan.length === 0) return '';
+        const items = plan.mealPlan.map((m) => {
+            const name = m.mealName || 'Meal';
+            const purpose = m.purpose || '';
+            const foods = typeof m.exampleFoods === 'string' ? m.exampleFoods : (Array.isArray(m.exampleFoods) ? m.exampleFoods.join('; ') : '');
+            return `<li class="mb-2"><strong class="text-primary">${safeT(name)}</strong> — ${safeT(purpose)} <span class="text-muted block mt-1 text-[0.65rem]">${safeT(foods)}</span></li>`;
+        }).join('');
+        return `<ul class="protocol-list font-mono text-sm">${items}</ul>`;
+    },
+    renderNutritionWarnings: (plan, safeT) => {
+        if (!plan?.warnings || !Array.isArray(plan.warnings) || plan.warnings.length === 0) return '';
+        const items = plan.warnings.map((w) => `<li><i class="fa-solid fa-triangle-exclamation text-warning"></i> ${safeT(w)}</li>`).join('');
+        return `<ul class="protocol-list font-mono text-sm text-warning">${items}</ul>`;
+    }
+};
+
+// ==========================================
 // 6. DASHBOARD & UI ORCHESTRATION
 // ==========================================
 const dashModule = {
@@ -1660,89 +1712,54 @@ const dashModule = {
                     document.getElementById('res-recovery-plan').innerHTML = p.recovery.map(r => `<li><i class="fa-solid fa-check text-primary"></i> ${safeT(r)}</li>`).join('');
                 }
 
-                // Render AI Nutrition Plan (dynamic rich HTML — no static "Calculating...")
+                // Render AI Nutrition Plan (Phase 3: deterministic generator + structured UI)
                 if (p.aiResult.nutrition_plan) {
                     const aiN = p.aiResult.nutrition_plan;
-                    let calories = (aiN.daily_calories && !String(aiN.daily_calories).toLowerCase().includes('calculating') && !String(aiN.daily_calories).toLowerCase().includes('tbd'))
-                        ? aiN.daily_calories
-                        : (p.nutrition ? `${p.nutrition.cals} kcal` : '—');
-                    if (typeof calories === 'number' || (typeof calories === 'string' && calories.trim() && !/kcal$/i.test(calories))) {
-                        calories = String(calories).trim() + ' kcal';
-                    }
-                    const pro = (aiN.macros && aiN.macros.protein && !String(aiN.macros.protein).toLowerCase().includes('tbd')) ? aiN.macros.protein : (p.nutrition ? `${p.nutrition.pro}g` : '—');
-                    const carb = (aiN.macros && aiN.macros.carbs && !String(aiN.macros.carbs).toLowerCase().includes('tbd')) ? aiN.macros.carbs : (p.nutrition ? `${p.nutrition.carbs}g` : '—');
-                    const fat = (aiN.macros && aiN.macros.fats && !String(aiN.macros.fats).toLowerCase().includes('tbd')) ? aiN.macros.fats : (p.nutrition ? `${p.nutrition.fats}g` : '—');
-                    document.getElementById('res-macros').innerHTML = `
-                        <div class="macro-box"><div class="val text-primary">${calories}</div><div class="lbl">KCAL</div></div>
-                        <div class="macro-box"><div class="val">${pro}</div><div class="lbl">PRO</div></div>
-                        <div class="macro-box"><div class="val">${carb}</div><div class="lbl">CARB</div></div>
-                        <div class="macro-box"><div class="val">${fat}</div><div class="lbl">FAT</div></div>
-                    `;
-                    const guidelines = (aiN.guidelines && Array.isArray(aiN.guidelines) && aiN.guidelines.length) ? aiN.guidelines : [];
+                    const macrosHtml = nutritionRenderers.renderMacros(aiN, safeT, p.nutrition ? { pro: `${p.nutrition.pro}g`, carbs: `${p.nutrition.carbs}g`, fats: `${p.nutrition.fats}g` } : null);
+                    document.getElementById('res-macros').innerHTML = macrosHtml;
+
+                    const guidelines = (aiN.guidelines && Array.isArray(aiN.guidelines) && aiN.guidelines.length) ? aiN.guidelines : (aiN.notes || []);
                     const guidelinesContent = guidelines.length
                         ? `<ul class="protocol-list font-mono text-sm">${guidelines.map(g => `<li><i class="fa-solid fa-check text-primary"></i> ${safeT(g)}</li>`).join('')}</ul>`
                         : `<p class="text-secondary text-sm font-mono">${safeT("Focus on whole foods and hit your macro targets above.")}</p>`;
 
-                    // Meal Timing (pre/post workout) — always show; use AI data or evidence-based fallback
+                    const mealPlanContent = nutritionRenderers.renderMealPlan(aiN, safeT) || `<p class="text-secondary text-sm font-mono">${safeT("Eat 4–5 balanced meals daily with protein at each.")}</p>`;
+
                     const mealTiming = aiN.meal_timing;
-                    const preText = mealTiming && mealTiming.pre_workout ? mealTiming.pre_workout : (langModule.currentLanguage === 'bg' ? '60–90 мин преди: въглехидрати + протеин (напр. овес, банан, протеин). Кафеин по избор 30–45 мин преди.' : '60–90 min before: carbs + protein (e.g. oats, banana, whey). Caffeine optional 30–45 min pre.');
-                    const postText = mealTiming && mealTiming.post_workout ? mealTiming.post_workout : (langModule.currentLanguage === 'bg' ? 'В рамките на 1–2 часа: 40–60g въглехидрати + 25–40g протеин. Пример: пиле + ориз + зеленчуци или протеин + банан.' : 'Within 1–2 hours: 40–60g carbs + 25–40g protein. Example: chicken + rice + vegetables, or whey + banana + toast.');
+                    const preText = mealTiming?.pre_workout || (langModule.currentLanguage === 'bg' ? '60–90 мин преди: въглехидрати + протеин (напр. овес, банан, протеин). Кафеин по избор 30–45 мин преди.' : '60–90 min before: carbs + protein (e.g. oats, banana, whey). Caffeine optional 30–45 min pre.');
+                    const postText = mealTiming?.post_workout || (langModule.currentLanguage === 'bg' ? 'В рамките на 1–2 часа: 40–60g въглехидрати + 25–40g протеин. Пример: пиле + ориз + зеленчуци или протеин + банан.' : 'Within 1–2 hours: 40–60g carbs + 25–40g protein. Example: chicken + rice + vegetables, or whey + banana + toast.');
                     const mealTimingContent = `<ul class="protocol-list font-mono text-sm"><li><i class="fa-solid fa-clock text-primary"></i> <strong class="text-secondary">Pre-workout:</strong> ${safeT(preText)}</li><li><i class="fa-solid fa-clock text-primary"></i> <strong class="text-secondary">Post-workout:</strong> ${safeT(postText)}</li></ul>`;
 
-                    // Recommended Supplement Stack — always show; use AI data or goal-based evidence-based fallback
                     let supplementStack = aiN.supplement_stack && Array.isArray(aiN.supplement_stack) ? aiN.supplement_stack : [];
                     if (supplementStack.length === 0) {
                         const goal = (p.meta && p.meta.goal) ? p.meta.goal : 'recomp';
-                        const stacks = {
-                            fat_loss: [
-                                { name: 'Caffeine', purpose: 'Performance and focus; supports fat oxidation.', dose: '3–5 mg/kg 30–45 min pre-workout.' },
-                                { name: 'Whey or Plant Protein', purpose: 'Preserve muscle while in deficit.', dose: '1–2 scoops as needed.' },
-                                { name: 'Vitamin D3', purpose: 'Immune and metabolic support.', dose: '2,000–4,000 IU daily with fat.' },
-                                { name: 'Omega-3 (EPA/DHA)', purpose: 'Recovery and body composition.', dose: '2–3 g EPA+DHA daily.' }
-                            ],
-                            muscle_gain: [
-                                { name: 'Creatine Monohydrate', purpose: 'Strength and lean mass; strong evidence.', dose: '5 g daily, any time.' },
-                                { name: 'Whey or Plant Protein', purpose: 'Hit daily protein targets.', dose: '1–2 scoops as needed.' },
-                                { name: 'Vitamin D3', purpose: 'Bone health, immunity.', dose: '2,000–4,000 IU daily.' },
-                                { name: 'Omega-3 (EPA/DHA)', purpose: 'Recovery and joint health.', dose: '2–3 g EPA+DHA daily.' }
-                            ],
-                            recomp: [
-                                { name: 'Creatine Monohydrate', purpose: 'Strength and lean mass.', dose: '5 g daily.' },
-                                { name: 'Vitamin D3', purpose: 'Health and performance.', dose: '2,000–4,000 IU daily.' },
-                                { name: 'Omega-3 (EPA/DHA)', purpose: 'Recovery and body composition.', dose: '2–3 g EPA+DHA daily.' },
-                                { name: 'Whey or Plant Protein', purpose: 'Convenient protein to hit targets.', dose: '1–2 scoops as needed.' }
-                            ],
-                            military: [
-                                { name: 'Vitamin D3', purpose: 'Healthspan and immunity.', dose: '2,000–4,000 IU daily.' },
-                                { name: 'Omega-3 (EPA/DHA)', purpose: 'Recovery and longevity.', dose: '2–3 g EPA+DHA daily.' },
-                                { name: 'Creatine Monohydrate', purpose: 'Strength and cognitive support.', dose: '5 g daily.' },
-                                { name: 'Protein (optional)', purpose: 'Convenience for daily protein.', dose: 'As needed.' }
-                            ]
-                        };
+                        const stacks = { fat_loss: [{ name: 'Caffeine', purpose: 'Performance and focus.', dose: '3–5 mg/kg pre-workout.' }, { name: 'Whey or Plant Protein', purpose: 'Preserve muscle.', dose: '1–2 scoops.' }, { name: 'Vitamin D3', purpose: 'Immune support.', dose: '2,000–4,000 IU daily.' }, { name: 'Omega-3', purpose: 'Recovery.', dose: '2–3 g daily.' }], muscle_gain: [{ name: 'Creatine Monohydrate', purpose: 'Strength and lean mass.', dose: '5 g daily.' }, { name: 'Whey or Plant Protein', purpose: 'Hit protein targets.', dose: '1–2 scoops.' }, { name: 'Vitamin D3', purpose: 'Bone health.', dose: '2,000–4,000 IU daily.' }, { name: 'Omega-3', purpose: 'Joint health.', dose: '2–3 g daily.' }], recomp: [{ name: 'Creatine Monohydrate', purpose: 'Strength.', dose: '5 g daily.' }, { name: 'Vitamin D3', purpose: 'Health.', dose: '2,000–4,000 IU daily.' }, { name: 'Omega-3', purpose: 'Recovery.', dose: '2–3 g daily.' }, { name: 'Whey or Plant Protein', purpose: 'Convenience.', dose: '1–2 scoops.' }], military: [{ name: 'Vitamin D3', purpose: 'Immunity.', dose: '2,000–4,000 IU daily.' }, { name: 'Omega-3', purpose: 'Recovery.', dose: '2–3 g daily.' }, { name: 'Creatine', purpose: 'Strength.', dose: '5 g daily.' }, { name: 'Protein', purpose: 'Convenience.', dose: 'As needed.' }] };
                         supplementStack = stacks[goal] || stacks.recomp;
                     }
                     let supplementContent = '<ul class="protocol-list font-mono text-sm">';
-                    supplementStack.forEach(s => {
-                        const name = s.name || '';
-                        const purpose = s.purpose || '';
-                        const dose = s.dose || '';
-                        supplementContent += `<li><i class="fa-solid fa-capsules text-primary"></i> <strong class="text-primary">${safeT(name)}</strong> — ${safeT(purpose)} <span class="text-muted">(${safeT(dose)})</span></li>`;
-                    });
+                    supplementStack.forEach(s => { supplementContent += `<li><i class="fa-solid fa-capsules text-primary"></i> <strong class="text-primary">${safeT(s.name || '')}</strong> — ${safeT(s.purpose || '')} <span class="text-muted">(${safeT(s.dose || '')})</span></li>`; });
                     supplementContent += '</ul>';
 
-                    // Nested accordions: GUIDELINES, MEAL TIMING, RECOMMENDED SUPPLEMENT STACK (closed by default)
-                    const nestedIds = ['accordion-nutrition-guidelines', 'accordion-nutrition-meal-timing', 'accordion-nutrition-supplements'];
-                    const nestedTitles = [safeT('GUIDELINES'), safeT('MEAL TIMING'), safeT('RECOMMENDED SUPPLEMENT STACK')];
-                    const nestedBodies = [guidelinesContent, mealTimingContent, supplementContent];
-                    let nutritionHtml = '';
-                    nestedIds.forEach((nid, i) => {
-                        nutritionHtml += `
-                        <div class="nested-accordion accordion-card is-closed" id="${nid}">
-                            <div class="nested-accordion-trigger accordion-trigger" data-accordion-id="${nid}" tabindex="0" role="button" aria-expanded="false" aria-controls="${nid}-body">
-                                <span class="text-[0.65rem] uppercase tracking-widest text-primary font-bold">${nestedTitles[i]}</span>
+                    const warningsContent = nutritionRenderers.renderNutritionWarnings(aiN, safeT);
+
+                    const headerHtml = nutritionRenderers.renderNutritionHeader(aiN, safeT);
+
+                    const nestedItems = [
+                        { id: 'accordion-nutrition-guidelines', title: safeT('GUIDELINES'), body: guidelinesContent },
+                        { id: 'accordion-nutrition-meals', title: safeT('MEAL PLAN'), body: mealPlanContent },
+                        { id: 'accordion-nutrition-meal-timing', title: safeT('MEAL TIMING'), body: mealTimingContent },
+                        { id: 'accordion-nutrition-supplements', title: safeT('RECOMMENDED SUPPLEMENT STACK'), body: supplementContent }
+                    ];
+                    if (warningsContent) nestedItems.push({ id: 'accordion-nutrition-warnings', title: safeT('WARNINGS'), body: warningsContent });
+
+                    let nutritionHtml = headerHtml;
+                    nestedItems.forEach(({ id, title, body }) => {
+                        nutritionHtml += `<div class="nested-accordion accordion-card is-closed" id="${id}">
+                            <div class="nested-accordion-trigger accordion-trigger" data-accordion-id="${id}" tabindex="0" role="button" aria-expanded="false" aria-controls="${id}-body">
+                                <span class="text-[0.65rem] uppercase tracking-widest text-primary font-bold">${title}</span>
                                 <span class="accordion-toggle-icon" aria-hidden="true"><i class="accordion-chevron fa-solid fa-chevron-down" aria-hidden="true"></i></span>
                             </div>
-                            <div class="accordion-body nested-accordion-body" id="${nid}-body">${nestedBodies[i]}</div>
+                            <div class="accordion-body nested-accordion-body" id="${id}-body">${body}</div>
                         </div>`;
                     });
                     document.getElementById('res-nutrition-plan').innerHTML = nutritionHtml;
