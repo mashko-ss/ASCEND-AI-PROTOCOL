@@ -1,6 +1,7 @@
 /**
  * ASCEND AI PROTOCOL - Nutrition Plan Generator
  * Phase 3: Deterministic nutrition generation. No OpenAI required.
+ * Phase 14A: Strict diet constraints, validation, diet-appropriate meal pools.
  */
 
 import {
@@ -12,6 +13,8 @@ import {
     getMealsPerDay,
     getHydrationLiters
 } from './nutritionRules.js';
+import { parseNutritionConstraints, getMealPoolForSlot, validateMealPlan } from './nutritionConstraintEngine.js';
+import { replaceInvalidMeals } from './mealRotationEngine.js';
 
 /** Map raw goal strings to internal keys */
 const GOAL_MAP = {
@@ -23,32 +26,13 @@ const GOAL_MAP = {
     strength: 'strength'
 };
 
-/** Example meal templates by purpose */
-const MEAL_TEMPLATES = {
-    breakfast: [
-        { purpose: 'Energy and protein to start the day', exampleFoods: ['Oats, eggs, Greek yogurt, berries, whole-grain toast'] },
-        { purpose: 'Sustained energy and muscle support', exampleFoods: ['Oatmeal with nuts, scrambled eggs, banana'] }
-    ],
-    pre_workout: [
-        { purpose: 'Fuel for training', exampleFoods: ['Banana, rice cakes, whey shake, light carbs'] },
-        { purpose: 'Pre-training energy', exampleFoods: ['Oats + banana, toast + honey, light meal 60–90 min before'] }
-    ],
-    post_workout: [
-        { purpose: 'Recovery and muscle repair', exampleFoods: ['Chicken + rice + vegetables, whey + banana, salmon + sweet potato'] },
-        { purpose: 'Protein and carbs for recovery', exampleFoods: ['Grilled chicken, rice, broccoli; or protein shake + oats'] }
-    ],
-    lunch: [
-        { purpose: 'Balanced midday nutrition', exampleFoods: ['Lean meat, quinoa, salad, olive oil'] },
-        { purpose: 'Protein and fiber', exampleFoods: ['Chicken salad, turkey wrap, lentils, vegetables'] }
-    ],
-    dinner: [
-        { purpose: 'Evening satiety and recovery', exampleFoods: ['Fish, vegetables, rice or potato'] },
-        { purpose: 'Complete protein and veggies', exampleFoods: ['Salmon, broccoli, brown rice; or lean beef, greens'] }
-    ],
-    snack: [
-        { purpose: 'Between-meal protein and satiety', exampleFoods: ['Greek yogurt, nuts, protein bar, fruit'] },
-        { purpose: 'Bridge to next meal', exampleFoods: ['Cottage cheese, almonds, apple with peanut butter'] }
-    ]
+const MEAL_NAMES = {
+    breakfast: 'Breakfast',
+    pre_workout: 'Pre-Workout',
+    post_workout: 'Post-Workout',
+    lunch: 'Lunch',
+    dinner: 'Dinner',
+    snack: 'Snack'
 };
 
 /**
@@ -68,17 +52,18 @@ function normalizeNutritionInput(raw) {
     const trainingDays = Math.max(2, Math.min(6, parseInt(raw.days, 10) || parseInt(raw.trainingDaysPerWeek, 10) || 3));
     const experience = raw.experience || raw.experienceLevel || 'beginner';
     const diet = raw.diet || 'standard';
-    return { age, weight, height, sex, goal, activity, trainingDays, experience, diet };
+    return { age, weight, height, sex, goal, activity, trainingDays, experience, diet, ...raw };
 }
 
 /**
- * Build meal plan array for given meals per day and goal.
+ * Build meal plan using diet-appropriate pools. Phase 14A: strict constraints.
  * @param {number} mealsPerDay
  * @param {string} goal
  * @param {number} trainingDays
+ * @param {Object} constraints - From parseNutritionConstraints
  * @returns {Array<{ mealName: string, purpose: string, exampleFoods: string }>}
  */
-function buildMealPlan(mealsPerDay, goal, trainingDays) {
+function buildMealPlan(mealsPerDay, goal, trainingDays, constraints) {
     const meals = [];
     const templates = {
         3: ['breakfast', 'lunch', 'dinner'],
@@ -87,21 +72,27 @@ function buildMealPlan(mealsPerDay, goal, trainingDays) {
         6: ['breakfast', 'snack', 'pre_workout', 'lunch', 'post_workout', 'dinner']
     };
     const slots = templates[mealsPerDay] || templates[4];
-    const mealNames = {
-        breakfast: 'Breakfast',
-        pre_workout: 'Pre-Workout',
-        post_workout: 'Post-Workout',
-        lunch: 'Lunch',
-        dinner: 'Dinner',
-        snack: 'Snack'
-    };
-    for (const slot of slots) {
-        const arr = MEAL_TEMPLATES[slot] || MEAL_TEMPLATES.snack;
-        const t = arr[0] || { purpose: 'Balanced nutrition', exampleFoods: ['Whole foods, protein, vegetables'] };
+    const dietType = constraints?.dietType || 'omnivore';
+    const exclusions = constraints?.exclusions || [];
+
+    for (let i = 0; i < slots.length; i++) {
+        const slot = slots[i];
+        const pool = getMealPoolForSlot(dietType, slot, exclusions);
+        const idx = pool.length > 0 ? i % pool.length : 0;
+        const t = pool[idx] || {
+            mealName: MEAL_NAMES[slot] || slot,
+            purpose: 'Balanced nutrition',
+            exampleFoods: 'Whole foods, protein, vegetables',
+            estimatedCalories: 400,
+            estimatedProtein: 25
+        };
+        const exampleFoods = Array.isArray(t.exampleFoods) ? t.exampleFoods.join('; ') : String(t.exampleFoods || '');
         meals.push({
-            mealName: mealNames[slot] || slot,
+            mealName: t.mealName || MEAL_NAMES[slot] || slot,
             purpose: t.purpose,
-            exampleFoods: Array.isArray(t.exampleFoods) ? t.exampleFoods.join('; ') : String(t.exampleFoods || '')
+            exampleFoods,
+            estimatedCalories: t.estimatedCalories,
+            estimatedProtein: t.estimatedProtein
         });
     }
     return meals;
@@ -148,21 +139,35 @@ function buildNotesAndWarnings(input, calories) {
 
 /**
  * Generate a structured nutrition plan.
- * @param {Object} rawInput - Raw form/assessment data (age, sex, height, weight, goal, activity, days, etc.)
+ * Phase 14A: Strict diet constraints, post-generation validation, auto-swap invalid meals.
+ * @param {Object} rawInput - Raw form/assessment data (age, sex, height, weight, goal, activity, days, diet, allergies, etc.)
  * @returns {Object} Nutrition plan
  */
 export function generateNutritionPlan(rawInput) {
     const input = normalizeNutritionInput(rawInput);
     const { age, weight, height, sex, goal, activity, trainingDays } = input;
 
+    const constraints = parseNutritionConstraints(rawInput);
+
     const bmr = calculateBMR(weight, height, age, sex);
     const tdee = estimateTDEE(bmr, activity);
     const calories = getTargetCalories(tdee, goal);
     const proteinGrams = getProteinGrams(weight, goal);
     const macros = getMacros(calories, proteinGrams, goal);
-    const mealsPerDay = getMealsPerDay(goal, trainingDays);
+    let mealsPerDay = getMealsPerDay(goal, trainingDays);
+    if (constraints.mealCountPreference != null) {
+        const pref = parseInt(constraints.mealCountPreference, 10);
+        if (pref >= 3 && pref <= 6) mealsPerDay = pref;
+    }
     const hydrationLiters = getHydrationLiters(weight, trainingDays);
-    const mealPlan = buildMealPlan(mealsPerDay, goal, trainingDays);
+    let mealPlan = buildMealPlan(mealsPerDay, goal, trainingDays, constraints);
+
+    const validation = validateMealPlan(mealPlan, constraints);
+    if (!validation.valid) {
+        const { mealPlan: fixed } = replaceInvalidMeals(mealPlan, constraints);
+        mealPlan = fixed;
+    }
+
     const { notes, warnings } = buildNotesAndWarnings(input, calories);
 
     return {
