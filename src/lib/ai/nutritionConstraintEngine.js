@@ -172,7 +172,9 @@ const DIET_MEAL_POOLS = {
         breakfast: [
             { mealName: 'Breakfast', purpose: 'Energy and protein to start the day', exampleFoods: 'Oats, eggs, Greek yogurt, berries, whole-grain toast', estimatedCalories: 450, estimatedProtein: 25 },
             { mealName: 'Breakfast', purpose: 'Sustained energy', exampleFoods: 'Oatmeal with nuts, scrambled eggs, banana', estimatedCalories: 420, estimatedProtein: 22 },
-            { mealName: 'Breakfast', purpose: 'High-protein start', exampleFoods: 'Eggs, avocado, whole-grain bread, fruit', estimatedCalories: 480, estimatedProtein: 28 }
+            { mealName: 'Breakfast', purpose: 'High-protein start', exampleFoods: 'Eggs, avocado, whole-grain bread, fruit', estimatedCalories: 480, estimatedProtein: 28 },
+            { mealName: 'Breakfast', purpose: 'Energy without eggs', exampleFoods: 'Oatmeal with berries, nuts, Greek yogurt, whole-grain toast', estimatedCalories: 430, estimatedProtein: 20 },
+            { mealName: 'Breakfast', purpose: 'Sustained energy, egg-free', exampleFoods: 'Oats, banana, peanut butter, plant milk smoothie', estimatedCalories: 400, estimatedProtein: 18 }
         ],
         lunch: [
             { mealName: 'Lunch', purpose: 'Balanced midday nutrition', exampleFoods: 'Lean chicken, quinoa, salad, olive oil', estimatedCalories: 520, estimatedProtein: 35 },

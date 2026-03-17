@@ -96,6 +96,15 @@ export function createProtocol(userProfile, trainingPlan, nutritionPlan, fullPro
 }
 
 /**
+ * Get current user id from db (for client-side calls).
+ * @returns {string|null}
+ */
+export function getCurrentUserId() {
+    const state = getDb();
+    return state?.currentUser ?? null;
+}
+
+/**
  * Get active protocol for user.
  * @param {string} userId - User email
  * @returns {Object|null}

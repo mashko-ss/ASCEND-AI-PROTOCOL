@@ -1,9 +1,17 @@
 /**
  * ASCEND AI PROTOCOL - Supplement Recommendation Engine
  * Phase 14A: Individual supplement recommendations based on user profile.
+ * Phase 15: Supplement adaptation memory for individualized recommendations.
  * No diagnosis, no medical claims, no drug-like language, no extreme stacks.
- * Output: essentials, optional, avoid_or_caution, reasoning.
+ * Output: essentials, optional, avoid_or_caution, reasoning, supplementMemory?, adaptationNotes?.
  */
+
+import {
+    createSupplementMemory,
+    updateSupplementMemory,
+    getAdaptedSupplementRecommendations,
+    shouldAvoidSupplement
+} from './supplementAdaptationMemory.js';
 
 /** Supplement definitions: name, purpose, dose, dietCompatible, caffeineSensitive, etc. */
 const SUPPLEMENT_DEFINITIONS = {
@@ -110,13 +118,15 @@ function parseSupplementInputs(raw) {
 
 /**
  * Generate individualized supplement recommendations.
+ * Phase 15: Accepts optional supplementMemory for adaptation.
  * @param {Object} rawInput - User profile (goal, diet, training, recovery, sleep, etc.)
- * @returns {{ essentials: Array, optional: Array, avoid_or_caution: Array, reasoning: string[] }}
+ * @param {Object} [supplementMemory] - Optional adaptation memory (mutated and returned)
+ * @returns {{ essentials: Array, optional: Array, avoid_or_caution: Array, reasoning: string[], supplementMemory?: Object, adaptationNotes?: string[] }}
  */
-export function generateSupplementRecommendations(rawInput) {
+export function generateSupplementRecommendations(rawInput, supplementMemory = null) {
     const inputs = parseSupplementInputs(rawInput);
-    const essentials = [];
-    const optional = [];
+    let essentials = [];
+    let optional = [];
     const avoid_or_caution = [];
     const reasoning = [];
 
@@ -130,17 +140,19 @@ export function generateSupplementRecommendations(rawInput) {
     const addEssential = (key, overrides = {}) => {
         const def = SUPPLEMENT_DEFINITIONS[key];
         if (!def) return;
-        let item = { name: def.name, purpose: def.purpose, dose: def.dose };
+        let item = { key, name: def.name, purpose: def.purpose, dose: def.dose };
         if (dietType === 'vegan' && def.veganAlternative) {
             item.veganAlternative = def.veganAlternative;
         }
+        item.categories = def.categories || [];
         essentials.push({ ...item, ...overrides });
     };
     const addOptional = (key, overrides = {}) => {
         const def = SUPPLEMENT_DEFINITIONS[key];
         if (!def) return;
-        let item = { name: def.name, purpose: def.purpose, dose: def.dose };
+        let item = { key, name: def.name, purpose: def.purpose, dose: def.dose };
         if (dietType === 'vegan' && def.veganAlternative) item.veganAlternative = def.veganAlternative;
+        item.categories = def.categories || [];
         optional.push({ ...item, ...overrides });
     };
     const addCaution = (text) => {
@@ -194,12 +206,38 @@ export function generateSupplementRecommendations(rawInput) {
     addCaution('Iron: Only supplement if deficient. Get levels checked first.');
     addCaution('These are general support options, not medical advice. Consult a healthcare provider for personalized guidance.');
 
-    return {
+    let adaptationNotes = [];
+    const memory = supplementMemory != null ? supplementMemory : null;
+
+    if (memory) {
+        const constraints = {
+            dietType,
+            avoidStimulants: memory.preferenceSignals?.avoidStimulants || caffeineTolerance === 'low' || caffeineTolerance === 'sensitive',
+            maxOptional: memory.preferenceSignals?.lowPillBurden ? 3 : (memory.preferenceSignals?.essentialsOnly ? 1 : 10)
+        };
+        const adapted = getAdaptedSupplementRecommendations(
+            { essentials, optional },
+            memory,
+            constraints,
+            inputs
+        );
+        essentials = adapted.essentials;
+        optional = adapted.optional;
+        adaptationNotes = adapted.adaptationNotes || [];
+        updateSupplementMemory(memory, { essentials, optional });
+    }
+
+    const output = {
         essentials,
         optional,
         avoid_or_caution,
         reasoning
     };
+    if (memory) {
+        output.supplementMemory = memory;
+        output.adaptationNotes = adaptationNotes;
+    }
+    return output;
 }
 
 /**
@@ -236,3 +274,11 @@ export function validateSupplementOutput(output, constraints = {}) {
     const valid = adjusted.essentials.length > 0;
     return { valid, adjusted };
 }
+
+/** Re-export supplement adaptation memory for callers */
+export {
+    createSupplementMemory,
+    updateSupplementMemory,
+    applySupplementFeedback,
+    parseFeedbackText
+} from './supplementAdaptationMemory.js';

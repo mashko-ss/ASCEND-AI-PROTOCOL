@@ -2,6 +2,7 @@
  * ASCEND AI PROTOCOL - Nutrition Plan Generator
  * Phase 3: Deterministic nutrition generation. No OpenAI required.
  * Phase 14A: Strict diet constraints, validation, diet-appropriate meal pools.
+ * Phase 14C: Nutrition adaptation memory integration.
  */
 
 import {
@@ -15,6 +16,7 @@ import {
 } from './nutritionRules.js';
 import { parseNutritionConstraints, getMealPoolForSlot, validateMealPlan } from './nutritionConstraintEngine.js';
 import { replaceInvalidMeals } from './mealRotationEngine.js';
+import { createEmptyMemory, mealKey, pickBestMealFromPool, updateMemoryAfterPlan } from './nutritionAdaptationMemory.js';
 
 /** Map raw goal strings to internal keys */
 const GOAL_MAP = {
@@ -57,13 +59,15 @@ function normalizeNutritionInput(raw) {
 
 /**
  * Build meal plan using diet-appropriate pools. Phase 14A: strict constraints.
+ * Phase 14C: Memory-aware ranking for variety and reduced repetition.
  * @param {number} mealsPerDay
  * @param {string} goal
  * @param {number} trainingDays
  * @param {Object} constraints - From parseNutritionConstraints
+ * @param {Object} [nutritionMemory] - Optional adaptation memory
  * @returns {Array<{ mealName: string, purpose: string, exampleFoods: string }>}
  */
-function buildMealPlan(mealsPerDay, goal, trainingDays, constraints) {
+function buildMealPlan(mealsPerDay, goal, trainingDays, constraints, nutritionMemory) {
     const meals = [];
     const templates = {
         3: ['breakfast', 'lunch', 'dinner'],
@@ -74,12 +78,19 @@ function buildMealPlan(mealsPerDay, goal, trainingDays, constraints) {
     const slots = templates[mealsPerDay] || templates[4];
     const dietType = constraints?.dietType || 'omnivore';
     const exclusions = constraints?.exclusions || [];
+    const memory = nutritionMemory || createEmptyMemory();
 
     for (let i = 0; i < slots.length; i++) {
         const slot = slots[i];
         const pool = getMealPoolForSlot(dietType, slot, exclusions);
-        const idx = pool.length > 0 ? i % pool.length : 0;
-        const t = pool[idx] || {
+        const selectedKeys = meals.map(m => mealKey(m));
+        const ctxMemory = { ...memory, recentMeals: [...memory.recentMeals, ...selectedKeys] };
+        const t = pickBestMealFromPool(pool, {
+            currentMeal: null,
+            slot,
+            constraints,
+            memory: ctxMemory
+        }) || (pool.length > 0 ? pool[i % pool.length] : null) || {
             mealName: MEAL_NAMES[slot] || slot,
             purpose: 'Balanced nutrition',
             exampleFoods: 'Whole foods, protein, vegetables',
@@ -140,14 +151,18 @@ function buildNotesAndWarnings(input, calories) {
 /**
  * Generate a structured nutrition plan.
  * Phase 14A: Strict diet constraints, post-generation validation, auto-swap invalid meals.
+ * Phase 14C: Memory-aware meal selection for variety.
+
  * @param {Object} rawInput - Raw form/assessment data (age, sex, height, weight, goal, activity, days, diet, allergies, etc.)
- * @returns {Object} Nutrition plan
+ * @param {Object} [options] - Optional { nutritionMemory }
+ * @returns {Object} Nutrition plan with mealPlan, nutritionMemory, adaptationNotes
  */
-export function generateNutritionPlan(rawInput) {
+export function generateNutritionPlan(rawInput, options = {}) {
     const input = normalizeNutritionInput(rawInput);
     const { age, weight, height, sex, goal, activity, trainingDays } = input;
 
     const constraints = parseNutritionConstraints(rawInput);
+    const nutritionMemory = options.nutritionMemory || rawInput.nutritionMemory || createEmptyMemory();
 
     const bmr = calculateBMR(weight, height, age, sex);
     const tdee = estimateTDEE(bmr, activity);
@@ -160,12 +175,22 @@ export function generateNutritionPlan(rawInput) {
         if (pref >= 3 && pref <= 6) mealsPerDay = pref;
     }
     const hydrationLiters = getHydrationLiters(weight, trainingDays);
-    let mealPlan = buildMealPlan(mealsPerDay, goal, trainingDays, constraints);
+    let mealPlan = buildMealPlan(mealsPerDay, goal, trainingDays, constraints, nutritionMemory);
 
+    const adaptationNotes = [];
     const validation = validateMealPlan(mealPlan, constraints);
     if (!validation.valid) {
-        const { mealPlan: fixed } = replaceInvalidMeals(mealPlan, constraints);
+        const { mealPlan: fixed } = replaceInvalidMeals(mealPlan, constraints, { nutritionMemory });
         mealPlan = fixed;
+        adaptationNotes.push('Some meals were swapped to meet dietary constraints.');
+    }
+
+    updateMemoryAfterPlan(nutritionMemory, mealPlan);
+    if (nutritionMemory.dislikedMeals?.length || nutritionMemory.dislikedIngredients?.length) {
+        adaptationNotes.push('Disliked items were avoided in meal selection.');
+    }
+    if (Object.keys(nutritionMemory.boredomSignals || {}).length > 0) {
+        adaptationNotes.push('Previously flagged meals were deprioritized for variety.');
     }
 
     const { notes, warnings } = buildNotesAndWarnings(input, calories);
@@ -181,6 +206,8 @@ export function generateNutritionPlan(rawInput) {
         hydrationLiters,
         mealPlan,
         notes,
-        warnings
+        warnings,
+        nutritionMemory,
+        adaptationNotes
     };
 }

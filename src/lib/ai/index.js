@@ -13,7 +13,7 @@ import { generateNutritionPlan } from './generateNutritionPlan.js';
 import { evaluateProgress, evaluateProgressWithLog } from './adaptiveEngine.js';
 import { getLatestProgress, getProgressHistory, saveProgressEntry, validateProgressEntry, clearProgressHistory } from './progressTracker.js';
 import { generateRecommendations } from './recommendationEngine.js';
-import { createProtocol, getActiveProtocol, saveActiveProtocol, advanceProtocolWeek, addProtocolSnapshot, completeProtocol, getProtocolHistory, isDeloadWeek, getNextDeloadWeek } from './protocolEngine.js';
+import { createProtocol, getActiveProtocol, getCurrentUserId, saveActiveProtocol, advanceProtocolWeek, addProtocolSnapshot, completeProtocol, getProtocolHistory, isDeloadWeek, getNextDeloadWeek } from './protocolEngine.js';
 import { regenerateNextWeekProtocol, buildNextWeekSnapshot, applyAdaptiveAdjustmentsToPlan, applyAdaptiveAdjustmentsToNutrition } from './regenerationEngine.js';
 import { adjustPlanForInjuries, normalizeInjuries, getInjuryWarnings } from './injuryAdjustmentEngine.js';
 import { getInjuryState, saveInjuryState, evaluateInjuryRecovery, buildReintroductionAdjustments, restoreTowardBaseProtocol, isInjuryCleared, processProgressForRecovery, advanceRecoveryWeek } from './injuryRecoveryEngine.js';
@@ -99,11 +99,13 @@ export async function runEngine(rawInput) {
 
 /**
  * Convert AI engine plan format to dashboard-compatible format (workout_plan + nutrition_plan).
+ * Phase 14D: Loads nutritionMemory from existing protocol, passes to generateNutritionPlan, returns it for persistence.
  * @param {Object} plan - Plan from generatePlan (or runEngine)
  * @param {Object} rawInput - Raw form data for nutrition/calories
- * @returns {{ workout_plan: Array, nutrition_plan: Object }}
+ * @param {Object} [existingProtocol] - Optional; if omitted, loads from getActiveProtocol(getCurrentUserId())
+ * @returns {{ workout_plan: Array, nutrition_plan: Object, nutritionMemory?: Object }}
  */
-export function toDashboardFormat(plan, rawInput = {}) {
+export function toDashboardFormat(plan, rawInput = {}, existingProtocol = null) {
     const workout_plan = (plan?.weeklyPlan && Array.isArray(plan.weeklyPlan))
         ? plan.weeklyPlan.map((day) => {
         const exercises = [];
@@ -173,7 +175,9 @@ export function toDashboardFormat(plan, rawInput = {}) {
         supplement_stack
     };
 
-    return { workout_plan, nutrition_plan };
+    const result = { workout_plan, nutrition_plan };
+    if (np.nutritionMemory) result.nutritionMemory = np.nutritionMemory;
+    return result;
 }
 
 /**
@@ -232,4 +236,4 @@ export function getRecommendationsFromLatest(userId, userProfile, currentPlan) {
     return { adaptation, recommendations };
 }
 
-export { normalizeInput, classifyUser, generatePlan, generateRulePlan, validatePlan, generateFallbackPlan, savePlanResult, generateNutritionPlan, evaluateProgress, evaluateProgressWithLog, getProgressHistory, getLatestProgress, saveProgressEntry, validateProgressEntry, clearProgressHistory, generateRecommendations, createProtocol, getActiveProtocol, saveActiveProtocol, advanceProtocolWeek, addProtocolSnapshot, completeProtocol, getProtocolHistory, isDeloadWeek, getNextDeloadWeek, regenerateNextWeekProtocol, buildNextWeekSnapshot, applyAdaptiveAdjustmentsToPlan, applyAdaptiveAdjustmentsToNutrition, adjustPlanForInjuries, normalizeInjuries, getInjuryWarnings, getInjuryState, saveInjuryState, evaluateInjuryRecovery, buildReintroductionAdjustments, restoreTowardBaseProtocol, isInjuryCleared, processProgressForRecovery, advanceRecoveryWeek, createPeriodizationBlock, getWeekPhase, applyPhaseToPlan, getPhaseAdjustments };
+export { normalizeInput, classifyUser, generatePlan, generateRulePlan, validatePlan, generateFallbackPlan, savePlanResult, generateNutritionPlan, evaluateProgress, evaluateProgressWithLog, getProgressHistory, getLatestProgress, saveProgressEntry, validateProgressEntry, clearProgressHistory, generateRecommendations, createProtocol, getActiveProtocol, getCurrentUserId, saveActiveProtocol, advanceProtocolWeek, addProtocolSnapshot, completeProtocol, getProtocolHistory, isDeloadWeek, getNextDeloadWeek, regenerateNextWeekProtocol, buildNextWeekSnapshot, applyAdaptiveAdjustmentsToPlan, applyAdaptiveAdjustmentsToNutrition, adjustPlanForInjuries, normalizeInjuries, getInjuryWarnings, getInjuryState, saveInjuryState, evaluateInjuryRecovery, buildReintroductionAdjustments, restoreTowardBaseProtocol, isInjuryCleared, processProgressForRecovery, advanceRecoveryWeek, createPeriodizationBlock, getWeekPhase, applyPhaseToPlan, getPhaseAdjustments };
