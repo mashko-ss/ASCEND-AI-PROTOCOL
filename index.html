@@ -506,65 +506,48 @@
                             </div>
                         </div>
 
-                        <!-- STEP 8: Dietary Needs -->
-                        <div class="wizard-step hidden" id="step-7">
-                            <div class="step-indicator mb-6">
+                        <!-- STEP 8: Dietary Needs (Compact Questionnaire) -->
+                        <div class="wizard-step wizard-step-compact hidden" id="step-7">
+                            <div class="step-indicator step-indicator-compact">
                                 <span class="text-primary font-mono font-bold tracking-widest text-xs uppercase"
                                     data-safe-i18n="Step 8">Step 8</span>
-                                <h2 class="text-2xl font-heading font-black mt-2 uppercase tracking-widest"
+                                <h2 class="text-lg font-heading font-black mt-2 uppercase tracking-widest"
                                     data-safe-i18n="Dietary Needs">Dietary Needs</h2>
                             </div>
-                            <div class="question-block">
-                                <span class="question-label" data-safe-i18n="Dietary preference and allergies">Dietary preference and allergies</span>
-                                <div class="options-grid mb-4">
-                                    <label class="radio-card"><input type="radio" name="diet" value="standard">
-                                        <div class="radio-card-content"><i class="fa-solid fa-utensils"></i><span
-                                                class="radio-label" data-safe-i18n="Standard / Balanced">Standard / Balanced</span><span
-                                                class="radio-subtext"
-                                                data-safe-i18n="A balanced mix of everything.">A balanced mix of everything.</span></div>
-                                    </label>
-                                    <label class="radio-card"><input type="radio" name="diet" value="vegan">
-                                        <div class="radio-card-content"><i class="fa-solid fa-leaf"></i><span
-                                                class="radio-label" data-safe-i18n="Vegan">Vegan</span><span
-                                                class="radio-subtext" data-safe-i18n="Strictly plant-based.">Strictly plant-based.</span></div>
-                                    </label>
-                                    <label class="radio-card"><input type="radio" name="diet" value="vegetarian">
-                                        <div class="radio-card-content"><i class="fa-solid fa-carrot"></i><span
-                                                class="radio-label" data-safe-i18n="Vegetarian">Vegetarian</span></div>
-                                    </label>
-                                    <label class="radio-card"><input type="radio" name="diet" value="gluten_free">
-                                        <div class="radio-card-content"><i class="fa-solid fa-wheat-awn"></i><span
-                                                class="radio-label" data-safe-i18n="Gluten-free">Gluten-free</span></div>
-                                    </label>
-                                    <label class="radio-card"><input type="radio" name="diet" value="keto">
-                                        <div class="radio-card-content"><i class="fa-solid fa-bacon"></i><span
-                                                class="radio-label" data-safe-i18n="Keto">Keto</span></div>
-                                    </label>
+                            <div class="questionnaire-grid">
+                                <div class="questionnaire-section questionnaire-card">
+                                    <h3 class="questionnaire-section-title" data-safe-i18n="Diet Type">Diet Type</h3>
+                                    <div class="chips-row chips-diet">
+                                        <label class="chip-compact chip-radio"><input type="radio" name="diet" value="standard">
+                                            <span class="chip-content"><i class="fa-solid fa-utensils chip-icon"></i><span data-safe-i18n="Standard / Balanced">Standard</span></span></label>
+                                        <label class="chip-compact chip-radio"><input type="radio" name="diet" value="vegan">
+                                            <span class="chip-content"><i class="fa-solid fa-leaf chip-icon"></i><span data-safe-i18n="Vegan">Vegan</span></span></label>
+                                        <label class="chip-compact chip-radio"><input type="radio" name="diet" value="vegetarian">
+                                            <span class="chip-content"><i class="fa-solid fa-carrot chip-icon"></i><span data-safe-i18n="Vegetarian">Vegetarian</span></span></label>
+                                        <label class="chip-compact chip-radio"><input type="radio" name="diet" value="gluten_free">
+                                            <span class="chip-content"><i class="fa-solid fa-wheat-awn chip-icon"></i><span data-safe-i18n="Gluten-free">Gluten-free</span></span></label>
+                                        <label class="chip-compact chip-radio"><input type="radio" name="diet" value="keto">
+                                            <span class="chip-content"><i class="fa-solid fa-bacon chip-icon"></i><span data-safe-i18n="Keto">Keto</span></span></label>
+                                    </div>
                                 </div>
-                                <span class="question-label block mt-4" data-safe-i18n="Select Restrictions / Avoid">Allergies to avoid (optional)</span>
-                                <div class="options-grid opts-2">
-                                    <label class="radio-card"><input type="checkbox" name="allergies" value="none" data-allergies-none">
-                                        <div class="radio-card-content"><i class="fa-solid fa-check-circle"></i><span
-                                                class="radio-label" data-safe-i18n="No restrictions">No restrictions</span></div>
-                                    </label>
-                                    <label class="radio-card"><input type="checkbox" name="allergies" value="dairy">
-                                        <div class="radio-card-content"><i class="fa-solid fa-cheese"></i><span class="radio-label" data-safe-i18n="Dairy">Dairy</span></div>
-                                    </label>
-                                    <label class="radio-card"><input type="checkbox" name="allergies" value="gluten">
-                                        <div class="radio-card-content"><i class="fa-solid fa-wheat-awn"></i><span class="radio-label" data-safe-i18n="Gluten">Gluten</span></div>
-                                    </label>
-                                    <label class="radio-card"><input type="checkbox" name="allergies" value="nuts">
-                                        <div class="radio-card-content"><i class="fa-solid fa-seedling"></i><span class="radio-label" data-safe-i18n="Nuts">Nuts</span></div>
-                                    </label>
-                                    <label class="radio-card"><input type="checkbox" name="allergies" value="shellfish">
-                                        <div class="radio-card-content"><i class="fa-solid fa-fish"></i><span class="radio-label" data-safe-i18n="Shellfish">Shellfish</span></div>
-                                    </label>
-                                    <label class="radio-card"><input type="checkbox" name="allergies" value="soy">
-                                        <div class="radio-card-content"><i class="fa-solid fa-leaf"></i><span class="radio-label" data-safe-i18n="Soy">Soy</span></div>
-                                    </label>
-                                    <label class="radio-card"><input type="checkbox" name="allergies" value="eggs">
-                                        <div class="radio-card-content"><i class="fa-solid fa-egg"></i><span class="radio-label" data-safe-i18n="Eggs">Eggs</span></div>
-                                    </label>
+                                <div class="questionnaire-section questionnaire-card">
+                                    <h3 class="questionnaire-section-title" data-safe-i18n="Allergies / Exclusions">Allergies / Exclusions</h3>
+                                    <div class="chips-row chips-allergies">
+                                        <label class="chip-compact chip-checkbox"><input type="checkbox" name="allergies" value="none" data-allergies-none>
+                                            <span class="chip-content"><i class="fa-solid fa-check-circle chip-icon"></i><span data-safe-i18n="None">None</span></span></label>
+                                        <label class="chip-compact chip-checkbox"><input type="checkbox" name="allergies" value="dairy">
+                                            <span class="chip-content"><i class="fa-solid fa-cheese chip-icon"></i><span data-safe-i18n="Dairy">Dairy</span></span></label>
+                                        <label class="chip-compact chip-checkbox"><input type="checkbox" name="allergies" value="gluten">
+                                            <span class="chip-content"><i class="fa-solid fa-wheat-awn chip-icon"></i><span data-safe-i18n="Gluten">Gluten</span></span></label>
+                                        <label class="chip-compact chip-checkbox"><input type="checkbox" name="allergies" value="nuts">
+                                            <span class="chip-content"><i class="fa-solid fa-seedling chip-icon"></i><span data-safe-i18n="Nuts">Nuts</span></span></label>
+                                        <label class="chip-compact chip-checkbox"><input type="checkbox" name="allergies" value="shellfish">
+                                            <span class="chip-content"><i class="fa-solid fa-fish chip-icon"></i><span data-safe-i18n="Shellfish">Shellfish</span></span></label>
+                                        <label class="chip-compact chip-checkbox"><input type="checkbox" name="allergies" value="soy">
+                                            <span class="chip-content"><i class="fa-solid fa-leaf chip-icon"></i><span data-safe-i18n="Soy">Soy</span></span></label>
+                                        <label class="chip-compact chip-checkbox"><input type="checkbox" name="allergies" value="eggs">
+                                            <span class="chip-content"><i class="fa-solid fa-egg chip-icon"></i><span data-safe-i18n="Eggs">Eggs</span></span></label>
+                                    </div>
                                 </div>
                             </div>
                         </div>
