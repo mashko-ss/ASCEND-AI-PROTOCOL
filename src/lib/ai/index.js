@@ -1,8 +1,14 @@
 /**
+ * ⚠️ CORE FILE – DO NOT MODIFY LIGHTLY
+ * This file is used across the entire system.
+ * Only exports are allowed.
+ * No logic, no side effects.
+ *
  * ASCEND AI PROTOCOL - AI Engine Public Interface
  * Phase 1: Rule-based system. Prepared for future OpenAI integration.
  */
 
+// ===== IMPORTS =====
 import { normalizeInput } from './normalizeInput.js';
 import { classifyUser } from './classifyUser.js';
 import { generatePlan, generateRulePlan } from './generatePlan.js';
@@ -13,7 +19,7 @@ import { generateNutritionPlan } from './generateNutritionPlan.js';
 import { evaluateProgress, evaluateProgressWithLog } from './adaptiveEngine.js';
 import { getLatestProgress, getProgressHistory, saveProgressEntry, validateProgressEntry, clearProgressHistory } from './progressTracker.js';
 import { generateRecommendations } from './recommendationEngine.js';
-import { createProtocol, getActiveProtocol, getCurrentUserId, saveActiveProtocol, advanceProtocolWeek, addProtocolSnapshot, completeProtocol, getProtocolHistory, isDeloadWeek, getNextDeloadWeek } from './protocolEngine.js';
+import { createProtocol, getActiveProtocol, getCurrentUserId, saveActiveProtocol, saveNewProtocol, advanceProtocolWeek, addProtocolSnapshot, completeProtocol, getProtocolHistory, isDeloadWeek, getNextDeloadWeek } from './protocolEngine.js';
 import { regenerateNextWeekProtocol, buildNextWeekSnapshot, applyAdaptiveAdjustmentsToPlan, applyAdaptiveAdjustmentsToNutrition } from './regenerationEngine.js';
 import { adjustPlanForInjuries, normalizeInjuries, getInjuryWarnings } from './injuryAdjustmentEngine.js';
 import { getInjuryState, saveInjuryState, evaluateInjuryRecovery, buildReintroductionAdjustments, restoreTowardBaseProtocol, isInjuryCleared, processProgressForRecovery, advanceRecoveryWeek } from './injuryRecoveryEngine.js';
@@ -236,4 +242,18 @@ export function getRecommendationsFromLatest(userId, userProfile, currentPlan) {
     return { adaptation, recommendations };
 }
 
-export { normalizeInput, classifyUser, generatePlan, generateRulePlan, validatePlan, generateFallbackPlan, savePlanResult, generateNutritionPlan, evaluateProgress, evaluateProgressWithLog, getProgressHistory, getLatestProgress, saveProgressEntry, validateProgressEntry, clearProgressHistory, generateRecommendations, createProtocol, getActiveProtocol, getCurrentUserId, saveActiveProtocol, advanceProtocolWeek, addProtocolSnapshot, completeProtocol, getProtocolHistory, isDeloadWeek, getNextDeloadWeek, regenerateNextWeekProtocol, buildNextWeekSnapshot, applyAdaptiveAdjustmentsToPlan, applyAdaptiveAdjustmentsToNutrition, adjustPlanForInjuries, normalizeInjuries, getInjuryWarnings, getInjuryState, saveInjuryState, evaluateInjuryRecovery, buildReintroductionAdjustments, restoreTowardBaseProtocol, isInjuryCleared, processProgressForRecovery, advanceRecoveryWeek, createPeriodizationBlock, getWeekPhase, applyPhaseToPlan, getPhaseAdjustments };
+// ===== RE-EXPORTS =====
+// Training / Plan
+export { normalizeInput, classifyUser, generatePlan, generateRulePlan, validatePlan, generateFallbackPlan, savePlanResult };
+// Nutrition
+export { generateNutritionPlan };
+// Progress / Adaptive
+export { evaluateProgress, evaluateProgressWithLog, getProgressHistory, getLatestProgress, saveProgressEntry, validateProgressEntry, clearProgressHistory, generateRecommendations };
+// Protocol
+export { createProtocol, getActiveProtocol, getCurrentUserId, saveActiveProtocol, saveNewProtocol, advanceProtocolWeek, addProtocolSnapshot, completeProtocol, getProtocolHistory, isDeloadWeek, getNextDeloadWeek };
+// Regeneration
+export { regenerateNextWeekProtocol, buildNextWeekSnapshot, applyAdaptiveAdjustmentsToPlan, applyAdaptiveAdjustmentsToNutrition };
+// Injury
+export { adjustPlanForInjuries, normalizeInjuries, getInjuryWarnings, getInjuryState, saveInjuryState, evaluateInjuryRecovery, buildReintroductionAdjustments, restoreTowardBaseProtocol, isInjuryCleared, processProgressForRecovery, advanceRecoveryWeek };
+// Periodization
+export { createPeriodizationBlock, getWeekPhase, applyPhaseToPlan, getPhaseAdjustments };

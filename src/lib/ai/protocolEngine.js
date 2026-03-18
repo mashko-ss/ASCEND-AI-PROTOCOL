@@ -2,9 +2,11 @@
  * ASCEND AI PROTOCOL - Protocol Engine
  * Phase 7: Multi-week coaching protocol lifecycle.
  * Phase 10: Uses periodization engine for deload week computation.
+ * Phase 19: User-bound protocols; isolated per user.
  */
 
 import { createPeriodizationBlock } from './periodizationEngine.js';
+import { getCurrentUser } from '../core/auth.js';
 
 const DB_KEY = 'ascend_protocol_v4_db';
 
@@ -96,35 +98,85 @@ export function createProtocol(userProfile, trainingPlan, nutritionPlan, fullPro
 }
 
 /**
- * Get current user id from db (for client-side calls).
+ * Get current user id. Uses auth first, then legacy db.
  * @returns {string|null}
  */
 export function getCurrentUserId() {
+    const authUser = getCurrentUser();
+    if (authUser?.id) return authUser.id;
     const state = getDb();
     return state?.currentUser ?? null;
 }
 
 /**
  * Get active protocol for user.
- * @param {string} userId - User email
+ * @param {string} [userId] - User id; if omitted, uses current user
  * @returns {Object|null}
  */
 export function getActiveProtocol(userId) {
+    const resolved = userId ?? getCurrentUserId();
+    if (!resolved) return null;
     const state = getDb();
-    const user = state.users?.[userId];
+    const user = state.users?.[resolved];
     return user?.active_protocol ?? null;
 }
 
 /**
- * Save active protocol for user.
+ * Ensure protocol has required fields and aiResult memories.
+ * @param {Object} protocol
+ * @param {string} userId
+ * @returns {Object}
+ */
+function ensureProtocolModel(protocol, userId) {
+    const now = Date.now();
+    const p = { ...protocol };
+    p.userId = userId ?? protocol.userId ?? null;
+    p.id = protocol.id || 'PRT-' + now.toString().slice(-8);
+    p.created_at = protocol.created_at ?? protocol.createdAt ?? now;
+    p.updated_at = protocol.updated_at ?? now;
+    p.status = protocol.status || 'active';
+    if (!p.aiResult || typeof p.aiResult !== 'object') p.aiResult = {};
+    const ar = p.aiResult;
+    if (!ar.nutritionMemory || typeof ar.nutritionMemory !== 'object') ar.nutritionMemory = ar.nutritionMemory ?? {};
+    if (!ar.supplementMemory || typeof ar.supplementMemory !== 'object') ar.supplementMemory = ar.supplementMemory ?? {};
+    if (!ar.adaptationSummary || typeof ar.adaptationSummary !== 'object') ar.adaptationSummary = ar.adaptationSummary ?? {};
+    return p;
+}
+
+/**
+ * Save new protocol under current user. Sets as active.
+ * @param {Object} protocol
+ * @returns {Object|null} Saved protocol or null if no current user
+ */
+export function saveNewProtocol(protocol) {
+    const userId = getCurrentUserId();
+    if (!userId) return null;
+    const state = getDb();
+    if (!state.users) state.users = {};
+    if (!state.users[userId]) state.users[userId] = { email: userId, history: [], telemetry: [] };
+    const user = state.users[userId];
+    const toSave = ensureProtocolModel(protocol, userId);
+    if (user.active_protocol) {
+        user.history = user.history || [];
+        user.history.unshift({ ...user.active_protocol, status: 'archived' });
+    }
+    user.active_protocol = toSave;
+    saveDb(state);
+    return toSave;
+}
+
+/**
+ * Save active protocol for user. Preserves aiResult memories.
  * @param {string} userId
  * @param {Object} protocol
  */
 export function saveActiveProtocol(userId, protocol) {
+    if (!userId) return;
     const state = getDb();
     if (!state.users) state.users = {};
     if (!state.users[userId]) state.users[userId] = { email: userId, history: [], telemetry: [] };
-    state.users[userId].active_protocol = protocol;
+    const toSave = ensureProtocolModel(protocol, userId);
+    state.users[userId].active_protocol = toSave;
     saveDb(state);
 }
 
@@ -258,13 +310,15 @@ export function completeProtocol(userId) {
 }
 
 /**
- * Get protocol history (completed protocols).
- * @param {string} userId
+ * Get protocol history (completed protocols) for user.
+ * @param {string} [userId] - User id; if omitted, uses current user
  * @returns {Array}
  */
 export function getProtocolHistory(userId) {
+    const resolved = userId ?? getCurrentUserId();
+    if (!resolved) return [];
     const state = getDb();
-    const user = state.users?.[userId];
+    const user = state.users?.[resolved];
     return user?.history ?? [];
 }
 
