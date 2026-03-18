@@ -1,91 +1,58 @@
 /**
  * ASCEND AI PROTOCOL - Local Auth
- * Phase 18: Multi-user auth using localStorage. Pure logic, no UI.
+ * Phase 18: Multi-user local auth. No UI logic.
  */
 
 import { getAllUsers, saveUser, findUserByEmail } from './userStore.js';
+import { getCurrentUser as storageGetCurrentUser, saveCurrentUser as storageSaveCurrentUser, clearCurrentUser as storageClearCurrentUser } from '../data/storageAdapter.js';
 
-const CURRENT_USER_KEY = 'ascend_current_user';
-
-/**
- * Generate a simple unique id.
- * @returns {string}
- */
 function generateId() {
     return String(Date.now()) + '_' + Math.random().toString(36).slice(2, 10);
 }
 
-/**
- * Create a new user and set as current.
- * @param {string} email
- * @returns {{ id: string, email: string, createdAt: number }|null}
- */
+function normalizeLocalUser(user) {
+    if (!user || !user.id) return null;
+    return {
+        id: String(user.id),
+        email: String(user.email || '').trim().toLowerCase(),
+        provider: 'local',
+        createdAt: typeof user.createdAt === 'number' ? user.createdAt : Date.now()
+    };
+}
+
 export function createUser(email) {
     if (!email || typeof email !== 'string') return null;
     const trimmed = String(email).trim().toLowerCase();
     if (!trimmed) return null;
 
-    const existing = findUserByEmail(trimmed);
-    if (existing) return null;
+    if (findUserByEmail(trimmed)) return null;
 
-    const user = {
+    const user = normalizeLocalUser({
         id: generateId(),
         email: trimmed,
         createdAt: Date.now()
-    };
+    });
     saveUser(user);
-    try {
-        localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(user));
-    } catch (e) {
-        console.warn('[Auth] Set current user failed:', e);
-    }
+    storageSaveCurrentUser(user);
     return user;
 }
 
-/**
- * Log in user by email. Sets as current user.
- * @param {string} email
- * @returns {{ id: string, email: string, createdAt: number }|null}
- */
 export function loginUser(email) {
     if (!email || typeof email !== 'string') return null;
     const user = findUserByEmail(email);
     if (!user) return null;
-    try {
-        localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(user));
-    } catch (e) {
-        console.warn('[Auth] Set current user failed:', e);
-    }
-    return user;
+    const normalized = normalizeLocalUser(user);
+    storageSaveCurrentUser(normalized);
+    return normalized;
 }
 
-/**
- * Log out current user. Removes ascend_current_user.
- */
 export function logoutUser() {
-    try {
-        localStorage.removeItem(CURRENT_USER_KEY);
-    } catch (e) {
-        console.warn('[Auth] Logout failed:', e);
-    }
+    storageClearCurrentUser();
 }
 
-/**
- * Get current user from storage.
- * @returns {{ id: string, email: string, createdAt: number }|null}
- */
 export function getCurrentUser() {
-    try {
-        const raw = localStorage.getItem(CURRENT_USER_KEY);
-        if (!raw) return null;
-        const parsed = JSON.parse(raw);
-        if (!parsed || !parsed.id) return null;
-        return {
-            id: String(parsed.id),
-            email: String(parsed.email || ''),
-            createdAt: typeof parsed.createdAt === 'number' ? parsed.createdAt : 0
-        };
-    } catch {
-        return null;
-    }
+    const user = storageGetCurrentUser();
+    return normalizeLocalUser(user);
 }
+
+export { getAllUsers };

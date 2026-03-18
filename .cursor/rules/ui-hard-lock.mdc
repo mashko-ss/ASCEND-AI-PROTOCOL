@@ -1,0 +1,56 @@
+---
+description: UI/UX Hard Lock Policy — Zero tolerance for breaking the stable UI shell
+alwaysApply: true
+---
+
+# UI/UX Hard Lock Policy — Zero Tolerance
+
+## Protected Files (DO NOT MODIFY unless explicitly approved)
+
+- `app.js`
+- `index.html`
+- `styles.css`
+- `src/lib/ai/index.js`
+
+## Protected Behavior (DO NOT break or modify casually)
+
+- Visible buttons
+- Click behavior (event delegation via `data-action`)
+- Auth screen flow
+- Questionnaire flow
+- Dashboard flow
+- Render/init order
+- Navigation/view switching
+- Loading overlays / modal blocking behavior
+- Session restore order (affects clickability)
+
+## Allowed Files by Default
+
+Modify ONLY when the task truly requires it and does NOT affect protected UI:
+
+- `src/lib/ai/*` (except `index.js`)
+- `src/lib/core/*`
+- `src/lib/data/*`
+
+## Mandatory Pre-Check (before any changes)
+
+1. List files to be modified
+2. If any protected file is included → STOP and explain why it is required
+3. If a feature can be implemented without touching protected files → DO NOT TOUCH THEM
+
+## Mandatory Post-Check (after changes)
+
+Verify all of the following:
+
+1. Landing/auth buttons visible
+2. Buttons clickable
+3. Questionnaire works
+4. Generate/Create Plan works
+5. Dashboard renders
+6. Logout works
+7. No overlay blocks clicks
+8. No blank sections appear
+
+## Rule
+
+If a change risks the UI shell → STOP and ask for explicit UI-core approval.
