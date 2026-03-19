@@ -7,7 +7,8 @@ import {
     getSupabaseClient,
     isSupabaseConfigured,
     hasActiveSupabaseSession,
-    getSupabaseSessionSnapshot
+    getSupabaseSessionSnapshot,
+    getSupabaseAuthState
 } from '../data/supabaseClient.js';
 import {
     saveCurrentUser,
@@ -26,19 +27,37 @@ import {
 
 const LOCAL_DEV_URL = 'http://localhost:3000';
 const OAUTH_PROVIDERS = ['google', 'facebook', 'apple'];
+let restoreSessionPromise = null;
+let signOutPromise = null;
+
+function normalizeProviderAlias(provider) {
+    const normalized = String(provider || '').trim().toLowerCase();
+    if (normalized === 'sms') return 'phone';
+    return normalized;
+}
 
 function normalizeProvider(provider) {
-    return ['local', 'google', 'apple', 'facebook'].includes(provider) ? provider : 'local';
+    const normalized = normalizeProviderAlias(provider);
+    return ['local', 'google', 'apple', 'facebook', 'phone'].includes(normalized)
+        ? normalized
+        : 'local';
 }
 
 function inferCloudProvider(user) {
-    return normalizeProvider(
-        user?.app_metadata?.provider
-        || user?.app_metadata?.providers?.[0]
-        || user?.identities?.[0]?.provider
-        || user?.user_metadata?.provider
-        || 'local'
-    );
+    const providerCandidates = [
+        user?.app_metadata?.provider,
+        ...(Array.isArray(user?.app_metadata?.providers) ? user.app_metadata.providers : []),
+        ...(Array.isArray(user?.identities) ? user.identities.map((identity) => identity?.provider) : []),
+        user?.user_metadata?.provider,
+        user?.phone ? 'phone' : ''
+    ];
+
+    for (const candidate of providerCandidates) {
+        const normalized = normalizeProvider(candidate);
+        if (normalized !== 'local') return normalized;
+    }
+
+    return 'local';
 }
 
 function normalizeCloudUser(user) {
@@ -60,6 +79,7 @@ function normalizeCloudUser(user) {
 
 export function getAuthMode() {
     if (!isSupabaseConfigured()) return 'local';
+    if (getSupabaseAuthState().status === 'error') return 'local';
     return hasActiveSupabaseSession() ? 'cloud' : 'local';
 }
 
@@ -74,6 +94,11 @@ export function getSessionUser() {
 }
 
 export async function restoreSession() {
+    if (restoreSessionPromise) {
+        return restoreSessionPromise;
+    }
+
+    restoreSessionPromise = (async () => {
     const localUser = getLocalCurrentUser();
     if (!isSupabaseConfigured()) return localUser;
 
@@ -87,7 +112,7 @@ export async function restoreSession() {
             if (currentUser && currentUser.provider !== 'local') {
                 clearCurrentUser();
             }
-            return null;
+            return localUser || null;
         }
 
         const user = normalizeCloudUser(snapshot.user);
@@ -103,7 +128,14 @@ export async function restoreSession() {
         if (currentUser && currentUser.provider !== 'local') {
             clearCurrentUser();
         }
-        return localUser;
+        return localUser || null;
+    }
+    })();
+
+    try {
+        return await restoreSessionPromise;
+    } finally {
+        restoreSessionPromise = null;
     }
 }
 
@@ -239,6 +271,11 @@ export async function signInWithOtp(phone) {
 }
 
 export async function signOutUser() {
+    if (signOutPromise) {
+        return signOutPromise;
+    }
+
+    signOutPromise = (async () => {
     const currentCloudUser = getSessionUser();
     let hasCloudSession = Boolean(currentCloudUser);
 
@@ -267,7 +304,18 @@ export async function signOutUser() {
     }
     logoutUser();
     clearCurrentUser();
-    return { ok: true, mode: 'local' };
+    return {
+        ok: true,
+        mode: 'local',
+        ...(hasCloudSession ? {} : { reason: 'already_signed_out' })
+    };
+    })();
+
+    try {
+        return await signOutPromise;
+    } finally {
+        signOutPromise = null;
+    }
 }
 
 export { createUser, loginUser };

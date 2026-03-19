@@ -8,6 +8,14 @@ import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js
 let cachedClient = null;
 let authListenerInitialized = false;
 let knownSessionState = 'unknown';
+let sessionSnapshotPromise = null;
+let authState = {
+    status: 'unknown',
+    hasSession: false,
+    degraded: false,
+    reason: null,
+    lastCheckedAt: null
+};
 
 function getEnvObject() {
     if (typeof window === 'undefined' || !window || typeof window.ENV !== 'object' || !window.ENV) {
@@ -55,6 +63,24 @@ export function isSupabaseConfigured() {
 
 function setKnownSessionState(session) {
     knownSessionState = session?.user?.id ? 'authenticated' : 'signed_out';
+    authState = {
+        status: knownSessionState,
+        hasSession: knownSessionState === 'authenticated',
+        degraded: false,
+        reason: null,
+        lastCheckedAt: Date.now()
+    };
+}
+
+function setAuthStateError(reason) {
+    knownSessionState = 'signed_out';
+    authState = {
+        status: 'error',
+        hasSession: false,
+        degraded: true,
+        reason: reason || 'session_check_failed',
+        lastCheckedAt: Date.now()
+    };
 }
 
 function ensureAuthStateListener(client) {
@@ -99,46 +125,75 @@ export function hasActiveSupabaseSession() {
     return isSupabaseConfigured() && knownSessionState === 'authenticated';
 }
 
+export function getSupabaseAuthState() {
+    return { ...authState };
+}
+
 export async function getSupabaseSessionSnapshot() {
+    if (sessionSnapshotPromise) {
+        return sessionSnapshotPromise;
+    }
+
+    sessionSnapshotPromise = (async () => {
     if (!isSupabaseConfigured()) {
-        return { ok: false, mode: 'local', user: null, reason: 'supabase_not_configured' };
-    }
-
-    const client = getSupabaseClient();
-    if (!client) {
-        return { ok: false, mode: 'local', user: null, reason: 'supabase_client_unavailable' };
-    }
-
-    ensureAuthStateListener(client);
-
-    try {
-        const { data, error } = await client.auth.getSession();
-        if (error) {
-            knownSessionState = 'signed_out';
+            authState = {
+                status: 'signed_out',
+                hasSession: false,
+                degraded: false,
+                reason: 'supabase_not_configured',
+                lastCheckedAt: Date.now()
+            };
             return {
                 ok: false,
                 mode: 'local',
                 user: null,
-                reason: error.message || 'session_check_failed'
+                reason: 'supabase_not_configured'
             };
         }
 
-        const session = data?.session || null;
-        setKnownSessionState(session);
-
-        if (session?.user?.id) {
-            return { ok: true, mode: 'cloud', user: session.user };
+        const client = getSupabaseClient();
+        if (!client) {
+            setAuthStateError('supabase_client_unavailable');
+            return { ok: false, mode: 'local', user: null, reason: 'supabase_client_unavailable' };
         }
 
-        return { ok: true, mode: 'local', user: null, reason: 'no_active_session' };
-    } catch (error) {
-        knownSessionState = 'signed_out';
-        return {
-            ok: false,
-            mode: 'local',
-            user: null,
-            reason: error?.message || 'session_check_failed'
-        };
+        ensureAuthStateListener(client);
+
+        try {
+            const { data, error } = await client.auth.getSession();
+            if (error) {
+                setAuthStateError(error.message || 'session_check_failed');
+                return {
+                    ok: false,
+                    mode: 'local',
+                    user: null,
+                    reason: error.message || 'session_check_failed'
+                };
+            }
+
+            const session = data?.session || null;
+            setKnownSessionState(session);
+
+            if (session?.user?.id) {
+                return { ok: true, mode: 'cloud', user: session.user };
+            }
+
+            return { ok: true, mode: 'local', user: null, reason: 'no_active_session' };
+        } catch (error) {
+            setAuthStateError(error?.message || 'session_check_failed');
+            return {
+                ok: false,
+                mode: 'local',
+                user: null,
+                reason: error?.message || 'session_check_failed'
+            };
+        }
+    })();
+
+    try {
+        return await sessionSnapshotPromise;
+    } finally {
+        sessionSnapshotPromise = null;
     }
 }
 

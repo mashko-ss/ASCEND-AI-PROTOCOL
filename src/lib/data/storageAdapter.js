@@ -57,19 +57,35 @@ function stableSerialize(value) {
     }
 }
 
+function normalizeProviderAlias(provider) {
+    const normalized = String(provider || '').trim().toLowerCase();
+    if (normalized === 'sms') return 'phone';
+    return normalized;
+}
+
 function normalizeProvider(provider) {
-    return ['local', 'google', 'apple', 'facebook'].includes(provider) ? provider : 'local';
+    const normalized = normalizeProviderAlias(provider);
+    return ['local', 'google', 'apple', 'facebook', 'phone'].includes(normalized)
+        ? normalized
+        : 'local';
 }
 
 function inferUserProvider(user) {
-    return normalizeProvider(
-        user?.provider
-        || user?.app_metadata?.provider
-        || user?.app_metadata?.providers?.[0]
-        || user?.identities?.[0]?.provider
-        || user?.user_metadata?.provider
-        || 'local'
-    );
+    const providerCandidates = [
+        user?.provider,
+        user?.app_metadata?.provider,
+        ...(Array.isArray(user?.app_metadata?.providers) ? user.app_metadata.providers : []),
+        ...(Array.isArray(user?.identities) ? user.identities.map((identity) => identity?.provider) : []),
+        user?.user_metadata?.provider,
+        user?.phone ? 'phone' : ''
+    ];
+
+    for (const candidate of providerCandidates) {
+        const normalized = normalizeProvider(candidate);
+        if (normalized !== 'local') return normalized;
+    }
+
+    return 'local';
 }
 
 function normalizeCreatedAt(user, provider) {
@@ -380,10 +396,11 @@ export function clearCurrentUser() {
 
 export function getStorageMode() {
     if (!isSupabaseConfigured()) return 'local';
+    if (!hasActiveSupabaseSession()) return 'local';
+
     const currentUser = getCurrentUser();
-    return currentUser && currentUser.provider !== 'local' && hasActiveSupabaseSession()
-        ? 'cloud'
-        : 'local';
+    const syncState = currentUser?.id ? getSyncState(currentUser.id) : createSyncState();
+    return syncState.source === 'cloud-fallback-local' ? 'local' : 'cloud';
 }
 
 export function isCloudStorageAvailable() {

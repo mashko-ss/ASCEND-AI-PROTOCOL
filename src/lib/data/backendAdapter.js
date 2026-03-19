@@ -8,7 +8,8 @@ import {
     isSupabaseConfigured,
     testSupabaseConnection,
     hasActiveSupabaseSession,
-    getSupabaseSessionSnapshot
+    getSupabaseSessionSnapshot,
+    getSupabaseAuthState
 } from './supabaseClient.js';
 import {
     getCurrentUser,
@@ -44,19 +45,37 @@ const TABLES = {
     PENDING_MERGES: 'user_pending_merges'
 };
 
+let restoreBackendSessionPromise = null;
+
+function normalizeProviderAlias(provider) {
+    const normalized = String(provider || '').trim().toLowerCase();
+    if (normalized === 'sms') return 'phone';
+    return normalized;
+}
+
 function normalizeProvider(provider) {
-    return ['local', 'google', 'apple', 'facebook'].includes(provider) ? provider : 'local';
+    const normalized = normalizeProviderAlias(provider);
+    return ['local', 'google', 'apple', 'facebook', 'phone'].includes(normalized)
+        ? normalized
+        : 'local';
 }
 
 function inferCloudProvider(user) {
-    return normalizeProvider(
-        user?.provider
-        || user?.app_metadata?.provider
-        || user?.app_metadata?.providers?.[0]
-        || user?.identities?.[0]?.provider
-        || user?.user_metadata?.provider
-        || 'local'
-    );
+    const providerCandidates = [
+        user?.provider,
+        user?.app_metadata?.provider,
+        ...(Array.isArray(user?.app_metadata?.providers) ? user.app_metadata.providers : []),
+        ...(Array.isArray(user?.identities) ? user.identities.map((identity) => identity?.provider) : []),
+        user?.user_metadata?.provider,
+        user?.phone ? 'phone' : ''
+    ];
+
+    for (const candidate of providerCandidates) {
+        const normalized = normalizeProvider(candidate);
+        if (normalized !== 'local') return normalized;
+    }
+
+    return 'local';
 }
 
 function normalizeBackendUser(user) {
@@ -255,6 +274,7 @@ async function resolvePersistableCloudUser(preferredUser = null) {
 
 export function getBackendMode() {
     if (!isSupabaseConfigured()) return 'local';
+    if (getSupabaseAuthState().status === 'error') return 'local';
     return hasActiveSupabaseSession() ? 'cloud' : 'local';
 }
 
@@ -282,6 +302,11 @@ export function getCurrentBackendUser() {
 }
 
 export async function restoreBackendSession() {
+    if (restoreBackendSessionPromise) {
+        return restoreBackendSessionPromise;
+    }
+
+    restoreBackendSessionPromise = (async () => {
     const currentUser = getCurrentUser();
     const localUser = currentUser?.provider === 'local' ? currentUser : null;
 
@@ -303,7 +328,7 @@ export async function restoreBackendSession() {
             }
             return {
                 mode: 'local',
-                user: localUser,
+                user: localUser || null,
                 reason: snapshot.reason || 'no_active_session'
             };
         }
@@ -324,6 +349,13 @@ export async function restoreBackendSession() {
             user: localUser,
             reason: error?.message || 'session_restore_failed'
         };
+    }
+    })();
+
+    try {
+        return await restoreBackendSessionPromise;
+    } finally {
+        restoreBackendSessionPromise = null;
     }
 }
 
@@ -366,13 +398,14 @@ export function hasCloudPersistence() {
 export function getDataSourceMode() {
     const currentUser = getCurrentBackendUser();
     if (!currentUser?.id) return 'local';
+    if (!hasActiveSupabaseSession()) return 'local';
 
     const syncState = getStoredSyncState(currentUser.id);
-    if (syncState.source === 'cloud' || syncState.source === 'cloud-fallback-local') {
+    if (syncState.source === 'cloud-fallback-local') {
         return syncState.source;
     }
 
-    return hasActiveSupabaseSession() && syncState.lastSyncAt ? 'cloud' : 'local';
+    return 'cloud';
 }
 
 export function isBackendSourceOfTruth() {
