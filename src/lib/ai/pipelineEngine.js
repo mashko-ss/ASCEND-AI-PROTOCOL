@@ -217,20 +217,35 @@ export async function runFullProtocolPipeline(input, options = {}) {
     const workout_plan = toWorkoutPlan(plan);
     const nutrition_plan = toNutritionPlan(nutritionPlan, supplementOutput, goal);
     const supplement_plan = toSupplementPlan(supplementOutput);
+    const aiResult = {
+        workout_plan,
+        nutrition_plan,
+        supplement_plan,
+        adaptationSummary,
+        safety,
+        nutritionMemory: nutritionPlan.nutritionMemory || nutritionMemory,
+        supplementMemory: supplementOutput?.supplementMemory || supplementMemory
+    };
+    const protocolDraft = {
+        userId,
+        meta: {
+            goal,
+            limitations: rawInput?.limitations || normalizedInput?.limitations || 'none'
+        },
+        apiPlan: plan,
+        aiResult
+    };
 
     return {
         workout_plan,
         nutrition_plan,
         supplement_plan,
         adaptationSummary,
-        safety: {
-            valid: safety.valid,
-            warnings: safety.warnings,
-            criticalFlags: safety.criticalFlags,
-            qualityScore: safety.qualityScore
-        },
+        safety,
         plan,
         nutritionMemory: nutritionPlan.nutritionMemory || nutritionMemory,
-        supplementMemory: supplementOutput?.supplementMemory || supplementMemory
+        supplementMemory: supplementOutput?.supplementMemory || supplementMemory,
+        aiResult,
+        protocolDraft
     };
 }

@@ -7,11 +7,16 @@ import { getUsers, saveUsers } from '../data/storageAdapter.js';
 
 function normalizeLocalUser(user) {
     if (!user || !user.id) return null;
+    if (user.provider && user.provider !== 'local') return null;
     return {
         id: String(user.id),
         email: String(user.email || '').trim().toLowerCase(),
         provider: 'local',
-        createdAt: typeof user.createdAt === 'number' ? user.createdAt : Date.now()
+        createdAt: typeof user.createdAt === 'number'
+            ? user.createdAt
+            : typeof user.created_at === 'number'
+                ? user.created_at
+                : Date.now()
     };
 }
 

@@ -7,8 +7,15 @@
 
 import { createPeriodizationBlock } from './periodizationEngine.js';
 import { getCurrentUser } from '../core/auth.js';
-
-const DB_KEY = 'ascend_protocol_v4_db';
+import {
+    getCurrentUser as getStoredCurrentUser,
+    getProtocolState,
+    saveProtocolState,
+    getActiveProtocol as getStoredActiveProtocol,
+    saveActiveProtocol as saveStoredActiveProtocol,
+    getProtocolHistory as getStoredProtocolHistory,
+    ensureUserSlot
+} from '../data/storageAdapter.js';
 
 /** Default duration by goal (weeks) - fallback if periodization unavailable */
 const DURATION_BY_GOAL = {
@@ -24,11 +31,7 @@ const DURATION_BY_GOAL = {
  * @returns {Object}
  */
 function getDb() {
-    try {
-        return JSON.parse(localStorage.getItem(DB_KEY) || '{}');
-    } catch {
-        return { users: {}, currentUser: null };
-    }
+    return getProtocolState();
 }
 
 /**
@@ -36,11 +39,7 @@ function getDb() {
  * @param {Object} state
  */
 function saveDb(state) {
-    try {
-        localStorage.setItem(DB_KEY, JSON.stringify(state));
-    } catch (e) {
-        console.warn('[ProtocolEngine] Save failed:', e);
-    }
+    saveProtocolState(state);
 }
 
 /**
@@ -104,6 +103,8 @@ export function createProtocol(userProfile, trainingPlan, nutritionPlan, fullPro
 export function getCurrentUserId() {
     const authUser = getCurrentUser();
     if (authUser?.id) return authUser.id;
+    const storedUser = getStoredCurrentUser();
+    if (storedUser?.id) return storedUser.id;
     const state = getDb();
     return state?.currentUser ?? null;
 }
@@ -116,9 +117,7 @@ export function getCurrentUserId() {
 export function getActiveProtocol(userId) {
     const resolved = userId ?? getCurrentUserId();
     if (!resolved) return null;
-    const state = getDb();
-    const user = state.users?.[resolved];
-    return user?.active_protocol ?? null;
+    return getStoredActiveProtocol(resolved);
 }
 
 /**
@@ -151,14 +150,12 @@ function ensureProtocolModel(protocol, userId) {
 export function saveNewProtocol(protocol) {
     const userId = getCurrentUserId();
     if (!userId) return null;
+    ensureUserSlot(userId, protocol?.email || userId);
     const state = getDb();
-    if (!state.users) state.users = {};
-    if (!state.users[userId]) state.users[userId] = { email: userId, history: [], telemetry: [] };
     const user = state.users[userId];
     const toSave = ensureProtocolModel(protocol, userId);
     if (user.active_protocol) {
-        user.history = user.history || [];
-        user.history.unshift({ ...user.active_protocol, status: 'archived' });
+        user.history = [{ ...user.active_protocol, status: 'archived' }, ...getStoredProtocolHistory(userId)];
     }
     user.active_protocol = toSave;
     saveDb(state);
@@ -172,12 +169,9 @@ export function saveNewProtocol(protocol) {
  */
 export function saveActiveProtocol(userId, protocol) {
     if (!userId) return;
-    const state = getDb();
-    if (!state.users) state.users = {};
-    if (!state.users[userId]) state.users[userId] = { email: userId, history: [], telemetry: [] };
     const toSave = ensureProtocolModel(protocol, userId);
-    state.users[userId].active_protocol = toSave;
-    saveDb(state);
+    ensureUserSlot(userId, protocol?.email || userId);
+    saveStoredActiveProtocol(userId, toSave);
 }
 
 /**
@@ -303,8 +297,7 @@ export function completeProtocol(userId) {
     if (!user) return;
 
     const completed = { ...protocol, status: 'completed' };
-    user.history = user.history || [];
-    user.history.unshift(completed);
+    user.history = [{ ...completed }, ...getStoredProtocolHistory(userId)];
     user.active_protocol = null;
     saveDb(state);
 }
@@ -317,9 +310,7 @@ export function completeProtocol(userId) {
 export function getProtocolHistory(userId) {
     const resolved = userId ?? getCurrentUserId();
     if (!resolved) return [];
-    const state = getDb();
-    const user = state.users?.[resolved];
-    return user?.history ?? [];
+    return getStoredProtocolHistory(resolved);
 }
 
 /**
