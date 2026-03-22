@@ -81,11 +81,15 @@ function inferCloudProvider(user) {
 function normalizeBackendUser(user) {
     if (!user || !user.id) return null;
     const provider = inferCloudProvider(user);
+    const isAdmin = Boolean(
+        user.app_metadata?.is_admin === true || user.raw_app_meta_data?.is_admin === true
+    );
 
     return {
         id: String(user.id),
         email: String(user.email || '').trim().toLowerCase(),
         provider,
+        isAdmin,
         createdAt: typeof user.created_at === 'string' && user.created_at.trim()
             ? user.created_at.trim()
             : typeof user.createdAt === 'string' && user.createdAt.trim()

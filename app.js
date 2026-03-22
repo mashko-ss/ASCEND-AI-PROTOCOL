@@ -4,6 +4,7 @@
  */
 
 import { toDashboardFormat, saveProgressEntry, evaluateProgressFromLatest, getRecommendationsFromLatest, getProgressHistory, createProtocol, advanceProtocolWeek, getNextDeloadWeek, regenerateNextWeekProtocol, getInjuryState, processProgressForRecovery } from './src/lib/ai/index.js';
+import { signInWithGoogle as signInWithGoogleCloud, restoreSession, getSessionUser, isCurrentUserAdmin } from './src/lib/core/authAdapter.js';
 
 // Global App Namespace established early to prevent ReferenceErrors
 window.app = window.app || {};
@@ -40,6 +41,7 @@ const db = {
         state.users[email] = {
             email,
             pass,
+            isAdmin: false,
             assessment_state: { step: 0, data: {} }, // Pause & Resume
             active_protocol: null,
             history: [], // Generated protocols array
@@ -105,6 +107,28 @@ const db = {
     }
 };
 
+/** Minimal bridge: legacy `db` shell expects a current user row; cloud OAuth uses storageAdapter via authAdapter. */
+function ensureLegacyUserForCloudSession(cloudUser) {
+    if (!cloudUser || !cloudUser.email) return;
+    const state = db.get();
+    const email = String(cloudUser.email).trim().toLowerCase();
+    if (!state.users[email]) {
+        state.users[email] = {
+            email,
+            pass: '__oauth__',
+            isAdmin: cloudUser.isAdmin === true,
+            assessment_state: { step: 0, data: {} },
+            active_protocol: null,
+            history: [],
+            telemetry: []
+        };
+    } else {
+        state.users[email].isAdmin = cloudUser.isAdmin === true;
+    }
+    state.currentUser = email;
+    db.save(state);
+}
+
 // ==========================================
 // 1.5 LANGUAGE MODULE
 // ==========================================
@@ -118,6 +142,11 @@ const langModule = {
             "Personal Setup": "Personal Setup",
             "Login": "Login",
             "Create Account": "Create Account",
+            "Continue with Google": "Continue with Google",
+            "Cloud sign-in is not available.": "Cloud sign-in is not available.",
+            "Google sign-in failed.": "Google sign-in failed.",
+            "Admin Dashboard": "Admin Dashboard",
+            "Admin dashboard placeholder": "Administrator access. Content TBD.",
             "Logged In As": "Logged In As",
             "Dashboard": "Dashboard",
             "Logout": "Logout",
@@ -441,6 +470,11 @@ const langModule = {
             "Personal Setup": "Лична настройка",
             "Login": "Вход",
             "Create Account": "Създай профил",
+            "Continue with Google": "Продължи с Google",
+            "Cloud sign-in is not available.": "Облачен вход не е наличен.",
+            "Google sign-in failed.": "Входът с Google не бе успешен.",
+            "Admin Dashboard": "Админ табло",
+            "Admin dashboard placeholder": "Администраторски достъп. Съдържание — предстои.",
             "Logged In As": "Влязъл като",
             "Dashboard": "Табло",
             "Logout": "Изход",
@@ -838,27 +872,45 @@ const langModule = {
 // 2. CORE ROUTING & APP STATE
 // ==========================================
 const app = {
-    views: ['landing', 'auth', 'onboarding', 'assessment', 'dashboard'],
+    views: ['landing', 'auth', 'onboarding', 'assessment', 'dashboard', 'admin'],
 
     navigate: (viewId, context = null) => {
         // Handle logic before view switch
         const user = db.getCurrentUser();
 
         // Protected routes logic
-        const protectedRoutes = ['onboarding', 'assessment', 'dashboard'];
+        const protectedRoutes = ['onboarding', 'assessment', 'dashboard', 'admin'];
         if (protectedRoutes.includes(viewId) && !user) {
             viewId = 'auth';
             context = 'login';
         }
 
+        // Admin-only view: block non-admins
+        if (viewId === 'admin') {
+            if (!user) {
+                viewId = 'auth';
+                context = 'login';
+            } else if (!isCurrentUserAdmin()) {
+                viewId = user.active_protocol ? 'dashboard' : 'onboarding';
+            }
+        }
+
+        // Admins use admin home instead of member dashboard/onboarding
+        if (user && isCurrentUserAdmin() && (viewId === 'dashboard' || viewId === 'onboarding')) {
+            viewId = 'admin';
+        }
+
         // Contextual logic
         if (viewId === 'auth') {
-            if (user) return app.navigate('dashboard'); // Already logged in
+            if (user) {
+                if (isCurrentUserAdmin()) return app.navigate('admin');
+                return app.navigate('dashboard');
+            }
             authModule.setMode(context || 'login');
         }
 
-        if (viewId === 'dashboard' && user && !user.active_protocol) {
-            viewId = 'onboarding'; // No plan = force onboarding
+        if (viewId === 'dashboard' && user && !user.active_protocol && !isCurrentUserAdmin()) {
+            viewId = 'onboarding'; // No plan = force onboarding (non-admin only)
         }
 
         if (viewId === 'assessment') {
@@ -880,7 +932,7 @@ const app = {
             document.body.classList.remove('dashboard-active');
         } else {
             document.body.classList.remove('no-scroll');
-            if (viewId === 'dashboard') {
+            if (viewId === 'dashboard' || viewId === 'admin') {
                 document.documentElement.classList.add('dashboard-active');
                 document.body.classList.add('dashboard-active');
             } else {
@@ -964,6 +1016,68 @@ const app = {
 const authModule = {
     isSignup: false,
 
+    googleSignInErrorMessage: (result) => {
+        const unavailable = ['cloud_auth_not_configured', 'supabase_client_unavailable', 'oauth_sign_in_unavailable'];
+        if (result && unavailable.includes(result.reason)) {
+            return langModule.t('Cloud sign-in is not available.');
+        }
+        if (result && typeof result.reason === 'string' && result.reason.trim()) {
+            return result.reason.trim();
+        }
+        return langModule.t('Google sign-in failed.');
+    },
+
+    mountGoogleButton: () => {
+        const authForm = document.getElementById('auth-form');
+        const toggle = document.getElementById('auth-toggle-text');
+        if (!authForm || !toggle || document.getElementById('btn-auth-google')) return;
+
+        const wrap = document.createElement('div');
+        wrap.className = 'mt-4';
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.id = 'btn-auth-google';
+        btn.className = 'btn btn-outline btn-large w-full font-mono uppercase tracking-widest text-sm';
+        btn.setAttribute('data-i18n', 'Continue with Google');
+        btn.textContent = langModule.t('Continue with Google');
+        btn.setAttribute('aria-label', langModule.t('Continue with Google'));
+        wrap.appendChild(btn);
+        authForm.parentNode.insertBefore(wrap, toggle);
+
+        btn.addEventListener('click', (e) => {
+            e.preventDefault();
+            authModule.signInWithGoogle();
+        });
+
+        langModule.applyTranslations();
+    },
+
+    signInWithGoogle: async () => {
+        const errEl = document.getElementById('auth-error');
+        if (errEl) errEl.classList.add('hidden');
+
+        const btn = document.getElementById('btn-auth-google');
+        if (btn) btn.disabled = true;
+
+        try {
+            const result = await signInWithGoogleCloud();
+            if (!result.ok) {
+                if (errEl) {
+                    errEl.textContent = authModule.googleSignInErrorMessage(result);
+                    errEl.classList.remove('hidden');
+                }
+            }
+        } catch (e) {
+            console.warn('[ASCEND] Google sign-in error:', e);
+            if (errEl) {
+                errEl.textContent = langModule.t('Google sign-in failed.');
+                errEl.classList.remove('hidden');
+            }
+        } finally {
+            if (btn) btn.disabled = false;
+        }
+    },
+
     setMode: (mode) => {
         authModule.isSignup = (mode === 'signup');
         document.getElementById('auth-title').textContent = authModule.isSignup ? langModule.t('Create Account') : langModule.t('Login');
@@ -1016,7 +1130,8 @@ const authModule = {
         // Success - clean forms and route
         document.getElementById('auth-email').value = '';
         document.getElementById('auth-pass').value = '';
-        app.navigate('dashboard');
+        if (isCurrentUserAdmin()) app.navigate('admin');
+        else app.navigate('dashboard');
     }
 };
 
@@ -2380,7 +2495,7 @@ function toggleModal(modalId, show) {
 // ==========================================
 // 7. BOOTSTRAP & EVENTS
 // ==========================================
-function initApp() {
+async function initApp() {
     // Register Service Worker for PWA
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
@@ -2392,6 +2507,16 @@ function initApp() {
 
     db.init();
     langModule.init();
+
+    try {
+        await restoreSession();
+        const sessionUser = getSessionUser();
+        if (sessionUser) {
+            ensureLegacyUserForCloudSession(sessionUser);
+        }
+    } catch (e) {
+        console.warn('[ASCEND] Session restore skipped:', e);
+    }
 
     // Set active class on initial loader
     const activeBtn = document.getElementById(`lang-btn-${langModule.currentLanguage}`);
@@ -2440,7 +2565,7 @@ function initApp() {
     if (heroStartBtn) heroStartBtn.addEventListener('click', (e) => { e.preventDefault(); app.navigate('auth', 'signup'); });
 
     const navUserDashboard = document.getElementById('nav-user-dashboard');
-    if (navUserDashboard) navUserDashboard.addEventListener('click', (e) => { e.preventDefault(); app.navigate('dashboard'); });
+    if (navUserDashboard) navUserDashboard.addEventListener('click', (e) => { e.preventDefault(); app.navigate(isCurrentUserAdmin() ? 'admin' : 'dashboard'); });
 
     const assessmentPauseBtn = document.getElementById('assessment-pause-btn');
     if (assessmentPauseBtn) assessmentPauseBtn.addEventListener('click', (e) => { e.preventDefault(); app.navigate('dashboard'); });
@@ -2615,10 +2740,13 @@ function initApp() {
     const authForm = document.getElementById('auth-form');
     if (authForm) authForm.addEventListener('submit', (e) => { e.preventDefault(); authModule.submit(); });
 
+    authModule.mountGoogleButton();
+
     // Check auth to route properly
     const user = db.getCurrentUser();
     if (user) {
-        if (user.active_protocol) app.navigate('dashboard');
+        if (isCurrentUserAdmin()) app.navigate('admin');
+        else if (user.active_protocol) app.navigate('dashboard');
         else app.navigate('onboarding');
     } else {
         app.navigate('landing');
@@ -2626,18 +2754,18 @@ function initApp() {
 }
 
 // Run init when DOM is ready (handles ES module load-after-DOMContentLoaded race)
-function runInit() {
+async function runInit() {
     try {
-        initApp();
+        await initApp();
     } catch (err) {
         console.error('[ASCEND] Startup error:', err);
         throw err;
     }
 }
 if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', runInit);
+    document.addEventListener('DOMContentLoaded', () => { void runInit(); });
 } else {
-    runInit();
+    void runInit();
 }
 
 // ==========================================

@@ -88,6 +88,16 @@ function inferUserProvider(user) {
     return 'local';
 }
 
+/** Admin role: only from Supabase app metadata (or persisted snapshot of it). Never user_metadata. */
+function resolveIsAdminFlag(user, provider) {
+    if (!user || typeof user !== 'object') return false;
+    if (provider === 'local') return false;
+    if (user.app_metadata && user.app_metadata.is_admin === true) return true;
+    if (user.raw_app_meta_data && user.raw_app_meta_data.is_admin === true) return true;
+    if (user.isAdmin === true) return true;
+    return false;
+}
+
 function normalizeCreatedAt(user, provider) {
     if (provider === 'local') {
         if (typeof user.createdAt === 'number' && Number.isFinite(user.createdAt)) return user.createdAt;
@@ -110,6 +120,7 @@ function normalizeUser(user) {
         id: String(user.id),
         email: String(user.email || '').trim().toLowerCase(),
         provider,
+        isAdmin: resolveIsAdminFlag(user, provider),
         createdAt: normalizeCreatedAt(user, provider)
     };
 }

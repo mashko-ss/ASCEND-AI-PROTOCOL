@@ -60,6 +60,13 @@ function inferCloudProvider(user) {
     return 'local';
 }
 
+function resolveIsAdminFromSupabaseUser(user) {
+    if (!user || typeof user !== 'object') return false;
+    if (user.app_metadata && user.app_metadata.is_admin === true) return true;
+    if (user.raw_app_meta_data && user.raw_app_meta_data.is_admin === true) return true;
+    return false;
+}
+
 function normalizeCloudUser(user) {
     if (!user || !user.id) return null;
     const provider = inferCloudProvider(user);
@@ -67,6 +74,7 @@ function normalizeCloudUser(user) {
         id: String(user.id),
         email: String(user.email || '').trim().toLowerCase(),
         provider,
+        isAdmin: resolveIsAdminFromSupabaseUser(user),
         createdAt: typeof user.created_at === 'string' && user.created_at.trim()
             ? user.created_at.trim()
             : typeof user.createdAt === 'string' && user.createdAt.trim()
@@ -91,6 +99,13 @@ export function getSessionUser() {
     const currentUser = getStoredCurrentUser();
     if (!currentUser) return null;
     return hasActiveSupabaseSession() ? currentUser : null;
+}
+
+/** True only when an active Supabase session exists and app_metadata.is_admin was applied (not user_metadata). */
+export function isCurrentUserAdmin() {
+    if (!hasActiveSupabaseSession()) return false;
+    const u = getStoredCurrentUser();
+    return u?.isAdmin === true;
 }
 
 export async function restoreSession() {

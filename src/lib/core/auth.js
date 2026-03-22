@@ -17,6 +17,7 @@ function normalizeLocalUser(user) {
         id: String(user.id),
         email: String(user.email || '').trim().toLowerCase(),
         provider: 'local',
+        isAdmin: false,
         createdAt: typeof user.createdAt === 'number'
             ? user.createdAt
             : typeof user.created_at === 'number'
