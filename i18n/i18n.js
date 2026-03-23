@@ -3,7 +3,13 @@ import { bg } from './bg.js';
 
 export const translations = { en, bg };
 
-let currentLanguage = localStorage.getItem('ascend_lang') || 'en';
+// BG-first UI: match app.js (`ascend_lang` = bg). `translations.en` kept for later EN UI.
+let currentLanguage = 'bg';
+try {
+    localStorage.setItem('ascend_lang', 'bg');
+} catch (e) {
+    /* ignore */
+}
 
 export function getLanguage() {
     return currentLanguage;

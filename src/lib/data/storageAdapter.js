@@ -98,6 +98,19 @@ function resolveIsAdminFlag(user, provider) {
     return false;
 }
 
+function resolveUsername(user) {
+    if (!user || typeof user !== 'object') return '';
+    if (typeof user.username === 'string' && user.username.trim()) return user.username.trim();
+    const m = user.user_metadata;
+    if (m && typeof m === 'object') {
+        if (typeof m.username === 'string' && m.username.trim()) return m.username.trim();
+        if (typeof m.preferred_username === 'string' && m.preferred_username.trim()) {
+            return m.preferred_username.trim();
+        }
+    }
+    return '';
+}
+
 function normalizeCreatedAt(user, provider) {
     if (provider === 'local') {
         if (typeof user.createdAt === 'number' && Number.isFinite(user.createdAt)) return user.createdAt;
@@ -121,6 +134,7 @@ function normalizeUser(user) {
         email: String(user.email || '').trim().toLowerCase(),
         provider,
         isAdmin: resolveIsAdminFlag(user, provider),
+        username: resolveUsername(user),
         createdAt: normalizeCreatedAt(user, provider)
     };
 }

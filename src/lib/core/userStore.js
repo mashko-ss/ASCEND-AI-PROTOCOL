@@ -13,6 +13,7 @@ function normalizeLocalUser(user) {
         email: String(user.email || '').trim().toLowerCase(),
         provider: 'local',
         isAdmin: false,
+        username: typeof user.username === 'string' && user.username.trim() ? user.username.trim() : '',
         createdAt: typeof user.createdAt === 'number'
             ? user.createdAt
             : typeof user.created_at === 'number'

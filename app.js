@@ -4,7 +4,8 @@
  */
 
 import { toDashboardFormat, saveProgressEntry, evaluateProgressFromLatest, getRecommendationsFromLatest, getProgressHistory, createProtocol, advanceProtocolWeek, getNextDeloadWeek, regenerateNextWeekProtocol, getInjuryState, processProgressForRecovery } from './src/lib/ai/index.js';
-import { signInWithGoogle as signInWithGoogleCloud, restoreSession, getSessionUser, isCurrentUserAdmin } from './src/lib/core/authAdapter.js';
+import { signInWithGoogle as signInWithGoogleCloud, restoreSession, getSessionUser, isCurrentUserAdmin, signOutUser, saveUsername } from './src/lib/core/authAdapter.js';
+import { getCurrentUser as storageGetCurrentUser } from './src/lib/data/storageAdapter.js';
 
 // Global App Namespace established early to prevent ReferenceErrors
 window.app = window.app || {};
@@ -125,19 +126,69 @@ function ensureLegacyUserForCloudSession(cloudUser) {
     } else {
         state.users[email].isAdmin = cloudUser.isAdmin === true;
     }
+    if (cloudUser.username) {
+        state.users[email].username = cloudUser.username;
+    }
     state.currentUser = email;
     db.save(state);
+}
+
+function hasUsernameForCurrentUser() {
+    const du = db.getCurrentUser();
+    if (!du) return false;
+    if (du.username && String(du.username).trim()) return true;
+    const su = storageGetCurrentUser();
+    return Boolean(su?.username?.trim());
+}
+
+function persistUsernameToLegacyDb(trimmed) {
+    const state = db.get();
+    if (!state.currentUser || !state.users[state.currentUser]) return;
+    state.users[state.currentUser].username = trimmed;
+    db.save(state);
+}
+
+function getNavDisplayLabel() {
+    const du = db.getCurrentUser();
+    if (!du) return '';
+    const su = storageGetCurrentUser();
+    const name = (su?.username || du.username || '').trim();
+    if (name) return name.toUpperCase();
+    return du.email.split('@')[0].toUpperCase();
+}
+
+function getNavAvatarInitials() {
+    const du = db.getCurrentUser();
+    if (!du) return '';
+    const su = storageGetCurrentUser();
+    const name = (su?.username || du.username || '').trim();
+    if (name) return name.substring(0, 2).toUpperCase();
+    return du.email.substring(0, 2).toUpperCase();
+}
+
+/** Nav bar uses monospace uppercase; dropdown shows readable name when username is set. */
+function getDropdownDisplayLabel() {
+    const du = db.getCurrentUser();
+    if (!du) return '';
+    const su = storageGetCurrentUser();
+    const name = (su?.username || du.username || '').trim();
+    if (name) return name;
+    return du.email;
 }
 
 // ==========================================
 // 1.5 LANGUAGE MODULE
 // ==========================================
 const langModule = {
-    currentLanguage: 'en',
+    /** Default visible UI language: BG-first market. English remains in `translations.en` for recovery. */
+    currentLanguage: 'bg',
     translations: {
         en: {
             "Start Assessment": "Start Assessment",
             "Resume Step": "Resume Step",
+            "Resume Step with number": "Resume from step {n}",
+            "Pause Assessment": "Pause assessment",
+            "Steps progress": "{n} / {m}",
             "Welcome to ASCEND AI PROTOCOL": "Welcome to ASCEND AI PROTOCOL",
             "Personal Setup": "Personal Setup",
             "Login": "Login",
@@ -147,6 +198,22 @@ const langModule = {
             "Google sign-in failed.": "Google sign-in failed.",
             "Admin Dashboard": "Admin Dashboard",
             "Admin dashboard placeholder": "Administrator access. Content TBD.",
+            "Signed in": "Signed in",
+            "Choose where to go": "Choose where to go",
+            "Admin Panel": "Admin Panel",
+            "Open App": "Open App",
+            "Username setup title": "Choose your display name",
+            "Username setup hint": "This name appears in the app instead of your email when possible.",
+            "Username label": "Display name",
+            "Username placeholder": "Your name or nickname",
+            "Save and continue": "Save and continue",
+            "Username required": "Please enter a username.",
+            "Could not save.": "Could not save.",
+            "welcome_onboarding_title": "Welcome to ASCEND AI PROTOCOL",
+            "welcome_onboarding_subtitle": "Answer a few short questions so we can build a personalized strategy for your goals, level, limitations, and lifestyle.",
+            "welcome_hook_line1": "No generic programs. No guesswork.",
+            "welcome_hook_line2": "Only an individual approach that turns what we know about you into a clear, actionable plan.",
+            "welcome_cta_start": "Start the questions",
             "Logged In As": "Logged In As",
             "Dashboard": "Dashboard",
             "Logout": "Logout",
@@ -210,6 +277,7 @@ const langModule = {
             "Energy": "Energy",
             "Sleep": "Sleep",
             "Notes": "Notes",
+            "How did you feel this week?": "How did you feel this week?",
             "[ No progress logged yet ]": "[ No progress logged yet ]",
             "Plan History": "Plan History",
             "Your previous plans": "Your previous training plans.",
@@ -317,6 +385,43 @@ const langModule = {
             "Height (cm)": "Height (cm)",
             "e.g. 178": "e.g. 178",
             "Activity Level": "Activity Level",
+            "Step 1": "Step 1",
+            "Step 2": "Step 2",
+            "Step 3": "Step 3",
+            "Step 4": "Step 4",
+            "Step 5": "Step 5",
+            "Step 6": "Step 6",
+            "Step 7": "Step 7",
+            "Personal Stats": "Personal Stats",
+            "Daily Activity Level": "Daily Activity Level",
+            "Activity Outside of Training": "Activity Outside of Training",
+            "Primary Goal": "Primary Goal",
+            "Sedentary": "Sedentary",
+            "Lightly Active": "Lightly Active",
+            "Moderately Active": "Moderately Active",
+            "Very Active": "Very Active",
+            "Target Focus": "Target Focus",
+            "Weak muscle groups or priorities": "Weak muscle groups or priorities",
+            "Chest": "Chest",
+            "Legs": "Legs",
+            "Core": "Core",
+            "Overall": "Overall",
+            "Experience & Equipment": "Experience & Equipment",
+            "Schedule": "Schedule",
+            "2 Days": "2 Days",
+            "3 Days": "3 Days",
+            "4 Days": "4 Days",
+            "5 Days": "5 Days",
+            "6 Days": "6 Days",
+            "Limitations & Injuries": "Limitations & Injuries",
+            "No injuries or limitations": "No injuries or limitations.",
+            "Dietary Needs": "Dietary Needs",
+            "Allergies / Exclusions": "Allergies / Exclusions",
+            "Standard / Balanced": "Standard / Balanced",
+            "Vegan": "Vegan",
+            "Vegetarian": "Vegetarian",
+            "Gluten-free": "Gluten-free",
+            "Keto": "Keto",
             "Mostly sitting / little movement": "Mostly sitting / little movement",
             "Light activity (walking, light workouts)": "Light activity (walking, light workouts)",
             "Regular workouts or active job": "Regular workouts or active job",
@@ -458,6 +563,12 @@ const langModule = {
             "Focus on whole foods and hit your macro targets above.": "Focus on whole foods and hit your macro targets above.",
             "sets": "sets",
             "Rest": "Rest",
+            "Warm-up": "Warm-up",
+            "Pre-workout": "Pre-workout",
+            "Post-workout": "Post-workout",
+            "Mark exercise complete": "Mark exercise complete",
+            "RPE": "RPE",
+            "Tempo": "Tempo",
             "Create Plan": "Create Plan",
             "Please complete all visible fields to proceed.": "Please complete all visible fields to proceed.",
             "MIN": "MIN",
@@ -466,6 +577,9 @@ const langModule = {
         bg: {
             "Start Assessment": "Започни настройката",
             "Resume Step": "Продължи от стъпка",
+            "Resume Step with number": "Продължи от стъпка {n}",
+            "Pause Assessment": "Пауза на настройката",
+            "Steps progress": "Стъпка {n} от {m}",
             "Welcome to ASCEND AI PROTOCOL": "Добре дошли в ASCEND AI PROTOCOL",
             "Personal Setup": "Лична настройка",
             "Login": "Вход",
@@ -475,6 +589,22 @@ const langModule = {
             "Google sign-in failed.": "Входът с Google не бе успешен.",
             "Admin Dashboard": "Админ табло",
             "Admin dashboard placeholder": "Администраторски достъп. Съдържание — предстои.",
+            "Signed in": "Влязли сте",
+            "Choose where to go": "Изберете накъде",
+            "Admin Panel": "Админ панел",
+            "Open App": "Отвори приложението",
+            "Username setup title": "Избери показвано име",
+            "Username setup hint": "Това име се показва в приложението вместо имейла, когато е възможно.",
+            "Username label": "Показвано име",
+            "Username placeholder": "Име или псевдоним",
+            "Save and continue": "Запази и продължи",
+            "Username required": "Моля, въведи потребителско име.",
+            "Could not save.": "Запазването не бе успешно.",
+            "welcome_onboarding_title": "Добре дошли в ASCEND AI PROTOCOL",
+            "welcome_onboarding_subtitle": "Отговорете на няколко кратки въпроса, за да създадем персонализирана стратегия според вашите цели, ниво, ограничения и начин на живот.",
+            "welcome_hook_line1": "Без общи програми. Без догадки.",
+            "welcome_hook_line2": "Само индивидуален подход, който превръща информацията за теб в ясен и приложим план за действие.",
+            "welcome_cta_start": "Започнете въпросите",
             "Logged In As": "Влязъл като",
             "Dashboard": "Табло",
             "Logout": "Изход",
@@ -493,7 +623,7 @@ const langModule = {
             "Email Address": "Имейл адрес",
             "Password": "Парола",
             "No account yet?": "Нямате профил?",
-            "Initialize text": "Започнете настройката, за да генерирате прецизен протокол за сила, здраве, дълголетие и рекомпозиция на тялото.",
+            "Initialize text": "Стартирайте настройката, за да получите прецизен протокол за сила, здраве, дълголетие и рекомпозиция на тялото.",
             "Back": "Назад",
             "Next Step": "Напред",
             "YOUR TRAINING PLAN": "ВАШИЯТ ТРЕНИРОВЪЧЕН ПЛАН",
@@ -538,6 +668,7 @@ const langModule = {
             "Energy": "Енергия",
             "Sleep": "Сън",
             "Notes": "Бележки",
+            "How did you feel this week?": "Как се чувстваше тази седмица?",
             "[ No progress logged yet ]": "[ Все още няма въведен прогрес ]",
             "Plan History": "История на плановете",
             "Your previous plans": "Предишни тренировъчни планове.",
@@ -569,6 +700,13 @@ const langModule = {
             "per week": "на седмица",
             "Sleep": "Сън",
             "hours": "часа",
+            "Monday": "ПОН",
+            "Tuesday": "ВТО",
+            "Wednesday": "СРЯ",
+            "Thursday": "ЧЕТ",
+            "Friday": "ПЕТ",
+            "Saturday": "СЪБ",
+            "Sunday": "НЕД",
             "Mon": "ПОН",
             "Tue": "ВТО",
             "Wed": "СРЯ",
@@ -595,6 +733,27 @@ const langModule = {
             "Days / Wk": "Дни / Седм",
             "Status": "Статус",
             "Active": "Активен",
+            "Completed": "Завършено",
+            "Paused": "На пауза",
+            "Protocol Status": "Статус на протокола",
+            "Advance Week": "Следваща седмица",
+            "Current Week": "Текуща седмица",
+            "Goal": "Цел",
+            "Next Deload": "Следваща разтоварваща седмица",
+            "Start Date": "Начална дата",
+            "No active protocol": "Няма активен протокол.",
+            "Muscle Gain": "Покачване на маса",
+            "Longevity": "Дълголетие",
+            "Week": "Седмица",
+            "No snapshots yet": "Все още няма записи.",
+            "Adaptation recorded": "Адаптацията е записана",
+            "Action": "Действие",
+            "Latest Regeneration Result": "Последен резултат от регенерация",
+            "Deload": "Разтоварване",
+            "Volume": "Обем",
+            "Intensity": "Интензитет",
+            "Calories": "Калории",
+            "Cardio": "Кардио",
             "Deploy Date": "Дата на стартиране",
             "Balanced Nutrition": "Балансирано",
             "Keto Diet": "Кето диета",
@@ -620,20 +779,57 @@ const langModule = {
             "Height (cm)": "Височина (см)",
             "e.g. 178": "напр. 178",
             "Activity Level": "Ниво на активност",
-            "Mostly sitting / little movement": "Предимно седяща работа / малко движение",
-            "Light activity (walking, light workouts)": "Лека активност (разходки, леки тренировки)",
-            "Regular workouts or active job": "Редовни тренировки или активна работа",
-            "Hard training or physical work": "Тежки тренировки или физическа работа",
+            "Step 1": "Стъпка 1",
+            "Step 2": "Стъпка 2",
+            "Step 3": "Стъпка 3",
+            "Step 4": "Стъпка 4",
+            "Step 5": "Стъпка 5",
+            "Step 6": "Стъпка 6",
+            "Step 7": "Стъпка 7",
+            "Personal Stats": "Лични данни",
+            "Daily Activity Level": "Дневно ниво на активност",
+            "Activity Outside of Training": "Активност извън тренировките",
+            "Primary Goal": "Основна цел",
+            "Sedentary": "Заседнал начин на живот",
+            "Lightly Active": "Лека активност",
+            "Moderately Active": "Умерена активност",
+            "Very Active": "Висока активност",
+            "Target Focus": "Приоритет в тренировката",
+            "Weak muscle groups or priorities": "Слаби мускулни групи или приоритети",
+            "Chest": "Гърди",
+            "Legs": "Крака",
+            "Core": "Корем",
+            "Overall": "Цялостно",
+            "Experience & Equipment": "Опит и оборудване",
+            "Schedule": "График",
+            "2 Days": "2 дни",
+            "3 Days": "3 дни",
+            "4 Days": "4 дни",
+            "5 Days": "5 дни",
+            "6 Days": "6 дни",
+            "Limitations & Injuries": "Ограничения и контузии",
+            "No injuries or limitations": "Няма контузии или ограничения.",
+            "Dietary Needs": "Хранителни предпочитания",
+            "Allergies / Exclusions": "Алергии и изключения",
+            "Standard / Balanced": "Стандартно / балансирано",
+            "Vegan": "Веган",
+            "Vegetarian": "Вегетарианско",
+            "Gluten-free": "Без глутен",
+            "Keto": "Кето",
+            "Mostly sitting / little movement": "Предимно седяща работа и малко движение през деня.",
+            "Light activity (walking, light workouts)": "Леки разходки и ограничена физическа активност през деня.",
+            "Regular workouts or active job": "Редовно движение или работа, която изисква активност.",
+            "Hard training or physical work": "Интензивна физическа работа или висока активност през по-голямата част от деня.",
             "Your Goal": "Вашата цел",
-            "Primary Focus": "Основен фокус",
+            "Primary Focus": "Основен акцент",
             "Fat Loss": "Отслабване",
-            "Lose fat while preserving muscle.": "Изчистване на мазнини със запазване на мускулна маса.",
+            "Lose fat while preserving muscle.": "Намаляване на мазнини със запазване на мускулна маса.",
             "Build Muscle": "Мускулна маса",
             "Gain muscle and strength.": "Покачване на сила и мускулна маса.",
             "Recomposition": "Рекомпозиция",
             "Lose fat and gain muscle at the same time.": "Изчистване на мазнини и покачване на мускули едновременно.",
             "Health & Longevity": "Здраве и дълголетие",
-            "Optimize healthspan and vitality.": "Оптимизиране на здравето и жизнеността.",
+            "Optimize healthspan and vitality.": "Подобряване на здравето и жизнеността в дългосрочен план.",
             "Secondary Objectives": "Второстепенни цели",
             "Raw Strength": "Чиста сила",
             "Better Stamina": "По-добра издръжливост",
@@ -648,11 +844,11 @@ const langModule = {
             "Experience & Capability": "Опит и възможности",
             "Training Experience": "Тренировъчен опит",
             "Beginner": "Начинаещ",
-            "New to training, learning the basics.": "Нов в тренировките, уча основите.",
+            "New to training, learning the basics.": "Нов в тренировките; усвоявам основите.",
             "Intermediate": "Средно напреднал",
-            "Consistent training for a few months.": "Редовни тренировки от няколко месеца.",
+            "Consistent training for a few months.": "Редовни тренировки от няколко месеца насам.",
             "Advanced": "Напреднал",
-            "Several years of training experience.": "Няколко години тренировъчен опит.",
+            "Several years of training experience.": "Години последователен тренировъчен опит.",
             "Current Fitness Level (1-10)": "Текущо фитнес ниво (1-10)",
             "Areas for Improvement": "Зони за подобряване",
             "Lose Body Fat": "Отслабване",
@@ -666,7 +862,7 @@ const langModule = {
             "Do you have any current injuries?": "Имате ли настоящи контузии?",
             "No": "Не",
             "Yes": "Да",
-            "Select Injuries/Limitations": "Изберете контузии/ограничения",
+            "Select Injuries/Limitations": "Болки в стави или други ограничения",
             "Lower Back / Spine": "Кръст / Гръбнак",
             "Knees": "Колена",
             "Shoulders": "Рамене",
@@ -679,19 +875,19 @@ const langModule = {
             "I recover normally": "Възстановявам се нормално",
             "I bounce back fast": "Възстановявам се много бързо",
             "Logistics": "Логистика",
-            "Training Days Per Week": "Тренировъчни дни в седмицата",
-            "Available Session Duration": "Време за тренировка",
-            "30 Minutes": "30 Минути",
-            "45 Minutes": "45 Минути",
-            "60 Minutes": "60 Минути",
-            "90+ Minutes": "90+ Минути",
-            "Equipment Access": "Налично оборудване",
+            "Training Days Per Week": "Тренировъчни дни седмично",
+            "Available Session Duration": "Продължителност на тренировка",
+            "30 Minutes": "30 мин",
+            "45 Minutes": "45 мин",
+            "60 Minutes": "60 мин",
+            "90+ Minutes": "90+ мин",
+            "Equipment Access": "Достъп до оборудване",
             "Full Gym": "Пълен фитнес",
-            "Gym": "Фитнес",
+            "Gym": "Фитнес зала",
             "Home": "Вкъщи",
-            "A proper gym with machines and free weights.": "Добре оборудвана фитнес зала.",
+            "A proper gym with machines and free weights.": "Фитнес зала с уреди и свободни тежести.",
             "Home Gym": "Домашен фитнес",
-            "Basic setup with dumbbells or a barbell.": "Основни тежести и дъмбели вкъщи.",
+            "Basic setup with dumbbells or a barbell.": "Основно оборудване: дъмбели или щанга.",
             "Bodyweight/Minimal": "Собствено тегло / Минимално",
             "No equipment, just your body.": "Без оборудване, само собствено тегло.",
             "Training Style Preference": "Предпочитан тренировъчен стил",
@@ -704,7 +900,7 @@ const langModule = {
             "Using your own bodyweight to get strong and lean.": "Използване на собствено тегло за сила и релеф.",
             "Workouts focused on moving well and living longer.": "Тренировки за дълголетие и по-добро движение.",
             "Nutrition Profile": "Хранителен профил",
-            "Diet Type": "Тип диета",
+            "Diet Type": "Тип хранене",
             "Balanced Nutritional Plan": "Балансирано хранене",
             "A normal diet with a good mix of protein, carbs, and fats.": "Нормална диета с добър микс от протеини, въглехидрати и мазнини.",
             "Keto / Low Carb": "Кето / НВХ",
@@ -736,7 +932,7 @@ const langModule = {
             "Willing to spend more on quality": "Мога да харча повече за качество",
             "Daily Water Intake (Liters)": "Дневен прием на вода (Литри)",
             "Supplement Use": "Употреба на добавки",
-            "None": "Никакви",
+            "None": "Няма",
             "I only eat whole foods": "Само истинска храна",
             "Basic": "Основни",
             "Just protein and vitamins": "Само протеин и витамини",
@@ -761,6 +957,12 @@ const langModule = {
             "Focus on whole foods and hit your macro targets above.": "Фокусирайте се върху истинска храна и постигайте целевите макроси.",
             "sets": "серии",
             "Rest": "Почивка",
+            "Warm-up": "Загрявка",
+            "Pre-workout": "Преди тренировка",
+            "Post-workout": "След тренировка",
+            "Mark exercise complete": "Отбележи упражнението като изпълнено",
+            "RPE": "RPE",
+            "Tempo": "Темпо",
             "Create Plan": "Създай план",
             "Please complete all visible fields to proceed.": "Моля, попълнете всички видими полета, за да продължите.",
             "MIN": "МИН",
@@ -786,12 +988,11 @@ const langModule = {
     },
 
     init: () => {
-        const savedLang = localStorage.getItem('ascend_lang');
-        if (savedLang && (savedLang === 'en' || savedLang === 'bg')) {
-            langModule.currentLanguage = savedLang;
-        } else {
-            langModule.currentLanguage = 'en';
-        }
+        // BG-first: always show Bulgarian in UI. English dictionaries stay loaded; restore later via `ascend_lang` + switcher.
+        langModule.currentLanguage = 'bg';
+        try {
+            localStorage.setItem('ascend_lang', 'bg');
+        } catch (e) { /* ignore */ }
         langModule.applyTranslations();
     },
 
@@ -819,6 +1020,15 @@ const langModule = {
         // Re-render dashboard if active
         if (typeof dashModule !== 'undefined' && document.getElementById('view-dashboard')?.classList.contains('active')) {
             dashModule.render();
+        }
+
+        if (document.getElementById('view-entry')?.classList.contains('active')) {
+            entryModule.refreshEntry();
+        }
+
+        if (document.getElementById('view-welcome-onboarding')?.classList.contains('active')
+            || document.getElementById('view-username-setup')?.classList.contains('active')) {
+            langModule.applyTranslations();
         }
     },
 
@@ -869,17 +1079,42 @@ const langModule = {
 };
 
 // ==========================================
+// 2. AUTHENTICATED ENTRY (hub after login)
+// ==========================================
+const entryModule = {
+    refreshEntry() {
+        const adminBtn = document.getElementById('entry-btn-admin-panel');
+        if (adminBtn) {
+            if (isCurrentUserAdmin()) adminBtn.classList.remove('hidden');
+            else adminBtn.classList.add('hidden');
+        }
+        langModule.applyTranslations();
+    }
+};
+
+// ==========================================
 // 2. CORE ROUTING & APP STATE
 // ==========================================
 const app = {
-    views: ['landing', 'auth', 'onboarding', 'assessment', 'dashboard', 'admin'],
+    views: ['landing', 'auth', 'entry', 'username-setup', 'welcome-onboarding', 'onboarding', 'assessment', 'dashboard', 'admin'],
+
+    /** Member app: dashboard if protocol exists, else onboarding. */
+    openApp: () => {
+        const user = db.getCurrentUser();
+        if (!user) {
+            app.navigate('auth', 'login');
+            return;
+        }
+        if (user.active_protocol) app.navigate('dashboard');
+        else app.navigate('onboarding');
+    },
 
     navigate: (viewId, context = null) => {
         // Handle logic before view switch
         const user = db.getCurrentUser();
 
         // Protected routes logic
-        const protectedRoutes = ['onboarding', 'assessment', 'dashboard', 'admin'];
+        const protectedRoutes = ['entry', 'username-setup', 'welcome-onboarding', 'onboarding', 'assessment', 'dashboard', 'admin'];
         if (protectedRoutes.includes(viewId) && !user) {
             viewId = 'auth';
             context = 'login';
@@ -895,17 +1130,27 @@ const app = {
             }
         }
 
-        // Admins use admin home instead of member dashboard/onboarding
-        if (user && isCurrentUserAdmin() && (viewId === 'dashboard' || viewId === 'onboarding')) {
-            viewId = 'admin';
+        // Username / welcome: normal users only; admins use entry flow
+        if (viewId === 'username-setup' || viewId === 'welcome-onboarding') {
+            if (!user) {
+                viewId = 'auth';
+                context = 'login';
+            } else if (isCurrentUserAdmin()) {
+                viewId = 'entry';
+            }
+        }
+
+        if (viewId === 'username-setup' && user && hasUsernameForCurrentUser() && !isCurrentUserAdmin()) {
+            viewId = 'welcome-onboarding';
+        }
+
+        if (viewId === 'welcome-onboarding' && user && !hasUsernameForCurrentUser() && !isCurrentUserAdmin()) {
+            viewId = 'username-setup';
         }
 
         // Contextual logic
         if (viewId === 'auth') {
-            if (user) {
-                if (isCurrentUserAdmin()) return app.navigate('admin');
-                return app.navigate('dashboard');
-            }
+            if (user) return routeAfterAuth();
             authModule.setMode(context || 'login');
         }
 
@@ -952,6 +1197,10 @@ const app = {
         }
 
         app.updateNav();
+
+        if (viewId === 'entry') {
+            entryModule.refreshEntry();
+        }
     },
 
     updateNav: () => {
@@ -962,9 +1211,9 @@ const app = {
         if (user) {
             navUnauth.classList.add('hidden');
             navAuth.classList.remove('hidden');
-            document.getElementById('nav-user-email').textContent = user.email.split('@')[0].toUpperCase();
-            document.getElementById('nav-avatar').textContent = user.email.substring(0, 2).toUpperCase();
-            document.getElementById('dropdown-email').textContent = user.email;
+            document.getElementById('nav-user-email').textContent = getNavDisplayLabel();
+            document.getElementById('nav-avatar').textContent = getNavAvatarInitials();
+            document.getElementById('dropdown-email').textContent = getDropdownDisplayLabel();
 
             // Setup Dropdown listener safely
             const userMenuBtn = document.getElementById('user-menu-btn');
@@ -1004,7 +1253,12 @@ const app = {
         }
     },
 
-    logout: () => {
+    logout: async () => {
+        try {
+            await signOutUser();
+        } catch (e) {
+            console.warn('[ASCEND] signOutUser failed:', e);
+        }
         db.logout();
         app.navigate('landing');
     }
@@ -1065,6 +1319,14 @@ const authModule = {
                 if (errEl) {
                     errEl.textContent = authModule.googleSignInErrorMessage(result);
                     errEl.classList.remove('hidden');
+                }
+            } else if (result.redirectUrl) {
+                window.location.assign(result.redirectUrl);
+            } else {
+                const sessionUser = getSessionUser();
+                if (sessionUser) {
+                    ensureLegacyUserForCloudSession(sessionUser);
+                    routeAfterAuth();
                 }
             }
         } catch (e) {
@@ -1130,8 +1392,44 @@ const authModule = {
         // Success - clean forms and route
         document.getElementById('auth-email').value = '';
         document.getElementById('auth-pass').value = '';
-        if (isCurrentUserAdmin()) app.navigate('admin');
-        else app.navigate('dashboard');
+        routeAfterAuth();
+    }
+};
+
+function routeAfterAuth() {
+    if (isCurrentUserAdmin()) app.navigate('entry');
+    else if (!hasUsernameForCurrentUser()) app.navigate('username-setup');
+    else app.navigate('welcome-onboarding');
+}
+
+const usernameModule = {
+    submit: async () => {
+        const input = document.getElementById('username-input');
+        const err = document.getElementById('username-setup-error');
+        const val = input?.value?.trim() || '';
+        if (!val) {
+            if (err) {
+                err.textContent = langModule.t('Username required');
+                err.classList.remove('hidden');
+            }
+            return;
+        }
+        if (err) err.classList.add('hidden');
+        const result = await saveUsername(val);
+        if (!result.ok) {
+            if (result.reason === 'no_user' && db.getCurrentUser()) {
+                persistUsernameToLegacyDb(val);
+                app.navigate('welcome-onboarding');
+                return;
+            }
+            if (err) {
+                err.textContent = typeof result.reason === 'string' ? result.reason : langModule.t('Could not save.');
+                err.classList.remove('hidden');
+            }
+            return;
+        }
+        persistUsernameToLegacyDb(val);
+        app.navigate('welcome-onboarding');
     }
 };
 
@@ -1197,9 +1495,21 @@ const wizardModule = {
             }
         });
 
-        // Update progress UI
-        document.getElementById('step-counter').textContent = `${wizardModule.current + 1} / ${wizardModule.totalSteps}`;
+        // Update progress UI (localized step counter)
+        const stepCounterEl = document.getElementById('step-counter');
+        if (stepCounterEl) {
+            stepCounterEl.textContent = langModule.t('Steps progress')
+                .replace('{n}', String(wizardModule.current + 1))
+                .replace('{m}', String(wizardModule.totalSteps));
+        }
         document.getElementById('wizard-progress').style.width = `${(wizardModule.current / wizardModule.totalSteps) * 100}%`;
+
+        const pauseBtn = document.getElementById('assessment-pause-btn');
+        if (pauseBtn) {
+            const pauseT = langModule.t('Pause Assessment');
+            pauseBtn.setAttribute('title', pauseT);
+            pauseBtn.setAttribute('aria-label', pauseT);
+        }
 
         // Update Button Visibilities
         document.getElementById('btn-prev-step').style.visibility = wizardModule.current === 0 ? 'hidden' : 'visible';
@@ -1948,7 +2258,7 @@ const protocolRenderers = {
                 </div>
                 <div class="p-3 rounded bg-surface-hover border border-border-light">
                     <p class="text-[0.65rem] uppercase tracking-widest text-muted">${safeT('Next Deload')}</p>
-                    <p class="font-mono">${nextDeload ? `Week ${nextDeload}` : safeT('None')}</p>
+                    <p class="font-mono">${nextDeload ? `${safeT('Week')} ${nextDeload}` : safeT('None')}</p>
                 </div>
                 <div class="p-3 rounded bg-surface-hover border border-border-light">
                     <p class="text-[0.65rem] uppercase tracking-widest text-muted">${safeT('Start Date')}</p>
@@ -1972,7 +2282,7 @@ const protocolRenderers = {
             else if (isDeload) cls += 'bg-warning/20 text-warning border border-warning';
             else if (isPast) cls += 'bg-surface-hover text-muted';
             else cls += 'bg-surface-hover text-secondary';
-            html += `<span class="${cls}" title="${safeT('Week')} ${w}${isDeload ? ' (Deload)' : ''}">${w}</span>`;
+            html += `<span class="${cls}" title="${safeT('Week')} ${w}${isDeload ? ` (${safeT('Deload')})` : ''}">${w}</span>`;
         }
         html += '</div>';
         return html;
@@ -2021,7 +2331,7 @@ const dashModule = {
         // Render Resume logic in Onboarding view
         const obSlot = document.getElementById('resume-assessment-slot');
         if (user.assessment_state && user.assessment_state.step > 0) {
-            obSlot.innerHTML = `<button class="btn btn-outline btn-large w-full mt-4 font-mono uppercase text-xs tracking-widest" onclick="app.navigate('assessment')"><span data-i18n="Resume Step">Resume Step</span> ${user.assessment_state.step + 1}</button>`;
+            obSlot.innerHTML = `<button type="button" class="btn btn-outline btn-large w-full mt-4 text-sm tracking-wide" onclick="app.navigate('assessment')">${langModule.t('Resume Step with number').replace('{n}', String(user.assessment_state.step + 1))}</button>`;
         } else {
             obSlot.innerHTML = '';
         }
@@ -2031,9 +2341,9 @@ const dashModule = {
             langModule.applyTranslations();
         }
 
-        // Dashboard Sidebar Header
-        document.getElementById('dash-username').textContent = user.email.split('@')[0];
-        document.getElementById('dash-avatar').textContent = user.email.substring(0, 2).toUpperCase();
+        // Dashboard Sidebar Header (prefer saved username over email local-part)
+        document.getElementById('dash-username').textContent = getDropdownDisplayLabel();
+        document.getElementById('dash-avatar').textContent = getNavAvatarInitials();
 
         if (user.active_protocol) {
             const p = user.active_protocol;
@@ -2144,12 +2454,14 @@ const dashModule = {
                     const mealTiming = aiN.meal_timing;
                     const preText = mealTiming?.pre_workout || (langModule.currentLanguage === 'bg' ? '60–90 мин преди: въглехидрати + протеин (напр. овес, банан, протеин). Кафеин по избор 30–45 мин преди.' : '60–90 min before: carbs + protein (e.g. oats, banana, whey). Caffeine optional 30–45 min pre.');
                     const postText = mealTiming?.post_workout || (langModule.currentLanguage === 'bg' ? 'В рамките на 1–2 часа: 40–60g въглехидрати + 25–40g протеин. Пример: пиле + ориз + зеленчуци или протеин + банан.' : 'Within 1–2 hours: 40–60g carbs + 25–40g protein. Example: chicken + rice + vegetables, or whey + banana + toast.');
-                    const mealTimingContent = `<ul class="protocol-list font-mono text-sm"><li><i class="fa-solid fa-clock text-primary"></i> <strong class="text-secondary">Pre-workout:</strong> ${safeT(preText)}</li><li><i class="fa-solid fa-clock text-primary"></i> <strong class="text-secondary">Post-workout:</strong> ${safeT(postText)}</li></ul>`;
+                    const mealTimingContent = `<ul class="protocol-list font-mono text-sm"><li><i class="fa-solid fa-clock text-primary"></i> <strong class="text-secondary">${safeT('Pre-workout')}:</strong> ${safeT(preText)}</li><li><i class="fa-solid fa-clock text-primary"></i> <strong class="text-secondary">${safeT('Post-workout')}:</strong> ${safeT(postText)}</li></ul>`;
 
                     let supplementStack = aiN.supplement_stack && Array.isArray(aiN.supplement_stack) ? aiN.supplement_stack : [];
                     if (supplementStack.length === 0) {
                         const goal = (p.meta && p.meta.goal) ? p.meta.goal : 'recomp';
-                        const stacks = { fat_loss: [{ name: 'Caffeine', purpose: 'Performance and focus.', dose: '3–5 mg/kg pre-workout.' }, { name: 'Whey or Plant Protein', purpose: 'Preserve muscle.', dose: '1–2 scoops.' }, { name: 'Vitamin D3', purpose: 'Immune support.', dose: '2,000–4,000 IU daily.' }, { name: 'Omega-3', purpose: 'Recovery.', dose: '2–3 g daily.' }], muscle_gain: [{ name: 'Creatine Monohydrate', purpose: 'Strength and lean mass.', dose: '5 g daily.' }, { name: 'Whey or Plant Protein', purpose: 'Hit protein targets.', dose: '1–2 scoops.' }, { name: 'Vitamin D3', purpose: 'Bone health.', dose: '2,000–4,000 IU daily.' }, { name: 'Omega-3', purpose: 'Joint health.', dose: '2–3 g daily.' }], recomp: [{ name: 'Creatine Monohydrate', purpose: 'Strength.', dose: '5 g daily.' }, { name: 'Vitamin D3', purpose: 'Health.', dose: '2,000–4,000 IU daily.' }, { name: 'Omega-3', purpose: 'Recovery.', dose: '2–3 g daily.' }, { name: 'Whey or Plant Protein', purpose: 'Convenience.', dose: '1–2 scoops.' }], military: [{ name: 'Vitamin D3', purpose: 'Immunity.', dose: '2,000–4,000 IU daily.' }, { name: 'Omega-3', purpose: 'Recovery.', dose: '2–3 g daily.' }, { name: 'Creatine', purpose: 'Strength.', dose: '5 g daily.' }, { name: 'Protein', purpose: 'Convenience.', dose: 'As needed.' }] };
+                        const stacksEn = { fat_loss: [{ name: 'Caffeine', purpose: 'Performance and focus.', dose: '3–5 mg/kg pre-workout.' }, { name: 'Whey or Plant Protein', purpose: 'Preserve muscle.', dose: '1–2 scoops.' }, { name: 'Vitamin D3', purpose: 'Immune support.', dose: '2,000–4,000 IU daily.' }, { name: 'Omega-3', purpose: 'Recovery.', dose: '2–3 g daily.' }], muscle_gain: [{ name: 'Creatine Monohydrate', purpose: 'Strength and lean mass.', dose: '5 g daily.' }, { name: 'Whey or Plant Protein', purpose: 'Hit protein targets.', dose: '1–2 scoops.' }, { name: 'Vitamin D3', purpose: 'Bone health.', dose: '2,000–4,000 IU daily.' }, { name: 'Omega-3', purpose: 'Joint health.', dose: '2–3 g daily.' }], recomp: [{ name: 'Creatine Monohydrate', purpose: 'Strength.', dose: '5 g daily.' }, { name: 'Vitamin D3', purpose: 'Health.', dose: '2,000–4,000 IU daily.' }, { name: 'Omega-3', purpose: 'Recovery.', dose: '2–3 g daily.' }, { name: 'Whey or Plant Protein', purpose: 'Convenience.', dose: '1–2 scoops.' }], military: [{ name: 'Vitamin D3', purpose: 'Immunity.', dose: '2,000–4,000 IU daily.' }, { name: 'Omega-3', purpose: 'Recovery.', dose: '2–3 g daily.' }, { name: 'Creatine', purpose: 'Strength.', dose: '5 g daily.' }, { name: 'Protein', purpose: 'Convenience.', dose: 'As needed.' }] };
+                        const stacksBg = { fat_loss: [{ name: 'Кофеин', purpose: 'Производителност и фокус.', dose: '3–5 mg/kg преди тренировка.' }, { name: 'Суроватъчен или растителен протеин', purpose: 'Запазване на мускулна маса.', dose: '1–2 мерителни лъжици.' }, { name: 'Витамин D3', purpose: 'Имунна подкрепа.', dose: '2000–4000 IU дневно.' }, { name: 'Омега-3', purpose: 'Възстановяване.', dose: '2–3 g дневно.' }], muscle_gain: [{ name: 'Креатин монохидрат', purpose: 'Сила и мускулна маса.', dose: '5 g дневно.' }, { name: 'Суроватъчен или растителен протеин', purpose: 'Постигане на белтъчни цели.', dose: '1–2 мерителни лъжици.' }, { name: 'Витамин D3', purpose: 'Костно здраве.', dose: '2000–4000 IU дневно.' }, { name: 'Омега-3', purpose: 'Стави.', dose: '2–3 g дневно.' }], recomp: [{ name: 'Креатин монохидрат', purpose: 'Сила.', dose: '5 g дневно.' }, { name: 'Витамин D3', purpose: 'Здраве.', dose: '2000–4000 IU дневно.' }, { name: 'Омега-3', purpose: 'Възстановяване.', dose: '2–3 g дневно.' }, { name: 'Суроватъчен или растителен протеин', purpose: 'Удобство.', dose: '1–2 мерителни лъжици.' }], military: [{ name: 'Витамин D3', purpose: 'Имунитет.', dose: '2000–4000 IU дневно.' }, { name: 'Омега-3', purpose: 'Възстановяване.', dose: '2–3 g дневно.' }, { name: 'Креатин', purpose: 'Сила.', dose: '5 g дневно.' }, { name: 'Протеин', purpose: 'Удобство.', dose: 'При нужда.' }] };
+                        const stacks = langModule.currentLanguage === 'bg' ? stacksBg : stacksEn;
                         supplementStack = stacks[goal] || stacks.recomp;
                     }
                     let supplementContent = '<ul class="protocol-list font-mono text-sm">';
@@ -2201,11 +2513,11 @@ const dashModule = {
                     const defaultWarmup = langModule.currentLanguage === 'bg' ? '5 мин леко кардио; динамично разтягане за работещите мускулни групи.' : '5 min light cardio; dynamic stretches for the muscles you\'ll train today.';
                     p.aiResult.workout_plan.forEach((w, idx) => {
                         const warmupText = (w.warmup && String(w.warmup).trim()) ? w.warmup : defaultWarmup;
-                        const warmupHtml = `<div class="text-[0.7rem] mb-3 p-2 rounded bg-surface-hover border border-border-light text-secondary"><span class="text-primary font-bold uppercase text-[0.65rem] tracking-widest block mb-1">Warm-up</span><span>${safeT(warmupText)}</span></div>`;
+                        const warmupHtml = `<div class="text-[0.7rem] mb-3 p-2 rounded bg-surface-hover border border-border-light text-secondary"><span class="text-primary font-bold uppercase text-[0.65rem] tracking-widest block mb-1">${safeT('Warm-up')}</span><span>${safeT(warmupText)}</span></div>`;
 
                         let exHtml = (w.exercises || []).map((e, exIdx) => {
-                            const rpe = (e.rpe != null && e.rpe !== '') ? `RPE ${e.rpe}` : '';
-                            const tempo = (e.tempo != null && e.tempo !== '' && e.tempo !== '—') ? `Tempo ${e.tempo}` : (e.tempo === '—' ? '—' : '');
+                            const rpe = (e.rpe != null && e.rpe !== '') ? `${safeT('RPE')} ${e.rpe}` : '';
+                            const tempo = (e.tempo != null && e.tempo !== '' && e.tempo !== '—') ? `${safeT('Tempo')} ${e.tempo}` : (e.tempo === '—' ? '—' : '');
                             const meta = [rpe, tempo].filter(Boolean).join(' · ');
                             const checkId = `ex-day-${idx}-${exIdx}`;
                             return `
@@ -2565,7 +2877,11 @@ async function initApp() {
     if (heroStartBtn) heroStartBtn.addEventListener('click', (e) => { e.preventDefault(); app.navigate('auth', 'signup'); });
 
     const navUserDashboard = document.getElementById('nav-user-dashboard');
-    if (navUserDashboard) navUserDashboard.addEventListener('click', (e) => { e.preventDefault(); app.navigate(isCurrentUserAdmin() ? 'admin' : 'dashboard'); });
+    if (navUserDashboard) navUserDashboard.addEventListener('click', (e) => {
+        e.preventDefault();
+        if (isCurrentUserAdmin()) app.navigate('entry');
+        else app.navigate('welcome-onboarding');
+    });
 
     const assessmentPauseBtn = document.getElementById('assessment-pause-btn');
     if (assessmentPauseBtn) assessmentPauseBtn.addEventListener('click', (e) => { e.preventDefault(); app.navigate('dashboard'); });
@@ -2580,7 +2896,16 @@ async function initApp() {
     if (sidebarRetakeBtn) sidebarRetakeBtn.addEventListener('click', (e) => { e.preventDefault(); app.navigate('assessment'); });
 
     const navUserLogout = document.getElementById('nav-user-logout');
-    if (navUserLogout) navUserLogout.addEventListener('click', (e) => { e.preventDefault(); app.logout(); });
+    if (navUserLogout) navUserLogout.addEventListener('click', (e) => { e.preventDefault(); void app.logout(); });
+
+    const adminLogoutBtn = document.getElementById('admin-logout-btn');
+    if (adminLogoutBtn) adminLogoutBtn.addEventListener('click', (e) => { e.preventDefault(); void app.logout(); });
+
+    const entryBtnAdminPanel = document.getElementById('entry-btn-admin-panel');
+    if (entryBtnAdminPanel) entryBtnAdminPanel.addEventListener('click', (e) => { e.preventDefault(); app.navigate('admin'); });
+
+    const entryBtnOpenApp = document.getElementById('entry-btn-open-app');
+    if (entryBtnOpenApp) entryBtnOpenApp.addEventListener('click', (e) => { e.preventDefault(); app.openApp(); });
 
     // --- Language & Menu ---
     const langBtnEn = document.getElementById('lang-btn-en');
@@ -2740,14 +3065,28 @@ async function initApp() {
     const authForm = document.getElementById('auth-form');
     if (authForm) authForm.addEventListener('submit', (e) => { e.preventDefault(); authModule.submit(); });
 
+    const usernameSetupForm = document.getElementById('username-setup-form');
+    if (usernameSetupForm) {
+        usernameSetupForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            void usernameModule.submit();
+        });
+    }
+
+    const welcomeStartBtn = document.getElementById('welcome-start-btn');
+    if (welcomeStartBtn) {
+        welcomeStartBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            app.navigate('assessment');
+        });
+    }
+
     authModule.mountGoogleButton();
 
     // Check auth to route properly
     const user = db.getCurrentUser();
     if (user) {
-        if (isCurrentUserAdmin()) app.navigate('admin');
-        else if (user.active_protocol) app.navigate('dashboard');
-        else app.navigate('onboarding');
+        routeAfterAuth();
     } else {
         app.navigate('landing');
     }

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="bg">
 
 <head>
     <meta charset="UTF-8">
@@ -10,11 +10,11 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <link rel="manifest" href="manifest.json">
     <link rel="apple-touch-icon" href="icon-192.png">
-    <title>ASCEND AI PROTOCOL | Premium AI Fitness System</title>
+    <title>ASCEND AI PROTOCOL | Премиум AI фитнес система</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
-        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -30,7 +30,9 @@
                 <span>ASCEND AI <strong>PROTOCOL</strong></span>
             </div>
             <div
-                class="lang-switcher font-mono text-xs tracking-widest uppercase flex items-center gap-2 ml-auto mr-4 md:mr-0 z-50">
+                class="lang-switcher hidden font-mono text-xs tracking-widest uppercase flex items-center gap-2 ml-auto mr-4 md:mr-0 z-50"
+                aria-hidden="true"
+                title="Language switcher hidden (BG-first UI). English i18n remains available in code.">
                 <span id="lang-btn-en" class="lang-btn cursor-pointer transition-colors hover:text-primary">EN</span>
                 <span class="text-muted">|</span>
                 <span id="lang-btn-bg" class="lang-btn cursor-pointer transition-colors hover:text-primary">BG</span>
@@ -77,21 +79,22 @@
             <section id="view-landing" class="view">
                 <div class="hero">
                     <div class="hero-content">
-                        <div class="badge glow-badge" data-i18n="PREMIUM AI FITNESS SYSTEM">PREMIUM AI FITNESS SYSTEM
+                        <div class="hero-emblem" aria-label="ASCEND AI PROTOCOL">
+                            <img class="hero-emblem__img" src="/assets/hero-emblem.png" alt="" role="presentation"
+                                loading="eager" decoding="async" />
                         </div>
-                        <h1 class="glitch uppercase"
-                            data-text="Adaptive System for Conditioning, Endurance & Natural Development"
+                        <h1 class="hero-title uppercase"
                             data-i18n="Adaptive System">Adaptive System for Conditioning, Endurance & Natural
                             Development</h1>
-                        <p class="subtitle font-mono" data-i18n="Hero Subtitle">A premium AI fitness system optimized
+                        <p class="subtitle" data-i18n="Hero Subtitle">A premium AI fitness system optimized
                             for strength, health, longevity, and body recomposition.</p>
                         <div class="hero-actions mt-6">
-                            <button class="btn btn-primary btn-large font-mono tracking-widest uppercase"
+                            <button class="btn btn-primary btn-large tracking-widest uppercase"
                                 id="hero-start-btn">
                                 <span data-i18n="Start Assessment">Start Assessment</span> <i
                                     class="fa-solid fa-terminal ml-2"></i>
                             </button>
-                            <button class="btn btn-outline btn-large font-mono uppercase" id="hero-login-btn"
+                            <button class="btn btn-outline btn-large uppercase" id="hero-login-btn"
                                 data-i18n="Login">
                                 Login
                             </button>
@@ -174,6 +177,68 @@
                 </div>
             </section>
 
+            <!-- 2a. AUTHENTICATED ENTRY (hub: Open App; Admin Panel if admin) -->
+            <section id="view-entry" class="view">
+                <div class="auth-container">
+                    <div class="auth-card">
+                        <div class="text-center mb-6">
+                            <h2 class="uppercase font-black tracking-widest" data-i18n="Signed in">Signed in</h2>
+                            <p class="text-secondary text-xs font-mono uppercase mt-2" data-i18n="Choose where to go">Choose where to go</p>
+                            <div class="form-col mt-6">
+                                <button type="button" id="entry-btn-admin-panel"
+                                    class="btn btn-outline btn-large w-full font-mono uppercase tracking-widest text-sm hidden"
+                                    data-i18n="Admin Panel">Admin Panel</button>
+                                <button type="button" id="entry-btn-open-app"
+                                    class="btn btn-primary btn-large w-full font-mono uppercase tracking-widest text-sm"
+                                    data-i18n="Open App">Open App</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 2a1. USERNAME SETUP (first login, non-admin) -->
+            <section id="view-username-setup" class="view">
+                <div class="auth-container">
+                    <div class="auth-card">
+                        <div class="auth-header text-center mb-6">
+                            <h2 class="uppercase font-black tracking-widest" data-i18n="Username setup title">Choose your
+                                display name</h2>
+                            <p class="text-secondary text-xs font-mono uppercase mt-2" data-i18n="Username setup hint">
+                                This name appears in the app instead of your email when possible.</p>
+                        </div>
+                        <div class="auth-error hidden font-mono text-center" id="username-setup-error"></div>
+                        <form id="username-setup-form" class="form-col">
+                            <div class="form-group">
+                                <label class="font-mono tracking-widest text-xs uppercase" data-i18n="Username label">Display
+                                    name</label>
+                                <input type="text" id="username-input" class="input-modern font-mono" autocomplete="username"
+                                    maxlength="64" data-i18n-placeholder="Username placeholder" placeholder="Your name or nickname">
+                            </div>
+                            <button type="submit"
+                                class="btn btn-primary btn-large w-full mt-4 font-mono uppercase tracking-widest text-sm"
+                                id="username-setup-submit" data-i18n="Save and continue">Save and continue</button>
+                        </form>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 2a2. WELCOME ONBOARDING (after username; returning users with username) -->
+            <section id="view-welcome-onboarding" class="view">
+                <div class="auth-container">
+                    <div class="auth-card auth-card-welcome">
+                        <div class="welcome-onboarding-inner text-center">
+                            <h2 class="welcome-title" data-i18n="welcome_onboarding_title">
+                                Welcome to ASCEND AI PROTOCOL</h2>
+                            <p class="welcome-body text-secondary max-w-xl mx-auto" data-i18n="welcome_onboarding_subtitle"></p>
+                            <button type="button" id="welcome-start-btn"
+                                class="btn btn-primary btn-large w-full mt-8"
+                                data-i18n="welcome_cta_start">Започнете въпросите</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
             <!-- 2b. ADMIN DASHBOARD (minimal placeholder) -->
             <section id="view-admin" class="view">
                 <div class="auth-container">
@@ -183,6 +248,9 @@
                             <h2 class="uppercase font-black tracking-widest" data-i18n="Admin Dashboard">Admin Dashboard
                             </h2>
                             <p class="text-secondary text-xs font-mono uppercase mt-2" data-i18n="Admin dashboard placeholder">Administrator access. Content TBD.</p>
+                            <button type="button" id="admin-logout-btn"
+                                class="btn btn-outline btn-large w-full mt-6 font-mono uppercase tracking-widest text-sm"
+                                data-i18n="Logout">Logout</button>
                         </div>
                     </div>
                 </div>
@@ -194,14 +262,14 @@
                     <div class="icon-ring pulse mb-6">
                         <i class="fa-solid fa-wave-square text-3xl text-primary"></i>
                     </div>
-                    <h2 class="text-2xl font-heading font-black mb-2 uppercase tracking-widest"
+                    <h2 class="text-2xl font-heading font-black mb-2 onboarding-welcome-title"
                         data-safe-i18n="Welcome to ASCEND AI PROTOCOL">Welcome to ASCEND AI PROTOCOL</h2>
-                    <p class="text-secondary text-sm font-mono max-w-xl mx-auto mb-8 uppercase"
+                    <p class="text-secondary text-sm max-w-xl mx-auto mb-8 onboarding-lead"
                         data-safe-i18n="Initialize text">Initialize your assessment to generate a precision protocol for
                         strength, health, longevity, and body recomposition.</p>
 
                     <div class="flex-center gap-4">
-                        <button class="btn btn-primary btn-large font-mono tracking-widest text-sm uppercase"
+                        <button class="btn btn-primary btn-large text-sm"
                             id="onboarding-start-btn">
                             <span data-safe-i18n="Start Assessment">Start Assessment</span> <i
                                 class="fa-solid fa-terminal ml-2"></i>
@@ -216,8 +284,8 @@
                 <div class="wizard-container">
                     <div class="wizard-header">
                         <div class="flex items-center gap-4 w-full">
-                            <button class="btn-icon" id="assessment-pause-btn" title="Pause Assessment"><i
-                                    class="fa-solid fa-pause"></i></button>
+                            <button type="button" class="btn-icon" id="assessment-pause-btn" title=""><i
+                                    class="fa-solid fa-pause" aria-hidden="true"></i></button>
                             <div class="progress-bar flex-grow">
                                 <div class="progress-fill" id="wizard-progress"></div>
                             </div>

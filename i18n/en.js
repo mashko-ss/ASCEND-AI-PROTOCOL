@@ -68,5 +68,8 @@ export const en = {
   "Mostly sitting / little movement": "Mostly sitting / little movement",
   "Light activity (walking, light workouts)": "Light activity (walking, light workouts)",
   "Regular workouts or active job": "Regular workouts or active job",
-  "Hard training or physical work": "Hard training or physical work"
+  "Hard training or physical work": "Hard training or physical work",
+  "Steps progress": "Step {n} of {m}",
+  "Pause Assessment": "Pause assessment",
+  "Resume Step with number": "Resume from step {n}"
 };

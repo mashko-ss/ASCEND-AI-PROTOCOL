@@ -78,6 +78,17 @@ function inferCloudProvider(user) {
     return 'local';
 }
 
+function extractBackendUsername(user) {
+    const m = user?.user_metadata;
+    if (m && typeof m === 'object') {
+        if (typeof m.username === 'string' && m.username.trim()) return m.username.trim();
+        if (typeof m.preferred_username === 'string' && m.preferred_username.trim()) {
+            return m.preferred_username.trim();
+        }
+    }
+    return '';
+}
+
 function normalizeBackendUser(user) {
     if (!user || !user.id) return null;
     const provider = inferCloudProvider(user);
@@ -90,6 +101,7 @@ function normalizeBackendUser(user) {
         email: String(user.email || '').trim().toLowerCase(),
         provider,
         isAdmin,
+        username: extractBackendUsername(user),
         createdAt: typeof user.created_at === 'string' && user.created_at.trim()
             ? user.created_at.trim()
             : typeof user.createdAt === 'string' && user.createdAt.trim()

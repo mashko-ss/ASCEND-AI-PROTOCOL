@@ -25,6 +25,32 @@ import {
     getCurrentUser as getLocalCurrentUser
 } from './auth.js';
 
+export async function saveUsername(raw) {
+    const trimmed = String(raw || '').trim();
+    if (!trimmed) return { ok: false, reason: 'empty' };
+
+    let base = getStoredCurrentUser();
+    if (!base) {
+        base = getLocalCurrentUser();
+    }
+    if (!base) return { ok: false, reason: 'no_user' };
+
+    if (hasActiveSupabaseSession()) {
+        const client = getSupabaseClient();
+        if (!client) return { ok: false, reason: 'no_client' };
+        const { error } = await client.auth.updateUser({ data: { username: trimmed } });
+        if (error) return { ok: false, reason: error.message || 'update_failed' };
+        const { data: userData, error: guErr } = await client.auth.getUser();
+        if (guErr || !userData?.user) return { ok: false, reason: guErr?.message || 'get_user_failed' };
+        const nu = normalizeCloudUser(userData.user);
+        if (nu) saveCurrentUser(nu);
+    } else {
+        saveCurrentUser({ ...base, username: trimmed });
+    }
+
+    return { ok: true };
+}
+
 const LOCAL_DEV_URL = 'http://localhost:3000';
 const OAUTH_PROVIDERS = ['google', 'facebook', 'apple'];
 let restoreSessionPromise = null;
@@ -67,6 +93,18 @@ function resolveIsAdminFromSupabaseUser(user) {
     return false;
 }
 
+function extractCloudUsername(user) {
+    if (!user || typeof user !== 'object') return '';
+    const m = user.user_metadata;
+    if (m && typeof m === 'object') {
+        if (typeof m.username === 'string' && m.username.trim()) return m.username.trim();
+        if (typeof m.preferred_username === 'string' && m.preferred_username.trim()) {
+            return m.preferred_username.trim();
+        }
+    }
+    return '';
+}
+
 function normalizeCloudUser(user) {
     if (!user || !user.id) return null;
     const provider = inferCloudProvider(user);
@@ -75,6 +113,7 @@ function normalizeCloudUser(user) {
         email: String(user.email || '').trim().toLowerCase(),
         provider,
         isAdmin: resolveIsAdminFromSupabaseUser(user),
+        username: extractCloudUsername(user),
         createdAt: typeof user.created_at === 'string' && user.created_at.trim()
             ? user.created_at.trim()
             : typeof user.createdAt === 'string' && user.createdAt.trim()
