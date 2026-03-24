@@ -278,6 +278,7 @@ const langModule = {
             "Sleep": "Sleep",
             "Notes": "Notes",
             "How did you feel this week?": "How did you feel this week?",
+            "Injuries notes placeholder": "e.g. shoulder, knee, lower back",
             "[ No progress logged yet ]": "[ No progress logged yet ]",
             "Plan History": "Plan History",
             "Your previous plans": "Your previous training plans.",
@@ -424,7 +425,9 @@ const langModule = {
             "Keto": "Keto",
             "Mostly sitting / little movement": "Mostly sitting / little movement",
             "Light activity (walking, light workouts)": "Light activity (walking, light workouts)",
+            "Regular movement or active job": "Regular movement or active job",
             "Regular workouts or active job": "Regular workouts or active job",
+            "Hard physical work or intense daily activity": "Hard physical work or intense daily activity",
             "Hard training or physical work": "Hard training or physical work",
             "Your Goal": "Your Goal",
             "Primary Focus": "Primary Focus",
@@ -575,12 +578,12 @@ const langModule = {
             "MAX": "MAX"
         },
         bg: {
-            "Start Assessment": "Започни настройката",
+            "Start Assessment": "Започни оценката",
             "Resume Step": "Продължи от стъпка",
             "Resume Step with number": "Продължи от стъпка {n}",
-            "Pause Assessment": "Пауза на настройката",
+            "Pause Assessment": "Пауза на оценката",
             "Steps progress": "Стъпка {n} от {m}",
-            "Welcome to ASCEND AI PROTOCOL": "Добре дошли в ASCEND AI PROTOCOL",
+            "Welcome to ASCEND AI PROTOCOL": "Добре дошъл в ASCEND AI PROTOCOL",
             "Personal Setup": "Лична настройка",
             "Login": "Вход",
             "Create Account": "Създай профил",
@@ -600,11 +603,11 @@ const langModule = {
             "Save and continue": "Запази и продължи",
             "Username required": "Моля, въведи потребителско име.",
             "Could not save.": "Запазването не бе успешно.",
-            "welcome_onboarding_title": "Добре дошли в ASCEND AI PROTOCOL",
-            "welcome_onboarding_subtitle": "Отговорете на няколко кратки въпроса, за да създадем персонализирана стратегия според вашите цели, ниво, ограничения и начин на живот.",
+            "welcome_onboarding_title": "Добре дошъл в ASCEND AI PROTOCOL",
+            "welcome_onboarding_subtitle": "Започни оценката, за да създадеш прецизен протокол за сила, здраве, дълголетие и рекомпозиция на тялото.",
             "welcome_hook_line1": "Без общи програми. Без догадки.",
             "welcome_hook_line2": "Само индивидуален подход, който превръща информацията за теб в ясен и приложим план за действие.",
-            "welcome_cta_start": "Започнете въпросите",
+            "welcome_cta_start": "Започни оценката",
             "Logged In As": "Влязъл като",
             "Dashboard": "Табло",
             "Logout": "Изход",
@@ -625,13 +628,13 @@ const langModule = {
             "No account yet?": "Нямате профил?",
             "Initialize text": "Стартирайте настройката, за да получите прецизен протокол за сила, здраве, дълголетие и рекомпозиция на тялото.",
             "Back": "Назад",
-            "Next Step": "Напред",
+            "Next Step": "Продължи",
             "YOUR TRAINING PLAN": "ВАШИЯТ ТРЕНИРОВЪЧЕН ПЛАН",
             "Pending Assessment": "Очаква вашата настройка.",
-            "Log Progress": "Въведи прогрес",
+            "Log Progress": "Въведете прогрес",
             "Nutrition Plan": "Хранителен план",
-            "MEAL PLAN": "ПЛАН ЗА ХРАНЕНЕ",
-            "meals/day": "храни/ден",
+            "MEAL PLAN": "Примерен план на храненията",
+            "meals/day": "хранения/ден",
             "water": "вода",
             "WARNINGS": "ПРЕДУПРЕЖДЕНИЯ",
             "Weekly Progress": "Седмичен прогрес",
@@ -649,7 +652,7 @@ const langModule = {
             "Poor": "Слабо",
             "Average": "Средно",
             "Excellent": "Отлично",
-            "Friendly Reminder": "Приятелско напомняне",
+            "Friendly Reminder": "Напомняне",
             "Recovery Note": "Достатъчният сън е критичен фактор за вашето възстановяване и напредък.",
             "No Data Yet": "Няма данни",
             "Log Progress Desc": "Въвеждайте своя седмичен прогрес, за да следите резултатите си.",
@@ -669,6 +672,7 @@ const langModule = {
             "Sleep": "Сън",
             "Notes": "Бележки",
             "How did you feel this week?": "Как се чувстваше тази седмица?",
+            "Injuries notes placeholder": "напр. рамо, коляно, кръст",
             "[ No progress logged yet ]": "[ Все още няма въведен прогрес ]",
             "Plan History": "История на плановете",
             "Your previous plans": "Предишни тренировъчни планове.",
@@ -684,19 +688,19 @@ const langModule = {
             "Great [10]": "Отлично [10]",
             "Cancel": "Отказ",
             "Save Log": "Запази отчета",
-            "Save Progress": "Запази прогрес",
-            "Enter Progress": "Въведи прогрес",
+            "Save Progress": "Запазване на прогреса",
+            "Enter Progress": "Въведете прогрес",
             "GENERATING PLAN": "ГЕНЕРИРАНЕ НА ПЛАН",
             "Analyzing status...": "Анализиране на профила...",
             "Building your workout plan...": "Изграждане на тренировъчния план...",
             "Finalizing your personal plan...": "Финализиране на личния план...",
             "Failed to generate plan. Please try again.": "Грешка при генериране на плана. Моля, опитайте отново.",
             "API Error": "Грешка при генериране",
-            "Fallback plan used": "Използван е резервен план",
+            "Fallback plan used": "Използван е резервен план.",
             "Progression Rules": "Правила за прогресия",
             "Recovery Guidance": "Насоки за възстановяване",
             "Warnings": "Предупреждения",
-            "Rest days": "Дни почивка",
+            "Rest days": "Дни за почивка",
             "per week": "на седмица",
             "Sleep": "Сън",
             "hours": "часа",
@@ -724,13 +728,14 @@ const langModule = {
             "Aim for": "Стремете се към",
             "hours of quality sleep.": "часа качествен сън.",
             "Daily mobility: 10 mins dedicated stretching/rehab for": "Дневна мобилност: 10 мин. стречинг/рехабилитация за",
-            "PLAN: FAT LOSS": "ПЛАН: ИЗЧИСТВАНЕ НА МАЗНИНИ",
-            "PLAN: BUILD MUSCLE": "ПЛАН: ПОКАЧВАНЕ НА МУСКУЛИ",
-            "PLAN: BODY RECOMPOSITION": "ПЛАН: РЕКОМПОЗИЦИЯ",
-            "PLAN: OVERALL FITNESS": "ПЛАН: ОБЩА КОНДИЦИЯ",
+            "PLAN: FAT LOSS": "План: Отслабване",
+            "PLAN: BUILD MUSCLE": "План: Покачване на мускулна маса",
+            "PLAN: BODY RECOMPOSITION": "План: Рекомпозиция",
+            "PLAN: OVERALL FITNESS": "План: Обща кондиция",
             "LEVEL": "НИВО",
             "Frequency": "Честота",
-            "Days / Wk": "Дни / Седм",
+            "Days / Wk": "дни седмично",
+            "days weekly": "дни седмично",
             "Status": "Статус",
             "Active": "Активен",
             "Completed": "Завършено",
@@ -776,7 +781,7 @@ const langModule = {
             "Male": "Мъж",
             "Female": "Жена",
             "e.g. 82": "напр. 82",
-            "Height (cm)": "Височина (см)",
+            "Height (cm)": "Ръст (см)",
             "e.g. 178": "напр. 178",
             "Activity Level": "Ниво на активност",
             "Step 1": "Стъпка 1",
@@ -787,13 +792,13 @@ const langModule = {
             "Step 6": "Стъпка 6",
             "Step 7": "Стъпка 7",
             "Personal Stats": "Лични данни",
-            "Daily Activity Level": "Дневно ниво на активност",
+            "Daily Activity Level": "Ниво на активност",
             "Activity Outside of Training": "Активност извън тренировките",
             "Primary Goal": "Основна цел",
             "Sedentary": "Заседнал начин на живот",
-            "Lightly Active": "Лека активност",
-            "Moderately Active": "Умерена активност",
-            "Very Active": "Висока активност",
+            "Lightly Active": "Леко активен",
+            "Moderately Active": "Умерено активен",
+            "Very Active": "Много активен",
             "Target Focus": "Приоритет в тренировката",
             "Weak muscle groups or priorities": "Слаби мускулни групи или приоритети",
             "Chest": "Гърди",
@@ -807,8 +812,8 @@ const langModule = {
             "4 Days": "4 дни",
             "5 Days": "5 дни",
             "6 Days": "6 дни",
-            "Limitations & Injuries": "Ограничения и контузии",
-            "No injuries or limitations": "Няма контузии или ограничения.",
+            "Limitations & Injuries": "Ограничения и травми",
+            "No injuries or limitations": "Няма травми или ограничения.",
             "Dietary Needs": "Хранителни предпочитания",
             "Allergies / Exclusions": "Алергии и изключения",
             "Standard / Balanced": "Стандартно / балансирано",
@@ -816,20 +821,22 @@ const langModule = {
             "Vegetarian": "Вегетарианско",
             "Gluten-free": "Без глутен",
             "Keto": "Кето",
-            "Mostly sitting / little movement": "Предимно седяща работа и малко движение през деня.",
-            "Light activity (walking, light workouts)": "Леки разходки и ограничена физическа активност през деня.",
-            "Regular workouts or active job": "Редовно движение или работа, която изисква активност.",
+            "Mostly sitting / little movement": "Предимно седене и малко движение през деня.",
+            "Light activity (walking, light workouts)": "Леки разходки и умерена активност; без интензивни тренировки.",
+            "Regular movement or active job": "Редовно движение или работа със значителна физическа натовареност през деня.",
+            "Regular workouts or active job": "Редовно движение или работа, която изисква активност през по-голямата част от деня.",
+            "Hard physical work or intense daily activity": "Тежък физически труд или много висока дневна физическа активност.",
             "Hard training or physical work": "Интензивна физическа работа или висока активност през по-голямата част от деня.",
             "Your Goal": "Вашата цел",
             "Primary Focus": "Основен акцент",
-            "Fat Loss": "Отслабване",
-            "Lose fat while preserving muscle.": "Намаляване на мазнини със запазване на мускулна маса.",
-            "Build Muscle": "Мускулна маса",
+            "Fat Loss": "Изгаряне на мазнини",
+            "Lose fat while preserving muscle.": "Фокус върху изгаряне на мазнини със запазване на мускулна маса.",
+            "Build Muscle": "Покачване на мускулна маса",
             "Gain muscle and strength.": "Покачване на сила и мускулна маса.",
             "Recomposition": "Рекомпозиция",
-            "Lose fat and gain muscle at the same time.": "Изчистване на мазнини и покачване на мускули едновременно.",
+            "Lose fat and gain muscle at the same time.": "Рекомпозиция: мазнини надолу, мускул нагоре в един период.",
             "Health & Longevity": "Здраве и дълголетие",
-            "Optimize healthspan and vitality.": "Подобряване на здравето и жизнеността в дългосрочен план.",
+            "Optimize healthspan and vitality.": "Дългосрочно здраве, енергия и жизненост.",
             "Secondary Objectives": "Второстепенни цели",
             "Raw Strength": "Чиста сила",
             "Better Stamina": "По-добра издръжливост",
@@ -844,11 +851,11 @@ const langModule = {
             "Experience & Capability": "Опит и възможности",
             "Training Experience": "Тренировъчен опит",
             "Beginner": "Начинаещ",
-            "New to training, learning the basics.": "Нов в тренировките; усвоявам основите.",
-            "Intermediate": "Средно напреднал",
+            "New to training, learning the basics.": "Начинаещи сте; акцент върху основните движения и техника.",
+            "Intermediate": "Средно ниво",
             "Consistent training for a few months.": "Редовни тренировки от няколко месеца насам.",
             "Advanced": "Напреднал",
-            "Several years of training experience.": "Години последователен тренировъчен опит.",
+            "Several years of training experience.": "Многогодишен, последователен тренировъчен опит.",
             "Current Fitness Level (1-10)": "Текущо фитнес ниво (1-10)",
             "Areas for Improvement": "Зони за подобряване",
             "Lose Body Fat": "Отслабване",
@@ -862,7 +869,7 @@ const langModule = {
             "Do you have any current injuries?": "Имате ли настоящи контузии?",
             "No": "Не",
             "Yes": "Да",
-            "Select Injuries/Limitations": "Болки в стави или други ограничения",
+            "Select Injuries/Limitations": "Болки в ставите, травми или други ограничения",
             "Lower Back / Spine": "Кръст / Гръбнак",
             "Knees": "Колена",
             "Shoulders": "Рамене",
@@ -876,7 +883,7 @@ const langModule = {
             "I bounce back fast": "Възстановявам се много бързо",
             "Logistics": "Логистика",
             "Training Days Per Week": "Тренировъчни дни седмично",
-            "Available Session Duration": "Продължителност на тренировка",
+            "Available Session Duration": "Продължителност на една тренировка",
             "30 Minutes": "30 мин",
             "45 Minutes": "45 мин",
             "60 Minutes": "60 мин",
@@ -887,7 +894,7 @@ const langModule = {
             "Home": "Вкъщи",
             "A proper gym with machines and free weights.": "Фитнес зала с уреди и свободни тежести.",
             "Home Gym": "Домашен фитнес",
-            "Basic setup with dumbbells or a barbell.": "Основно оборудване: дъмбели или щанга.",
+            "Basic setup with dumbbells or a barbell.": "Базово оборудване: дъмбели или щанга.",
             "Bodyweight/Minimal": "Собствено тегло / Минимално",
             "No equipment, just your body.": "Без оборудване, само собствено тегло.",
             "Training Style Preference": "Предпочитан тренировъчен стил",
@@ -956,6 +963,7 @@ const langModule = {
             "Guidelines": "Насоки",
             "Focus on whole foods and hit your macro targets above.": "Фокусирайте се върху истинска храна и постигайте целевите макроси.",
             "sets": "серии",
+            "reps": "повторения",
             "Rest": "Почивка",
             "Warm-up": "Загрявка",
             "Pre-workout": "Преди тренировка",
@@ -963,8 +971,10 @@ const langModule = {
             "Mark exercise complete": "Отбележи упражнението като изпълнено",
             "RPE": "RPE",
             "Tempo": "Темпо",
-            "Create Plan": "Създай план",
-            "Please complete all visible fields to proceed.": "Моля, попълнете всички видими полета, за да продължите.",
+            "Create Plan": "Завърши",
+            "Please complete all visible fields to proceed.": "Моля, попълни всички полета в тази стъпка, за да продължиш.",
+            "Required field": "Това поле е задължително.",
+            "Select option": "Избери опция",
             "MIN": "МИН",
             "MAX": "МАКС",
             "STRENGTH": "СИЛА",
@@ -1522,6 +1532,7 @@ const wizardModule = {
         }
 
         if (window.safeI18nApply) { window.safeI18nApply(); }
+        if (langModule && langModule.applyTranslations) { langModule.applyTranslations(); }
     },
 
     captureStep: () => {
@@ -1790,21 +1801,21 @@ NUTRITION PLAN RULES:
                     "daily_calories": "2,200 kcal",
                     "macros": { "protein": "165g", "carbs": "220g", "fats": "73g" },
                     "guidelines": [
-                        "Prioritize protein at every meal (aim for 25-40g per meal).",
-                        "Eat whole foods 80% of the time; allow flexibility for the rest.",
-                        "Stay hydrated: 2.5-3 L water daily, more on training days.",
-                        "Time carbs around training for energy and recovery.",
-                        "Include fiber-rich vegetables with lunch and dinner."
+                        "Поставяйте протеина като основен приоритет във всяко хранене (целете се към 25–40 g на хранене).",
+                        "Залагайте основно на пълноценни храни (около 80% от избора); за останалото допускайте гъвкавост.",
+                        "Хидратация: 2,5–3 л вода дневно; повече в тренировъчни дни.",
+                        "Разпределяйте въглехидратите около тренировката за енергия и възстановяване.",
+                        "Включвайте зеленчуци с фибри на обяд и вечеря."
                     ],
                     "meal_timing": {
-                        "pre_workout": "60–90 min before: 30–40g carbs + 15–20g protein (e.g. oats + banana + whey, or rice cakes + Greek yogurt). Caffeine optional 30–45 min pre (3–5 mg/kg).",
-                        "post_workout": "Within 1–2 hours: 40–60g carbs + 25–40g protein. Example: chicken + rice + vegetables, or whey + banana + toast. Prioritize whole foods when possible."
+                        "pre_workout": "60–90 мин преди: 30–40 g въглехидрати + 15–20 g протеин (напр. овес + банан + суроватъчен протеин, или оризови питки + гръцко кисело мляко). Кофеин по избор 30–45 мин преди (3–5 mg/kg).",
+                        "post_workout": "В рамките на 1–2 часа: 40–60 g въглехидрати + 25–40 g протеин. Пример: пиле + ориз + зеленчуци, или суроватъчен шейк + банан + тост. По възможност заложете на пълноценни храни."
                     },
                     "supplement_stack": [
-                        { "name": "Creatine Monohydrate", "purpose": "Strength and lean mass; evidence-based for all goals.", "dose": "5 g daily (any time)." },
-                        { "name": "Vitamin D3", "purpose": "Bone health, immunity, mood; especially if low sun exposure.", "dose": "2,000–4,000 IU with a fat-containing meal." },
-                        { "name": "Omega-3 (EPA/DHA)", "purpose": "Recovery, joint health, body composition.", "dose": "2–3 g EPA+DHA combined daily." },
-                        { "name": "Whey or Plant Protein", "purpose": "Convenient way to hit protein targets.", "dose": "1–2 scoops as needed to meet daily protein." }
+                        { "name": "Креатин монохидрат", "purpose": "Сила и мускулна маса; силни доказателства за всички цели.", "dose": "5 g дневно (по всяко време)." },
+                        { "name": "Витамин D3", "purpose": "Костно здраве, имунитет, настроение; особено при малко слънце.", "dose": "2000–4000 IU с храна, съдържаща мазнини." },
+                        { "name": "Омега-3 (EPA/DHA)", "purpose": "Възстановяване, стави, телесен състав.", "dose": "2–3 g EPA+DHA комбинирано дневно." },
+                        { "name": "Суроватъчен или растителен протеин", "purpose": "Удобен начин да покриете дневния протеин.", "dose": "1–2 мерителни лъжици при нужда." }
                     ]
                 }
             };
@@ -1924,7 +1935,7 @@ NUTRITION PLAN RULES:
 
         let numDays = parseInt(a.days || 3, 10);
         const isBg = langModule.currentLanguage === 'bg';
-        const dayNames = isBg ? ['ПОНЕДЕЛНИК', 'ВТОРНИК', 'СРЯДА', 'ЧЕТВЪРТЪК', 'ПЕТЪК', 'СЪБОТА', 'НЕДЕЛЯ'] : ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+        const dayNames = isBg ? ['Понеделник', 'Вторник', 'Сряда', 'Четвъртък', 'Петък', 'Събота', 'Неделя'] : ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
         for (let i = 0; i < numDays; i++) {
             let n = i % 2 === 0 ? (isBg ? "Тренировка" : "Training Session") : (isBg ? 'Активно възстановяване' : 'Active Recovery');
@@ -2097,6 +2108,106 @@ function handleBackNavigation() {
 }
 
 // ==========================================
+// 5.55 DASHBOARD VISIBLE LABELS (BG copy; API/internal English unchanged)
+// ==========================================
+function localizeSplitLabel(raw, safeT) {
+    const s = String(raw || '').toLowerCase().trim().replace(/\s+/g, '_');
+    const key = `split_${s}`;
+    const tr = safeT(key);
+    if (tr !== key) return tr;
+    return String(raw || '').replace(/_/g, ' ');
+}
+
+function localizeDayHeader(raw, safeT) {
+    const d = String(raw || '').trim();
+    const tr = safeT(d);
+    if (tr !== d) return tr;
+    return d;
+}
+
+const FOCUS_LABEL_BG = {
+    'Full Body': 'Цяло тяло',
+    'Upper Body': 'Горна част',
+    'Lower Body': 'Долна част',
+    'Push (Chest, Shoulders, Triceps)': 'Гърди, рамене, трицепс (натиск)',
+    'Pull (Back, Biceps)': 'Гръб и бицепс (теглене)',
+    Legs: 'Крака',
+    'Chest & Triceps': 'Гърди и трицепс',
+    'Back & Biceps': 'Гръб и бицепс',
+    'Shoulders & Core': 'Рамене и корем',
+    'Strength Focus': 'Акцент върху сила',
+    'Hypertrophy Focus': 'Акцент върху мускулна маса',
+    Conditioning: 'Кондиция',
+    'Recovery / Mobility': 'Възстановяване и мобилност',
+    'Push Focus (Chest & Shoulders)': 'Гърди и рамене',
+    'Pull & Lower Body': 'Гръб и долна част',
+    'Active Recovery': 'Активно възстановяване',
+    'Light Cardio + Mobility': 'Леко кардио и динамично разтягане',
+    'Pull Focus (Back & Biceps)': 'Гръб и бицепс',
+    'Leg Focus (Quads, Hamstrings, Glutes)': 'Предно / задно бедро и седалище'
+};
+
+function localizeFocusLabel(focus, safeT) {
+    const f = String(focus || '').trim();
+    if (FOCUS_LABEL_BG[f]) return FOCUS_LABEL_BG[f];
+    const tr = safeT(f);
+    return tr !== f ? tr : f;
+}
+
+const EXERCISE_LABEL_BG = {
+    'Barbell Bench Press': 'Лежанка с щанга',
+    'Bent-Over Barbell Row': 'Гребане с щанга в наклон',
+    'Overhead Dumbbell Press': 'Жим с дъмбели от стоеж',
+    'Pull-ups or Lat Pulldown': 'Набирания или скрипец пред гърди',
+    'Cable Tricep Pushdown': 'Изтласкване за трицепс на кабел',
+    'Barbell Back Squat': 'Клек с щанга',
+    'Romanian Deadlift': 'Румънска мъртва тяга',
+    'Leg Press': 'Крака в уред',
+    'Leg Curl': 'Сгъване за бедро',
+    Plank: 'Планк',
+    'Light Cardio (Bike or Walk)': 'Леко кардио (велоергометър или ходене)',
+    'Hip Mobility Flow': 'Мобилност на тазобедрената става',
+    'Shoulder Dislocates': 'Разгрявка за рамене',
+    'Cat-Cow Stretch': 'Разтягане „котка–крава“',
+    'Incline Dumbbell Press': 'Наклонен лег с дъмбели',
+    'Dumbbell Flyes': 'Кросоувър с дъмбели',
+    'Seated Dumbbell Shoulder Press': 'Жим с дъмбели седнал',
+    'Lateral Raises': 'Странични дъмбели',
+    'Face Pulls': 'Фейс пул',
+    'Conventional Deadlift': 'Класическа мъртва тяга',
+    'Pull-ups or Assisted Pull-ups': 'Набирания или с помощ',
+    'Cable Row': 'Гребане на кабел',
+    'Bulgarian Split Squat': 'Български клек',
+    'Barbell Curl': 'Сгъване за бицепс с щанга',
+    'Squat or Leg Press': 'Клек или крака в уред',
+    'Bench Press or Push-up': 'Лежанка или лицеви',
+    'Row or Pull-up': 'Гребане или набиране',
+    'Overhead Press': 'Жим от стоеж',
+    'Plank or Core': 'Планк / корем',
+    'Lunges or Step-up': 'Клек с крачка или стъпване',
+    'Leg Curl or Nordic': 'Сгъване за бедро или нордик',
+    'Calf Raise': 'Повдигане на пръсти',
+    'Incline DB Press or Dips': 'Наклонен лег с дъмбели или кофи',
+    'Tricep Extension': 'Разгъване за трицепс',
+    'Lateral Raise': 'Странично дъмбели',
+    'Lat Pulldown or Chin-up': 'Скрипец пред гърди или подхват',
+    'Face Pull or Reverse Fly': 'Фейс пул или обърнато разгъване',
+    'Bicep Curl': 'Сгъване за бицепс',
+    'Hammer Curl': 'Хамър сгъване',
+    'Deadlift or Rack Pull': 'Мъртва тяга или от стойки',
+    'Lat Pulldown': 'Скрипец пред гърди',
+    'Cable Fly or Push-up': 'Кросоувър с кабел или лицеви',
+    'Tricep Pushdown': 'Изтласкване за трицепс'
+};
+
+function localizeExerciseName(name, safeT) {
+    const n = String(name || '').trim();
+    if (EXERCISE_LABEL_BG[n]) return EXERCISE_LABEL_BG[n];
+    const tr = safeT(n);
+    return tr !== n ? tr : n;
+}
+
+// ==========================================
 // 5.6 NUTRITION RENDERERS (Phase 3)
 // ==========================================
 const nutritionRenderers = {
@@ -2113,15 +2224,15 @@ const nutritionRenderers = {
     },
     renderMacros: (plan, safeT, fallback) => {
         if (!plan) return fallback || '';
-        let calories = plan.daily_calories || (plan.calories ? `${plan.calories} kcal` : '—');
-        if (typeof calories === 'number') calories = `${calories} kcal`;
+        let calories = plan.daily_calories || (plan.calories ? `${plan.calories} ${safeT('kcal unit')}` : '—');
+        if (typeof calories === 'number') calories = `${calories} ${safeT('kcal unit')}`;
         const pro = plan.macros?.protein ?? fallback?.pro ?? '—';
         const carb = plan.macros?.carbs ?? fallback?.carbs ?? '—';
         const fat = plan.macros?.fats ?? fallback?.fats ?? '—';
-        return `<div class="macro-box"><div class="val text-primary">${calories}</div><div class="lbl">KCAL</div></div>
-            <div class="macro-box"><div class="val">${pro}</div><div class="lbl">PRO</div></div>
-            <div class="macro-box"><div class="val">${carb}</div><div class="lbl">CARB</div></div>
-            <div class="macro-box"><div class="val">${fat}</div><div class="lbl">FAT</div></div>`;
+        return `<div class="macro-box"><div class="val text-primary">${calories}</div><div class="lbl">${safeT('macro kcal')}</div></div>
+            <div class="macro-box"><div class="val">${pro}</div><div class="lbl">${safeT('macro protein')}</div></div>
+            <div class="macro-box"><div class="val">${carb}</div><div class="lbl">${safeT('macro carbs')}</div></div>
+            <div class="macro-box"><div class="val">${fat}</div><div class="lbl">${safeT('macro fats')}</div></div>`;
     },
     renderMealPlan: (plan, safeT) => {
         if (!plan?.mealPlan || !Array.isArray(plan.mealPlan) || plan.mealPlan.length === 0) return '';
@@ -2143,14 +2254,25 @@ const nutritionRenderers = {
 // ==========================================
 // 5.7 PROGRESS RENDERERS (Phase 5)
 // ==========================================
+/** Localize dynamic recommendation strings (e.g. calorie bump) when no exact i18n key exists. */
+function translateRecoDynamic(text, safeT) {
+    if (text == null || text === '') return text;
+    const tr = safeT(text);
+    if (tr !== text) return tr;
+    const s = String(text);
+    const m = s.match(/^Increase calories by (\d+) kcal\.?$/i);
+    if (m) return `Увеличете калориите с ${m[1]} kcal`;
+    return text;
+}
+
 const progressRenderers = {
     renderProgressHistory: (entries, safeT) => {
         if (!entries || entries.length === 0) {
-            return '<p class="text-muted" data-safe-i18n="No entries yet">No entries yet.</p>';
+            return `<p class="text-muted" data-safe-i18n="No entries yet">${safeT('No entries yet')}</p>`;
         }
         const rows = entries.slice(0, 10).map((e) => {
             const inj = (e.injuries && e.injuries.length) ? ` · ${e.injuries.join(', ')}` : '';
-            return `<div class="flex justify-between py-1 border-b border-border-light text-[0.65rem]"><span>W${e.weekNumber} ${e.date}</span><span>${e.bodyWeight} kg · ${e.adherence}% · F${e.fatigueLevel}/S${e.sleepScore}</span></div>`;
+            return `<div class="flex justify-between py-1 border-b border-border-light text-[0.65rem]"><span>${safeT('progress history week')} ${e.weekNumber} · ${e.date}</span><span>${e.bodyWeight} ${safeT('kg')} · ${safeT('Adherence')}: ${e.adherence}% · ${safeT('Fatigue')}: ${e.fatigueLevel} · ${safeT('Sleep')}: ${e.sleepScore}</span></div>`;
         }).join('');
         return `<div class="space-y-0">${rows}</div>`;
     },
@@ -2161,15 +2283,16 @@ const progressRenderers = {
         if (t.volumeChange !== 0 || t.intensityChange !== 0 || t.loadProgression !== 0) {
             const v = t.volumeChange > 0 ? `+${(t.volumeChange * 100).toFixed(0)}%` : (t.volumeChange * 100).toFixed(0) + '%';
             const i = t.intensityChange > 0 ? `+${(t.intensityChange * 100).toFixed(0)}%` : (t.intensityChange * 100).toFixed(0) + '%';
-            parts.push(`<p><i class="fa-solid fa-dumbbell text-primary mr-1"></i> ${safeT('Training')}: vol ${v}, intensity ${i}${t.loadProgression ? `, load ${t.loadProgression > 0 ? '+' : ''}${t.loadProgression}%` : ''}</p>`);
+            const loadPart = t.loadProgression ? `, ${safeT('Load label')} ${t.loadProgression > 0 ? '+' : ''}${t.loadProgression}%` : '';
+            parts.push(`<p><i class="fa-solid fa-dumbbell text-primary mr-1"></i> ${safeT('Training')}: ${safeT('Volume')} ${v}, ${safeT('Intensity')} ${i}${loadPart}</p>`);
         }
         const c = result.cardioAdjustments || {};
         if (c.cardioMinutesChange !== 0) {
-            parts.push(`<p><i class="fa-solid fa-heart-pulse text-primary mr-1"></i> ${safeT('Cardio')}: ${c.cardioMinutesChange > 0 ? '+' : ''}${c.cardioMinutesChange} min</p>`);
+            parts.push(`<p><i class="fa-solid fa-heart-pulse text-primary mr-1"></i> ${safeT('Cardio')}: ${c.cardioMinutesChange > 0 ? '+' : ''}${c.cardioMinutesChange} ${safeT('min')}</p>`);
         }
         const n = result.nutritionAdjustments || {};
         if (n.calorieChange !== 0) {
-            parts.push(`<p><i class="fa-solid fa-utensils text-primary mr-1"></i> ${safeT('Calories')}: ${n.calorieChange > 0 ? '+' : ''}${n.calorieChange} kcal</p>`);
+            parts.push(`<p><i class="fa-solid fa-utensils text-primary mr-1"></i> ${safeT('Calories')}: ${n.calorieChange > 0 ? '+' : ''}${n.calorieChange} ${safeT('kcal unit')}</p>`);
         }
         if (result.triggerDeload) {
             parts.push(`<p class="text-warning"><i class="fa-solid fa-pause text-warning mr-1"></i> ${safeT('Deload week recommended')}</p>`);
@@ -2180,7 +2303,7 @@ const progressRenderers = {
     },
     renderRecommendations: (recommendations, safeT) => {
         if (!recommendations || recommendations.length === 0) {
-            return '<p class="text-muted" data-safe-i18n="No recommendations at this time">No recommendations at this time.</p>';
+            return `<p class="text-muted" data-safe-i18n="No recommendations at this time">${safeT('No recommendations at this time')}</p>`;
         }
         const typeIcons = { training: 'fa-dumbbell', nutrition: 'fa-utensils', recovery: 'fa-shield-heart' };
         const priorityClasses = { high: 'text-warning', medium: 'text-primary', low: 'text-secondary' };
@@ -2192,15 +2315,15 @@ const progressRenderers = {
                     <i class="fa-solid ${icon} text-primary mt-0.5"></i>
                     <div class="flex-grow">
                         <p class="font-bold text-xs uppercase tracking-widest ${pClass}">${safeT(r.type)} · ${safeT(r.priority)}</p>
-                        <p class="text-secondary text-xs mt-1">${safeT(r.message)}</p>
-                        <p class="text-primary font-mono text-xs mt-2"><strong>${safeT('Action')}:</strong> ${safeT(r.action)}</p>
+                        <p class="text-secondary text-xs mt-1">${translateRecoDynamic(r.message, safeT)}</p>
+                        <p class="text-primary font-mono text-xs mt-2"><strong>${safeT('Action')}:</strong> ${translateRecoDynamic(r.action, safeT)}</p>
                     </div>
                 </div>
             </div>`;
         }).join('');
     },
     renderRecoveryStatus: (state, safeT) => {
-        if (!state) return '<p class="text-muted" data-safe-i18n="No recovery data">No recovery data.</p>';
+        if (!state) return `<p class="text-muted" data-safe-i18n="No recovery data">${safeT('No recovery data')}</p>`;
         const s = state.injuryState || 'none';
         const modeMap = { none: safeT('Base'), cleared: safeT('Base'), detected: safeT('Adjusted'), active: safeT('Adjusted'), improving: safeT('Adjusted'), reintroduction: safeT('Reintroduction') };
         const stateMap = { none: safeT('No injury'), detected: safeT('Injury detected'), active: safeT('Injury active'), improving: safeT('Improving'), reintroduction: safeT('Reintroduction'), cleared: safeT('Cleared') };
@@ -2210,7 +2333,7 @@ const progressRenderers = {
         const returnWeek = state.returnToBaseWeek || 0;
         let html = `<div class="space-y-2"><p><strong>${safeT('State')}:</strong> ${stateLabel}</p><p><strong>${safeT('Mode')}:</strong> ${mode}</p><p><strong>${safeT('Active injuries')}:</strong> ${injuries}</p>`;
         if (returnWeek > 0) html += `<p><strong>${safeT('Return-to-base week')}:</strong> ${returnWeek}</p>`;
-        if (state.notes) html += `<p class="text-muted text-[0.65rem]">${state.notes}</p>`;
+        if (state.notes) html += `<p class="text-muted text-[0.65rem]">${safeT(state.notes)}</p>`;
         html += '</div>';
         return html;
     },
@@ -2233,7 +2356,7 @@ const progressRenderers = {
 // ==========================================
 const protocolRenderers = {
     renderProtocolStatus: (protocol, safeT) => {
-        if (!protocol) return '<p class="text-muted" data-safe-i18n="No active protocol">No active protocol.</p>';
+        if (!protocol) return `<p class="text-muted" data-safe-i18n="No active protocol">${safeT('No active protocol')}</p>`;
         const currentWeek = protocol.currentWeek ?? 1;
         const durationWeeks = protocol.durationWeeks ?? 8;
         const goal = protocol.goal || protocol.meta?.goal || 'recomp';
@@ -2291,7 +2414,7 @@ const protocolRenderers = {
         if (!protocol?.planSnapshots?.length) return '<p class="text-muted text-xs">' + (safeT('No snapshots yet') || 'No snapshots yet') + '</p>';
         return protocol.planSnapshots.map((s) => `
             <div class="p-2 rounded border border-border-light bg-surface-hover text-xs mb-2">
-                <span class="font-bold text-primary">W${s.week}</span> ${s.date}
+                <span class="font-bold text-primary">${safeT('Week')} ${s.week}</span> ${s.date}
                 ${s.adaptation ? '<span class="text-muted ml-2">' + safeT('Adaptation recorded') + '</span>' : ''}
             </div>
         `).join('');
@@ -2353,11 +2476,11 @@ const dashModule = {
             const titleMap = { fat_loss: safeT("PLAN: FAT LOSS"), muscle_gain: safeT("PLAN: BUILD MUSCLE"), recomp: safeT("PLAN: BODY RECOMPOSITION"), longevity: safeT("PLAN: OVERALL FITNESS"), military: safeT("PLAN: OVERALL FITNESS") };
             document.getElementById('dash-mission-type').textContent = titleMap[p.meta.goal] || safeT("PLAN: OVERALL FITNESS");
             document.getElementById('dash-tier').textContent = safeT(p.meta.tier) + " " + safeT("LEVEL");
-            document.getElementById('res-training-style').textContent = (p.apiPlan?.planMeta?.splitType ? safeT(p.apiPlan.planMeta.splitType.replace(/_/g, ' ')) : safeT(p.meta.style));
+            document.getElementById('res-training-style').textContent = (p.apiPlan?.planMeta?.splitType ? localizeSplitLabel(p.apiPlan.planMeta.splitType, safeT) : safeT(p.meta.style));
 
             // Profile Stats
             document.getElementById('res-profile-stats').innerHTML = `
-                <div class="stat-item"><span class="stat-label" data-safe-i18n="Frequency">${safeT("Frequency")}</span><span class="stat-value"><i class="fa-solid fa-calendar-day text-primary mr-1 text-xs"></i> ${p.meta.days} ${safeT("Days / Wk")}</span></div>
+                <div class="stat-item"><span class="stat-label" data-safe-i18n="Frequency">${safeT("Frequency")}</span><span class="stat-value"><i class="fa-solid fa-calendar-day text-primary mr-1 text-xs"></i> ${p.meta.days} ${safeT("days weekly")}</span></div>
                 <div class="stat-item"><span class="stat-label" data-safe-i18n="Status">${safeT("Status")}</span><span class="stat-value text-success"><i class="fa-solid fa-check text-success mr-1 text-xs"></i> ${safeT("Active")}</span></div>
                 <div class="stat-item"><span class="stat-label" data-safe-i18n="Deploy Date">${safeT("Deploy Date")}</span><span class="stat-value">${p.created_at}</span></div>
             `;
@@ -2452,17 +2575,15 @@ const dashModule = {
                     const mealPlanContent = nutritionRenderers.renderMealPlan(aiN, safeT) || `<p class="text-secondary text-sm font-mono">${safeT("Eat 4–5 balanced meals daily with protein at each.")}</p>`;
 
                     const mealTiming = aiN.meal_timing;
-                    const preText = mealTiming?.pre_workout || (langModule.currentLanguage === 'bg' ? '60–90 мин преди: въглехидрати + протеин (напр. овес, банан, протеин). Кафеин по избор 30–45 мин преди.' : '60–90 min before: carbs + protein (e.g. oats, banana, whey). Caffeine optional 30–45 min pre.');
-                    const postText = mealTiming?.post_workout || (langModule.currentLanguage === 'bg' ? 'В рамките на 1–2 часа: 40–60g въглехидрати + 25–40g протеин. Пример: пиле + ориз + зеленчуци или протеин + банан.' : 'Within 1–2 hours: 40–60g carbs + 25–40g protein. Example: chicken + rice + vegetables, or whey + banana + toast.');
+                    const preText = mealTiming?.pre_workout || '60–90 мин преди: въглехидрати + протеин (напр. овес, банан, суроватъчен протеин). Кофеин по избор 30–45 мин преди.';
+                    const postText = mealTiming?.post_workout || 'В рамките на 1–2 часа: 40–60 g въглехидрати + 25–40 g протеин. Пример: пилешко месо, ориз и зеленчуци или суроватъчен протеин и банан.';
                     const mealTimingContent = `<ul class="protocol-list font-mono text-sm"><li><i class="fa-solid fa-clock text-primary"></i> <strong class="text-secondary">${safeT('Pre-workout')}:</strong> ${safeT(preText)}</li><li><i class="fa-solid fa-clock text-primary"></i> <strong class="text-secondary">${safeT('Post-workout')}:</strong> ${safeT(postText)}</li></ul>`;
 
                     let supplementStack = aiN.supplement_stack && Array.isArray(aiN.supplement_stack) ? aiN.supplement_stack : [];
                     if (supplementStack.length === 0) {
                         const goal = (p.meta && p.meta.goal) ? p.meta.goal : 'recomp';
-                        const stacksEn = { fat_loss: [{ name: 'Caffeine', purpose: 'Performance and focus.', dose: '3–5 mg/kg pre-workout.' }, { name: 'Whey or Plant Protein', purpose: 'Preserve muscle.', dose: '1–2 scoops.' }, { name: 'Vitamin D3', purpose: 'Immune support.', dose: '2,000–4,000 IU daily.' }, { name: 'Omega-3', purpose: 'Recovery.', dose: '2–3 g daily.' }], muscle_gain: [{ name: 'Creatine Monohydrate', purpose: 'Strength and lean mass.', dose: '5 g daily.' }, { name: 'Whey or Plant Protein', purpose: 'Hit protein targets.', dose: '1–2 scoops.' }, { name: 'Vitamin D3', purpose: 'Bone health.', dose: '2,000–4,000 IU daily.' }, { name: 'Omega-3', purpose: 'Joint health.', dose: '2–3 g daily.' }], recomp: [{ name: 'Creatine Monohydrate', purpose: 'Strength.', dose: '5 g daily.' }, { name: 'Vitamin D3', purpose: 'Health.', dose: '2,000–4,000 IU daily.' }, { name: 'Omega-3', purpose: 'Recovery.', dose: '2–3 g daily.' }, { name: 'Whey or Plant Protein', purpose: 'Convenience.', dose: '1–2 scoops.' }], military: [{ name: 'Vitamin D3', purpose: 'Immunity.', dose: '2,000–4,000 IU daily.' }, { name: 'Omega-3', purpose: 'Recovery.', dose: '2–3 g daily.' }, { name: 'Creatine', purpose: 'Strength.', dose: '5 g daily.' }, { name: 'Protein', purpose: 'Convenience.', dose: 'As needed.' }] };
                         const stacksBg = { fat_loss: [{ name: 'Кофеин', purpose: 'Производителност и фокус.', dose: '3–5 mg/kg преди тренировка.' }, { name: 'Суроватъчен или растителен протеин', purpose: 'Запазване на мускулна маса.', dose: '1–2 мерителни лъжици.' }, { name: 'Витамин D3', purpose: 'Имунна подкрепа.', dose: '2000–4000 IU дневно.' }, { name: 'Омега-3', purpose: 'Възстановяване.', dose: '2–3 g дневно.' }], muscle_gain: [{ name: 'Креатин монохидрат', purpose: 'Сила и мускулна маса.', dose: '5 g дневно.' }, { name: 'Суроватъчен или растителен протеин', purpose: 'Постигане на белтъчни цели.', dose: '1–2 мерителни лъжици.' }, { name: 'Витамин D3', purpose: 'Костно здраве.', dose: '2000–4000 IU дневно.' }, { name: 'Омега-3', purpose: 'Стави.', dose: '2–3 g дневно.' }], recomp: [{ name: 'Креатин монохидрат', purpose: 'Сила.', dose: '5 g дневно.' }, { name: 'Витамин D3', purpose: 'Здраве.', dose: '2000–4000 IU дневно.' }, { name: 'Омега-3', purpose: 'Възстановяване.', dose: '2–3 g дневно.' }, { name: 'Суроватъчен или растителен протеин', purpose: 'Удобство.', dose: '1–2 мерителни лъжици.' }], military: [{ name: 'Витамин D3', purpose: 'Имунитет.', dose: '2000–4000 IU дневно.' }, { name: 'Омега-3', purpose: 'Възстановяване.', dose: '2–3 g дневно.' }, { name: 'Креатин', purpose: 'Сила.', dose: '5 g дневно.' }, { name: 'Протеин', purpose: 'Удобство.', dose: 'При нужда.' }] };
-                        const stacks = langModule.currentLanguage === 'bg' ? stacksBg : stacksEn;
-                        supplementStack = stacks[goal] || stacks.recomp;
+                        supplementStack = stacksBg[goal] || stacksBg.recomp;
                     }
                     let supplementContent = '<ul class="protocol-list font-mono text-sm">';
                     supplementStack.forEach(s => { supplementContent += `<li><i class="fa-solid fa-capsules text-primary"></i> <strong class="text-primary">${safeT(s.name || '')}</strong> — ${safeT(s.purpose || '')} <span class="text-muted">(${safeT(s.dose || '')})</span></li>`; });
@@ -2473,12 +2594,12 @@ const dashModule = {
                     const headerHtml = nutritionRenderers.renderNutritionHeader(aiN, safeT);
 
                     const nestedItems = [
-                        { id: 'accordion-nutrition-guidelines', title: safeT('GUIDELINES'), body: guidelinesContent },
-                        { id: 'accordion-nutrition-meals', title: safeT('MEAL PLAN'), body: mealPlanContent },
-                        { id: 'accordion-nutrition-meal-timing', title: safeT('MEAL TIMING'), body: mealTimingContent },
-                        { id: 'accordion-nutrition-supplements', title: safeT('RECOMMENDED SUPPLEMENT STACK'), body: supplementContent }
+                        { id: 'accordion-nutrition-guidelines', title: safeT('Nutrition guidelines section'), body: guidelinesContent },
+                        { id: 'accordion-nutrition-meals', title: safeT('Nutrition meal plan section'), body: mealPlanContent },
+                        { id: 'accordion-nutrition-meal-timing', title: safeT('Nutrition meal timing section'), body: mealTimingContent },
+                        { id: 'accordion-nutrition-supplements', title: safeT('Nutrition supplements section'), body: supplementContent }
                     ];
-                    if (warningsContent) nestedItems.push({ id: 'accordion-nutrition-warnings', title: safeT('WARNINGS'), body: warningsContent });
+                    if (warningsContent) nestedItems.push({ id: 'accordion-nutrition-warnings', title: safeT('Nutrition warnings section'), body: warningsContent });
 
                     let nutritionHtml = headerHtml;
                     nestedItems.forEach(({ id, title, body }) => {
@@ -2510,7 +2631,7 @@ const dashModule = {
                         }
                     }
                     let aiHtml = '';
-                    const defaultWarmup = langModule.currentLanguage === 'bg' ? '5 мин леко кардио; динамично разтягане за работещите мускулни групи.' : '5 min light cardio; dynamic stretches for the muscles you\'ll train today.';
+                    const defaultWarmup = 'Около 5 минути леко кардио и динамично разтягане за мускулните групи в тази тренировка.';
                     p.aiResult.workout_plan.forEach((w, idx) => {
                         const warmupText = (w.warmup && String(w.warmup).trim()) ? w.warmup : defaultWarmup;
                         const warmupHtml = `<div class="text-[0.7rem] mb-3 p-2 rounded bg-surface-hover border border-border-light text-secondary"><span class="text-primary font-bold uppercase text-[0.65rem] tracking-widest block mb-1">${safeT('Warm-up')}</span><span>${safeT(warmupText)}</span></div>`;
@@ -2525,8 +2646,8 @@ const dashModule = {
                                 <input type="checkbox" class="exercise-checkbox" id="${checkId}" aria-label="${safeT("Mark exercise complete")}"/>
                                 <label for="${checkId}" class="exercise-checkbox-custom" aria-hidden="true"></label>
                                 <div class="exercise-content">
-                                    <span class="text-primary font-bold block">${safeT(e.name)}</span>
-                                    <span>${e.sets} ${safeT("sets")} | ${e.reps} | ${safeT("Rest")}: ${e.rest}</span>
+                                    <span class="text-primary font-bold block">${localizeExerciseName(e.name, safeT)}</span>
+                                    <span>${e.sets} ${safeT('sets')} · ${e.reps} ${safeT('reps')} · ${safeT('Rest')}: ${e.rest}</span>
                                     ${meta ? `<span class="block mt-1 text-muted font-mono text-[0.65rem]">${meta}</span>` : ''}
                                 </div>
                             </div>
@@ -2536,12 +2657,12 @@ const dashModule = {
                         aiHtml += `
                         <div class="day-card accordion-card is-closed flex flex-col justify-start" id="accordion-day-${idx}">
                             <div class="day-header accordion-trigger border-b border-border-light pb-2 pt-2 text-xs tracking-widest flex items-center justify-between gap-2" data-accordion-id="accordion-day-${idx}" tabindex="0" role="button" aria-expanded="false" aria-controls="accordion-day-${idx}-body">
-                                <span>${safeT(w.day)}</span>
+                                <span>${localizeDayHeader(w.day, safeT)}</span>
                                 <span class="accordion-toggle-icon" aria-hidden="true"><i class="accordion-chevron fa-solid fa-chevron-down" aria-hidden="true"></i></span>
                             </div>
                             <div class="day-body accordion-body flex-grow" id="accordion-day-${idx}-body">
                                 <div class="day-desc font-mono">
-                                    <strong class="text-warning tracking-widest uppercase block text-center text-sm mb-3">${safeT(w.focus)}</strong>
+                                    <strong class="text-warning tracking-widest uppercase block text-center text-sm mb-3">${localizeFocusLabel(w.focus, safeT)}</strong>
                                     ${warmupHtml}
                                     <div>${exHtml}</div>
                                 </div>
@@ -2553,10 +2674,10 @@ const dashModule = {
             } else {
                 // Fallback rendering
                 document.getElementById('res-macros').innerHTML = `
-                    <div class="macro-box"><div class="val text-primary">${p.nutrition.cals} kcal</div><div class="lbl">KCAL</div></div>
-                    <div class="macro-box"><div class="val">${p.nutrition.pro}g</div><div class="lbl">PRO</div></div>
-                    <div class="macro-box"><div class="val">${p.nutrition.carbs}g</div><div class="lbl">CARB</div></div>
-                    <div class="macro-box"><div class="val">${p.nutrition.fats}g</div><div class="lbl">FAT</div></div>
+                    <div class="macro-box"><div class="val text-primary">${p.nutrition.cals} ${safeT('kcal unit')}</div><div class="lbl">${safeT('macro kcal')}</div></div>
+                    <div class="macro-box"><div class="val">${p.nutrition.pro}g</div><div class="lbl">${safeT('macro protein')}</div></div>
+                    <div class="macro-box"><div class="val">${p.nutrition.carbs}g</div><div class="lbl">${safeT('macro carbs')}</div></div>
+                    <div class="macro-box"><div class="val">${p.nutrition.fats}g</div><div class="lbl">${safeT('macro fats')}</div></div>
                 `;
                 const dietTitles = { balanced: safeT("Balanced Nutrition"), keto: safeT("Keto Diet"), fasting: safeT("Intermittent Fasting") };
                 const structTitles = { strict: safeT("Strict Tracking"), flexible: safeT("Flexible / Intuitive") };
@@ -2579,7 +2700,7 @@ const dashModule = {
                     modulesHtml += `
                     <div class="day-card accordion-card is-closed" id="accordion-day-fb-${idx}">
                         <div class="day-header accordion-trigger flex items-center justify-between gap-2" data-accordion-id="accordion-day-fb-${idx}" tabindex="0" role="button" aria-expanded="false" aria-controls="accordion-day-fb-${idx}-body">
-                            <span>${safeT(t.day)}</span>
+                            <span>${localizeDayHeader(t.day, safeT)}</span>
                             <span class="accordion-toggle-icon" aria-hidden="true"><i class="accordion-chevron fa-solid fa-chevron-down" aria-hidden="true"></i></span>
                         </div>
                         <div class="day-body accordion-body" id="accordion-day-fb-${idx}-body">
@@ -2616,13 +2737,15 @@ const dashModule = {
                     adaptiveSummaryEl.classList.add('hidden');
                     const recCard = document.getElementById('ai-recommendations-content');
                     if (recCard) {
-                        recCard.innerHTML = '<p class="text-muted" data-safe-i18n="Log progress to see personalized recommendations">Log progress to see personalized recommendations.</p>';
+                        recCard.innerHTML = `<p class="text-muted" data-safe-i18n="Log progress to see personalized recommendations">${safeT('Log progress to see personalized recommendations')}</p>`;
                     }
                 }
             }
 
             accordionModule.bind();
         }
+
+        if (typeof window.safeI18nApply === 'function') window.safeI18nApply();
 
         // Populate Telemetry History
         dashModule.renderTelemetry(user);
@@ -3018,12 +3141,13 @@ async function initApp() {
                     recCard.innerHTML = progressRenderers.renderRecommendations(recResult.recommendations, safeT);
                 }
             } else if (recCard) {
-                recCard.innerHTML = '<p class="text-muted" data-safe-i18n="Log progress to see personalized recommendations">Log progress to see personalized recommendations.</p>';
+                recCard.innerHTML = `<p class="text-muted" data-safe-i18n="Log progress to see personalized recommendations">${safeT('Log progress to see personalized recommendations')}</p>`;
             }
             const progressHistoryEl = document.getElementById('progress-history-list');
             if (progressHistoryEl) {
                 progressHistoryEl.innerHTML = progressRenderers.renderProgressHistory(getProgressHistory(user.email), safeT);
             }
+            if (typeof window.safeI18nApply === 'function') window.safeI18nApply();
             progressForm.reset();
             document.getElementById('progress-fatigue').value = 5;
             document.getElementById('progress-sleep').value = 7;

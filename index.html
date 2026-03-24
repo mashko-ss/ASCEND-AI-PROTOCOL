@@ -229,11 +229,11 @@
                     <div class="auth-card auth-card-welcome">
                         <div class="welcome-onboarding-inner text-center">
                             <h2 class="welcome-title" data-i18n="welcome_onboarding_title">
-                                Welcome to ASCEND AI PROTOCOL</h2>
-                            <p class="welcome-body text-secondary max-w-xl mx-auto" data-i18n="welcome_onboarding_subtitle"></p>
+                                Добре дошъл в ASCEND AI PROTOCOL</h2>
+                            <p class="welcome-body text-secondary max-w-xl mx-auto" data-i18n="welcome_onboarding_subtitle">Започни оценката, за да създадеш прецизен протокол за сила, здраве, дълголетие и рекомпозиция на тялото.</p>
                             <button type="button" id="welcome-start-btn"
                                 class="btn btn-primary btn-large w-full mt-8"
-                                data-i18n="welcome_cta_start">Започнете въпросите</button>
+                                data-i18n="welcome_cta_start">Започни оценката</button>
                         </div>
                     </div>
                 </div>
@@ -263,15 +263,14 @@
                         <i class="fa-solid fa-wave-square text-3xl text-primary"></i>
                     </div>
                     <h2 class="text-2xl font-heading font-black mb-2 onboarding-welcome-title"
-                        data-safe-i18n="Welcome to ASCEND AI PROTOCOL">Welcome to ASCEND AI PROTOCOL</h2>
+                        data-safe-i18n="Assessment landing title">Добре дошъл в ASCEND AI PROTOCOL</h2>
                     <p class="text-secondary text-sm max-w-xl mx-auto mb-8 onboarding-lead"
-                        data-safe-i18n="Initialize text">Initialize your assessment to generate a precision protocol for
-                        strength, health, longevity, and body recomposition.</p>
+                        data-safe-i18n="Assessment landing description">Започни оценката, за да създадеш прецизен протокол за сила, здраве, дълголетие и рекомпозиция на тялото.</p>
 
                     <div class="flex-center gap-4">
                         <button class="btn btn-primary btn-large text-sm"
                             id="onboarding-start-btn">
-                            <span data-safe-i18n="Start Assessment">Start Assessment</span> <i
+                            <span data-safe-i18n="Assessment landing start">Започни оценката</span> <i
                                 class="fa-solid fa-terminal ml-2"></i>
                         </button>
                         <div id="resume-assessment-slot"></div>
@@ -298,9 +297,9 @@
                         <!-- STEP 1: Personal Stats (Gender, Age, Weight, Height) -->
                         <div class="wizard-step active" id="step-0">
                             <div class="step-indicator mb-6">
-                                <span class="text-primary font-mono font-bold tracking-widest text-xs uppercase"
+                                <span class="text-primary font-mono font-bold tracking-widest text-xs"
                                     data-safe-i18n="Step 1">Step 1</span>
-                                <h2 class="text-2xl font-heading font-black mt-2 uppercase tracking-widest"
+                                <h2 class="text-2xl font-heading font-black mt-2 tracking-widest"
                                     data-safe-i18n="Personal Stats">Personal Stats</h2>
                             </div>
                             <div class="question-block">
@@ -317,16 +316,16 @@
                                 </div>
                                 <div class="form-row gap-4 mt-6 grid grid-cols-2 md:grid-cols-4">
                                     <div class="form-group">
-                                        <label class="font-mono tracking-widest text-xs uppercase" data-safe-i18n="Age">Age</label>
-                                        <input type="number" name="age" id="input-age" class="input-modern font-mono" min="13" max="120" placeholder="30">
+                                        <label class="font-mono tracking-widest text-xs" data-safe-i18n="Age">Age</label>
+                                        <input type="number" name="age" id="input-age" class="input-modern font-mono" min="13" max="120" placeholder="30" data-i18n-placeholder="e.g. 30">
                                     </div>
                                     <div class="form-group">
-                                        <label class="font-mono tracking-widest text-xs uppercase" data-safe-i18n="Weight (kg)">Weight (kg)</label>
-                                        <input type="number" name="weight" id="input-weight" class="input-modern font-mono" min="30" max="300" step="0.1" placeholder="82">
+                                        <label class="font-mono tracking-widest text-xs" data-safe-i18n="Weight (kg)">Weight (kg)</label>
+                                        <input type="number" name="weight" id="input-weight" class="input-modern font-mono" min="30" max="300" step="0.1" placeholder="82" data-i18n-placeholder="e.g. 82">
                                     </div>
                                     <div class="form-group">
-                                        <label class="font-mono tracking-widest text-xs uppercase" data-safe-i18n="Height (cm)">Height (cm)</label>
-                                        <input type="number" name="height" id="input-height" class="input-modern font-mono" min="100" max="250" placeholder="178">
+                                        <label class="font-mono tracking-widest text-xs" data-safe-i18n="Height (cm)">Height (cm)</label>
+                                        <input type="number" name="height" id="input-height" class="input-modern font-mono" min="100" max="250" placeholder="178" data-i18n-placeholder="e.g. 178">
                                     </div>
                                 </div>
                             </div>
@@ -335,9 +334,9 @@
                         <!-- STEP 2: Daily Activity Level -->
                         <div class="wizard-step hidden" id="step-1">
                             <div class="step-indicator mb-6">
-                                <span class="text-primary font-mono font-bold tracking-widest text-xs uppercase"
+                                <span class="text-primary font-mono font-bold tracking-widest text-xs"
                                     data-safe-i18n="Step 2">Step 2</span>
-                                <h2 class="text-2xl font-heading font-black mt-2 uppercase tracking-widest"
+                                <h2 class="text-2xl font-heading font-black mt-2 tracking-widest"
                                     data-safe-i18n="Daily Activity Level">Daily Activity Level</h2>
                             </div>
                             <div class="question-block">
@@ -374,9 +373,9 @@
                         <!-- STEP 3: Primary Goal -->
                         <div class="wizard-step hidden" id="step-2">
                             <div class="step-indicator mb-6">
-                                <span class="text-primary font-mono font-bold tracking-widest text-xs uppercase"
+                                <span class="text-primary font-mono font-bold tracking-widest text-xs"
                                     data-safe-i18n="Step 3">Step 3</span>
-                                <h2 class="text-2xl font-heading font-black mt-2 uppercase tracking-widest"
+                                <h2 class="text-2xl font-heading font-black mt-2 tracking-widest"
                                     data-safe-i18n="Primary Goal">Primary Goal</h2>
                             </div>
                             <div class="question-block">
@@ -413,9 +412,9 @@
                         <!-- STEP 4: Target Focus (weak muscle groups / priorities) -->
                         <div class="wizard-step hidden" id="step-3">
                             <div class="step-indicator mb-6">
-                                <span class="text-primary font-mono font-bold tracking-widest text-xs uppercase"
+                                <span class="text-primary font-mono font-bold tracking-widest text-xs"
                                     data-safe-i18n="Step 4">Step 4</span>
-                                <h2 class="text-2xl font-heading font-black mt-2 uppercase tracking-widest"
+                                <h2 class="text-2xl font-heading font-black mt-2 tracking-widest"
                                     data-safe-i18n="Target Focus">Target Focus</h2>
                             </div>
                             <div class="question-block">
@@ -444,9 +443,9 @@
                         <!-- STEP 5: Experience & Equipment -->
                         <div class="wizard-step hidden" id="step-4">
                             <div class="step-indicator mb-6">
-                                <span class="text-primary font-mono font-bold tracking-widest text-xs uppercase"
+                                <span class="text-primary font-mono font-bold tracking-widest text-xs"
                                     data-safe-i18n="Step 5">Step 5</span>
-                                <h2 class="text-2xl font-heading font-black mt-2 uppercase tracking-widest"
+                                <h2 class="text-2xl font-heading font-black mt-2 tracking-widest"
                                     data-safe-i18n="Experience & Equipment">Experience & Equipment</h2>
                             </div>
                             <div class="question-block">
@@ -492,9 +491,9 @@
                         <!-- STEP 6: Schedule (Days per week + Session duration) -->
                         <div class="wizard-step hidden" id="step-5">
                             <div class="step-indicator mb-6">
-                                <span class="text-primary font-mono font-bold tracking-widest text-xs uppercase"
+                                <span class="text-primary font-mono font-bold tracking-widest text-xs"
                                     data-safe-i18n="Step 6">Step 6</span>
-                                <h2 class="text-2xl font-heading font-black mt-2 uppercase tracking-widest"
+                                <h2 class="text-2xl font-heading font-black mt-2 tracking-widest"
                                     data-safe-i18n="Schedule">Schedule</h2>
                             </div>
                             <div class="question-block">
@@ -546,9 +545,9 @@
                         <!-- STEP 7: Limitations & Injuries -->
                         <div class="wizard-step hidden" id="step-6">
                             <div class="step-indicator mb-6">
-                                <span class="text-primary font-mono font-bold tracking-widest text-xs uppercase"
+                                <span class="text-primary font-mono font-bold tracking-widest text-xs"
                                     data-safe-i18n="Step 7">Step 7</span>
-                                <h2 class="text-2xl font-heading font-black mt-2 uppercase tracking-widest"
+                                <h2 class="text-2xl font-heading font-black mt-2 tracking-widest"
                                     data-safe-i18n="Limitations & Injuries">Limitations & Injuries</h2>
                             </div>
                             <div class="question-block">
@@ -591,7 +590,7 @@
                         <!-- STEP 8: Dietary Needs (Compact Questionnaire) -->
                         <div class="wizard-step wizard-step-compact hidden" id="step-7">
                             <div class="step-indicator step-indicator-compact">
-                                <span class="text-primary font-mono font-bold tracking-widest text-xs uppercase"
+                                <span class="text-primary font-mono font-bold tracking-widest text-xs"
                                     data-safe-i18n="Step 8">Step 8</span>
                                 <h2 class="text-lg font-heading font-black mt-2 uppercase tracking-widest"
                                     data-safe-i18n="Dietary Needs">Dietary Needs</h2>
@@ -636,10 +635,10 @@
                     </div>
 
                     <div class="wizard-actions flex items-center justify-between w-full">
-                        <button class="btn btn-ghost font-mono uppercase text-xs tracking-widest text-muted" id="btn-prev-step"><i
+                        <button class="btn btn-ghost font-mono text-xs tracking-widest text-muted" id="btn-prev-step"><i
                                 class="fa-solid fa-angle-left mr-2"></i> <span
                                 data-safe-i18n="Back">Back</span></button>
-                        <button class="btn-next-premium font-mono uppercase text-sm flex items-center justify-center gap-2"
+                        <button class="btn-next-premium font-mono text-sm flex items-center justify-center gap-2"
                             id="btn-next-step"><span data-safe-i18n="Next Step">Next Step</span> <i
                                 class="fa-solid fa-angle-right ml-1"></i></button>
                     </div>
@@ -815,26 +814,26 @@
                                             <h4 class="text-[0.65rem] uppercase tracking-widest text-primary font-bold mb-3" data-safe-i18n="Weekly Progress">Weekly Progress</h4>
                                             <form id="progress-entry-form" class="progress-form font-mono text-sm space-y-3">
                                                 <div class="flex flex-wrap gap-3 items-center">
-                                                    <label class="w-24"><span data-safe-i18n="Body Weight">Body Weight</span> (kg)</label>
+                                                    <label class="w-28 min-w-0"><span data-safe-i18n="Body Weight (kg)">Body Weight (kg)</span></label>
                                                     <input type="number" step="0.1" min="30" max="300" id="progress-body-weight" class="input-modern w-20" placeholder="80" required>
-                                                    <label class="w-28"><span data-safe-i18n="Strength Change">Strength Change</span></label>
+                                                    <label class="w-32 min-w-0"><span data-safe-i18n="Strength Change">Strength Change</span></label>
                                                     <input type="number" step="0.5" id="progress-strength-change" class="input-modern w-16" placeholder="0" title="-5 to 5">
                                                 </div>
                                                 <div class="flex flex-wrap gap-3 items-center">
-                                                    <label class="w-24"><span data-safe-i18n="Fatigue">Fatigue</span> (1-10)</label>
+                                                    <label class="w-28 min-w-0"><span data-safe-i18n="Fatigue (1-10)">Fatigue (1-10)</span></label>
                                                     <input type="range" min="1" max="10" id="progress-fatigue" class="range-slider flex-1 max-w-32" value="5">
                                                     <span id="progress-fatigue-out" class="text-primary font-bold w-6">5</span>
-                                                    <label class="w-24 ml-2"><span data-safe-i18n="Sleep">Sleep</span> (1-10)</label>
+                                                    <label class="w-28 ml-2 min-w-0"><span data-safe-i18n="Sleep (1-10)">Sleep (1-10)</span></label>
                                                     <input type="range" min="1" max="10" id="progress-sleep" class="range-slider flex-1 max-w-32" value="7">
                                                     <span id="progress-sleep-out" class="text-primary font-bold w-6">7</span>
                                                 </div>
                                                 <div class="flex flex-wrap gap-3 items-center">
-                                                    <label class="w-24"><span data-safe-i18n="Adherence">Adherence</span> (%)</label>
+                                                    <label class="w-28 min-w-0"><span data-safe-i18n="Adherence (%)">Adherence (%)</span></label>
                                                     <input type="number" min="0" max="100" id="progress-adherence" class="input-modern w-16" placeholder="90" required>
                                                 </div>
                                                 <div>
                                                     <label class="block mb-1"><span data-safe-i18n="Injuries / Notes">Injuries / Notes</span></label>
-                                                    <textarea id="progress-injuries" class="input-modern w-full text-xs" rows="2" placeholder="e.g. shoulder, knee, lower back"></textarea>
+                                                    <textarea id="progress-injuries" class="input-modern w-full text-xs" rows="2" placeholder="e.g. shoulder, knee, lower back" data-i18n-placeholder="Injuries notes placeholder"></textarea>
                                                 </div>
                                                 <div class="flex flex-wrap gap-4 items-center">
                                                     <label class="flex items-center gap-2 cursor-pointer">

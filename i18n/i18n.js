@@ -1,5 +1,6 @@
 import { en } from './en.js';
 import { bg } from './bg.js';
+import { accordionEnBg } from './accordionEnBg.js';
 
 export const translations = { en, bg };
 
@@ -14,6 +15,7 @@ try {
 export function getLanguage() {
     return currentLanguage;
 }
+window.safeI18nGetLanguage = getLanguage;
 
 export function setLanguage(lang) {
     if (!translations[lang]) return;
@@ -32,6 +34,9 @@ export function t(key) {
     const dict = translations[currentLanguage];
     if (dict && dict[key]) {
         return dict[key];
+    }
+    if (currentLanguage === 'bg' && accordionEnBg[key]) {
+        return accordionEnBg[key];
     }
     return key;
 }

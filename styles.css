@@ -1129,7 +1129,7 @@ body.dashboard-active .dashboard-main {
 
 .questionnaire-section-title {
     font-family: var(--font-body);
-    font-size: 0.8rem;
+    font-size: 0.9375rem;
     font-weight: 700;
     text-transform: none;
     letter-spacing: 0.02em;
@@ -1138,7 +1138,7 @@ body.dashboard-active .dashboard-main {
     padding: 0;
     border-left: 3px solid var(--accent-primary);
     padding-left: 10px;
-    line-height: 1.35;
+    line-height: 1.42;
 }
 
 /* Balanced chips - medium size, readable */
@@ -1490,20 +1490,21 @@ body.dashboard-active .dashboard-main {
 }
 
 .radio-subtext {
-    font-size: 0.8125rem;
+    font-size: 0.85rem;
     color: var(--text-secondary);
-    max-width: 22ch;
+    max-width: 24ch;
     margin-left: auto;
     margin-right: auto;
     margin-top: 0.45rem;
-    line-height: 1.45;
+    line-height: 1.5;
     white-space: normal !important;
     word-wrap: break-word !important;
     text-align: center !important;
 }
 
 .radio-card input:checked ~ .radio-card-content .radio-subtext {
-    color: var(--text-secondary);
+    color: var(--text-primary);
+    opacity: 0.85;
 }
 
 .radio-card:hover .radio-card-content {
@@ -1542,6 +1543,12 @@ body.dashboard-active .dashboard-main {
 .chip-content:hover {
     border-color: var(--text-muted);
     color: var(--text-primary);
+}
+
+/* Анкета (стъпка 8): изречения с нормален регистър, без принудителни главни букви */
+#view-assessment .chip-content {
+    text-transform: none;
+    letter-spacing: 0.02em;
 }
 
 .chip-checkbox input:checked~.chip-content {
@@ -2025,10 +2032,13 @@ body.dashboard-active .dashboard-main {
 }
 
 .stat-value {
-    font-size: 1rem;
+    font-size: 0.95rem;
     font-weight: 600;
     font-family: var(--font-mono);
-    text-transform: uppercase;
+    text-transform: none;
+    line-height: 1.35;
+    white-space: normal;
+    word-break: break-word;
 }
 
 /* ============================================
@@ -2074,15 +2084,15 @@ body.dashboard-active .dashboard-main {
 }
 
 .macro-box .lbl {
-    font-size: clamp(0.6rem, 1.5vw, 0.7rem);
+    font-size: clamp(0.6rem, 1.5vw, 0.75rem);
     color: var(--text-muted);
-    text-transform: uppercase;
+    text-transform: none;
     font-family: var(--font-mono);
     font-weight: 700;
-    letter-spacing: 0.05em;
-    white-space: nowrap;
-    overflow: hidden;
-    line-height: 1.2;
+    letter-spacing: 0.02em;
+    white-space: normal;
+    overflow: visible;
+    line-height: 1.25;
     text-align: center;
     max-width: 100%;
 }
