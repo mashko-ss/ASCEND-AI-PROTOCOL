@@ -1014,6 +1014,57 @@ body.dashboard-active .dashboard-main {
     }
 }
 
+/* Assessment landing + questionnaire: Cyrillic-friendly font (Inter not loaded — system UI stack only) */
+#view-welcome-onboarding,
+#view-onboarding,
+#view-assessment {
+    font-family: "Segoe UI", Roboto, Arial, sans-serif;
+}
+
+#view-welcome-onboarding .welcome-title,
+#view-onboarding .onboarding-welcome-title,
+#view-onboarding .font-heading,
+#view-assessment .font-heading,
+#view-assessment h1,
+#view-assessment h2,
+#view-assessment h3 {
+    font-family: "Segoe UI", Roboto, Arial, sans-serif;
+}
+
+/* JetBrains Mono is weak for Cyrillic; use UI stack for questionnaire copy */
+#view-assessment .font-mono {
+    font-family: "Segoe UI", Roboto, Arial, sans-serif;
+}
+
+#view-welcome-onboarding .welcome-body,
+#view-onboarding .onboarding-lead {
+    line-height: 1.7;
+}
+
+#view-assessment .wizard-scroll-area,
+#view-assessment .question-block {
+    line-height: 1.5;
+}
+
+#view-welcome-onboarding .tracking-widest,
+#view-onboarding .tracking-widest,
+#view-assessment .tracking-widest {
+    letter-spacing: 0.05em;
+}
+
+/* Explicit overrides: these rules use Manrope via var(--font-body) elsewhere */
+#view-assessment .question-label,
+#view-assessment .radio-label,
+#view-assessment .radio-subtext,
+#view-assessment .questionnaire-section-title,
+#view-assessment .chip-content {
+    font-family: "Segoe UI", Roboto, Arial, sans-serif;
+}
+
+#view-assessment .input-modern {
+    font-family: "Segoe UI", Roboto, Arial, sans-serif;
+}
+
 .wizard-header {
     padding: 1rem 1.5rem;
     border: none !important;
@@ -1274,9 +1325,9 @@ body.dashboard-active .dashboard-main {
     color: var(--text-primary);
 }
 
-/* Step label (Стъпка N): readable, not shouty */
+/* Step label (Стъпка N): readable, not shouty — Cyrillic-friendly stack */
 #view-assessment .step-indicator > span.text-primary.font-mono {
-    font-family: var(--font-body) !important;
+    font-family: "Segoe UI", Roboto, Arial, sans-serif !important;
     text-transform: none;
     letter-spacing: 0.06em;
     font-weight: 700;
@@ -1326,7 +1377,7 @@ body.dashboard-active .dashboard-main {
 
 /* Questionnaire: step counter + nav (full BG strings) */
 #step-counter {
-    font-family: var(--font-body);
+    font-family: "Segoe UI", Roboto, Arial, sans-serif;
     font-size: 0.78rem;
     letter-spacing: 0.02em;
     line-height: 1.25;
@@ -1345,7 +1396,7 @@ body.dashboard-active .dashboard-main {
 .wizard-actions .btn-next-premium {
     text-transform: none;
     letter-spacing: 0.04em;
-    font-family: var(--font-body);
+    font-family: "Segoe UI", Roboto, Arial, sans-serif;
 }
 
 .wizard-header .btn-icon {
