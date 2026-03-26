@@ -8,5 +8,5 @@ window.ENV = {
     SUPABASE_URL: "LOCAL_DEV_REPLACE_ME",
     SUPABASE_PUBLIC_KEY: "LOCAL_DEV_REPLACE_ME",
     SUPABASE_ANON_KEY: "LOCAL_DEV_REPLACE_ME",
-    AUTH_REDIRECT_URL: "https://ascend-ai-protocol.vercel.app/"
+    AUTH_REDIRECT_URL: "http://localhost:3000/"
 };

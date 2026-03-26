@@ -8,6 +8,13 @@ export const bg = {
   'Initialize text':
     'Започни въпросите, за да създадеш прецизен протокол за сила, здраве или дълголетие и рекомпозиция на тялото.',
   'Start Assessment': 'Започни оценката',
+  'Already have an account?': 'Вече имате профил?',
+  'Please fill in all fields.': 'Моля, попълнете всички полета.',
+  'Email already registered.': 'Този имейл вече е регистриран.',
+  'Invalid email or password.': 'Невалиден имейл или парола.',
+  'Cloud sign-in is not available.': 'Облачен вход не е наличен.',
+  'Google sign-in failed.': 'Входът с Google не бе успешен.',
+  'Could not save.': 'Запазването не бе успешно.',
 
   // Празен табло екран: само оценка (view-onboarding) — отделни ключове, за да не се променя маркетинг/навигация
   'Assessment landing title': 'Добре дошъл в ASCEND AI PROTOCOL',

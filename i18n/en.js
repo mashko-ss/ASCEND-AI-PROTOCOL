@@ -6,6 +6,13 @@ export const en = {
   'Initialize text':
     'Initialize your assessment to generate a precision protocol for strength, health, longevity, and body recomposition.',
   'Start Assessment': 'Start Assessment',
+  'Already have an account?': 'Already have an account?',
+  'Please fill in all fields.': 'Please fill in all fields.',
+  'Email already registered.': 'Email already registered.',
+  'Invalid email or password.': 'Invalid email or password.',
+  'Cloud sign-in is not available.': 'Cloud sign-in is not available.',
+  'Google sign-in failed.': 'Google sign-in failed.',
+  'Could not save.': 'Could not save.',
 
   'Assessment landing title': 'Welcome to ASCEND AI PROTOCOL',
   'Assessment landing description':

@@ -50,11 +50,21 @@ function resolveGoogleRedirectUrl() {
     const configured = normalizeRedirectUrl(
         getBrowserEnvValue('AUTH_REDIRECT_URL') || getBrowserEnvValue('APP_URL')
     );
-    const currentUrl = `${window.location.origin}${window.location.pathname}`;
+    const currentUrl = normalizeRedirectUrl(`${window.location.origin}/`) || `${window.location.origin}/`;
     const isLocalhost = ['localhost', '127.0.0.1'].includes(window.location.hostname);
 
     if (isLocalhost) {
-        return configured || 'https://ascend-ai-protocol.vercel.app/';
+        if (configured) {
+            try {
+                const configuredHost = new URL(configured).hostname;
+                if (['localhost', '127.0.0.1'].includes(configuredHost)) {
+                    return configured;
+                }
+            } catch {
+                /* ignore invalid configured redirect */
+            }
+        }
+        return currentUrl;
     }
 
     return configured || currentUrl;

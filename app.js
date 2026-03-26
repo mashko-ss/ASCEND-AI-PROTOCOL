@@ -5,7 +5,7 @@
 
 import { runEngine, toDashboardFormat, saveProgressEntry, evaluateProgressFromLatest, getRecommendationsFromLatest, getProgressHistory, createProtocol, saveNewProtocol as saveProtocolForCurrentUser, advanceProtocolWeek, getNextDeloadWeek, regenerateNextWeekProtocol, getInjuryState, processProgressForRecovery } from './src/lib/ai/index.js';
 import { createUser as createAuthUser, loginUser as loginAuthUser, signInWithGoogle as signInWithGoogleCloud, restoreSession, getSessionUser, isCurrentUserAdmin, isCloudAuthAvailable, signOutUser, saveUsername } from './src/lib/core/authAdapter.js';
-import { init as initStorage, getCurrentUser as storageGetCurrentUser, saveCurrentUser as storageSaveCurrentUser, getUserSlot, getAssessmentState as storageGetAssessmentState, saveAssessmentState as storageSaveAssessmentState, getTelemetry as storageGetTelemetry, appendTelemetry as storageAppendTelemetry } from './src/lib/data/storageAdapter.js';
+import { init as initStorage, getCurrentUser as storageGetCurrentUser, saveCurrentUser as storageSaveCurrentUser, getUserSlot, getAssessmentState as storageGetAssessmentState, saveAssessmentState as storageSaveAssessmentState, getTelemetry as storageGetTelemetry, appendTelemetry as storageAppendTelemetry, getProtocolState as storageGetProtocolState, saveProtocolState as storageSaveProtocolState } from './src/lib/data/storageAdapter.js';
 
 // Global App Namespace established early to prevent ReferenceErrors
 window.app = window.app || {};
@@ -78,20 +78,15 @@ function ensureLegacyUserSlot(state, preferredUser = getStoredIdentity(), overri
 }
 
 function getLegacyState() {
-    try {
-        const raw = localStorage.getItem(DB_KEY);
-        const parsed = raw ? JSON.parse(raw) : null;
-        if (parsed && typeof parsed === 'object' && parsed.users && typeof parsed.users === 'object') {
-            return parsed;
-        }
-    } catch {
-        /* ignore */
+    const parsed = storageGetProtocolState();
+    if (parsed && typeof parsed === 'object' && parsed.users && typeof parsed.users === 'object') {
+        return parsed;
     }
     return { users: {}, currentUser: null };
 }
 
 function saveLegacyState(state) {
-    localStorage.setItem(DB_KEY, JSON.stringify(state && typeof state === 'object' ? state : { users: {}, currentUser: null }));
+    storageSaveProtocolState(state && typeof state === 'object' ? state : { users: {}, currentUser: null });
 }
 
 function getLegacySlotForUser(preferredUser = getStoredIdentity()) {
@@ -134,7 +129,8 @@ function buildCurrentUserView(preferredUser = getStoredIdentity()) {
 const db = {
     init: () => {
         initStorage();
-        if (!localStorage.getItem(DB_KEY)) {
+        const protocolState = storageGetProtocolState();
+        if (!protocolState || typeof protocolState !== 'object' || !protocolState.users || typeof protocolState.users !== 'object') {
             saveLegacyState({
                 users: {},
                 currentUser: null
@@ -1207,20 +1203,21 @@ const langModule = {
     },
 
     applyTranslations: () => {
-        const dict = langModule.translations[langModule.currentLanguage];
         // Translate static elements
         document.querySelectorAll('[data-i18n]').forEach(el => {
             const key = el.getAttribute('data-i18n');
-            if (dict[key]) {
-                el.innerText = dict[key];
+            const translated = langModule.t(key);
+            if (translated && translated !== key) {
+                el.innerText = translated;
             }
         });
 
         // Translate placeholders
         document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
             const key = el.getAttribute('data-i18n-placeholder');
-            if (dict[key]) {
-                el.placeholder = dict[key];
+            const translated = langModule.t(key);
+            if (translated && translated !== key) {
+                el.placeholder = translated;
             }
         });
     }
@@ -2310,12 +2307,23 @@ const FOCUS_LABEL_BG = {
     'Active Recovery': 'Активно възстановяване',
     'Light Cardio + Mobility': 'Леко кардио и динамично разтягане',
     'Pull Focus (Back & Biceps)': 'Гръб и бицепс',
-    'Leg Focus (Quads, Hamstrings, Glutes)': 'Предно / задно бедро и седалище'
+    'Leg Focus (Quads, Hamstrings, Glutes)': 'Предно / задно бедро и седалище',
+    'UPPER BODY STRENGTH AND HYPERTROPHY': 'Горна част: сила и мускулна маса',
+    'LOWER BODY STRENGTH AND HYPERTROPHY': 'Долна част: сила и мускулна маса',
+    'UPPER BODY HYPERTROPHY AND CONDITIONING': 'Горна част: мускулна маса и кондиция',
+    'LOWER BODY STRENGTH AND CONDITIONING': 'Долна част: сила и кондиция',
+    'CHEST AND GENERAL FAT LOSS': 'Гърди и общ фокус върху изгаряне на мазнини',
+    'CHEST AND FAT LOSS CONDITIONING': 'Гърди и кондиция за изгаряне на мазнини',
+    'Chest and general fat loss': 'Гърди и общ фокус върху изгаряне на мазнини',
+    'Chest and fat loss conditioning': 'Гърди и кондиция за изгаряне на мазнини',
+    'Full body fat loss with chest emphasis': 'Цяло тяло с акцент върху гърди и изгаряне на мазнини'
 };
 
 function localizeFocusLabel(focus, safeT) {
     const f = String(focus || '').trim();
     if (FOCUS_LABEL_BG[f]) return FOCUS_LABEL_BG[f];
+    const caseInsensitiveMatch = Object.keys(FOCUS_LABEL_BG).find((key) => key.toLowerCase() === f.toLowerCase());
+    if (caseInsensitiveMatch) return FOCUS_LABEL_BG[caseInsensitiveMatch];
     const tr = safeT(f);
     return tr !== f ? tr : f;
 }
@@ -2323,13 +2331,17 @@ function localizeFocusLabel(focus, safeT) {
 const EXERCISE_LABEL_BG = {
     'Barbell Bench Press': 'Лежанка с щанга',
     'Bent-Over Barbell Row': 'Гребане с щанга в наклон',
+    'Bent-Over Barbell Rows': 'Гребане с щанга в наклон',
     'Overhead Dumbbell Press': 'Жим с дъмбели от стоеж',
+    'Dumbbell Shoulder Press': 'Жим с дъмбели за рамо',
     'Pull-ups or Lat Pulldown': 'Набирания или скрипец пред гърди',
     'Cable Tricep Pushdown': 'Изтласкване за трицепс на кабел',
+    'Cable Tricep Pushdowns': 'Изтласкване за трицепс на кабел',
     'Barbell Back Squat': 'Клек с щанга',
     'Romanian Deadlift': 'Румънска мъртва тяга',
     'Leg Press': 'Крака в уред',
     'Leg Curl': 'Сгъване за бедро',
+    'Seated Leg Curls': 'Седнало сгъване за бедро',
     Plank: 'Планк',
     'Light Cardio (Bike or Walk)': 'Леко кардио (велоергометър или ходене)',
     'Hip Mobility Flow': 'Мобилност на тазобедрената става',
@@ -2363,14 +2375,86 @@ const EXERCISE_LABEL_BG = {
     'Deadlift or Rack Pull': 'Мъртва тяга или от стойки',
     'Lat Pulldown': 'Скрипец пред гърди',
     'Cable Fly or Push-up': 'Кросоувър с кабел или лицеви',
-    'Tricep Pushdown': 'Изтласкване за трицепс'
+    'Tricep Pushdown': 'Изтласкване за трицепс',
+    'Dumbbell Bicep Curls': 'Сгъване с дъмбели за бицепс',
+    'Standing Calf Raises': 'Повдигане на пръсти от стоеж',
+    'Pull-Ups': 'Набирания',
+    'Battle Ropes': 'Бойни въжета',
+    'Kettlebell Swings': 'Суинг с пудовка',
+    'Mountain Climbers': 'Планк с прибиране на колене',
+    Deadlift: 'Мъртва тяга',
+    'Machine Chest Press': 'Машинен лег за гърди',
+    'Seated Row Machine': 'Гребане на машина седнал',
+    'Leg Press Machine': 'Машина за лег преса',
+    'Cable Chest Fly': 'Кросоувър за гърди на кабел',
+    'Incline Chest Press Machine': 'Наклонен машинен лег за гърди',
+    'Assisted Pull-up Machine': 'Машина за набирания с помощ',
+    'Stationary Bike Intervals': 'Интервали на велоергометър',
+    'Dumbbell Lateral Raises': 'Странични вдигания с дъмбели',
+    'Bird Dog': 'Бърд дог',
+    'Dead Bug or Bird Dog': 'Дед бъг или бърд дог',
+    'Assisted Push-Ups': 'Лицеви опори с помощ',
+    'Stationary Bike': 'Велоергометър',
+    'Dumbbell Chest Press (light weights)': 'Повдигане с дъмбели за гърди (леки тежести)',
+    'Bodyweight Squats': 'Клекове със собствено тегло',
+    'Rowing Machine': 'Гребен тренажор'
 };
 
 function localizeExerciseName(name, safeT) {
     const n = String(name || '').trim();
     if (EXERCISE_LABEL_BG[n]) return EXERCISE_LABEL_BG[n];
+    const caseInsensitiveMatch = Object.keys(EXERCISE_LABEL_BG).find((key) => key.toLowerCase() === n.toLowerCase());
+    if (caseInsensitiveMatch) return EXERCISE_LABEL_BG[caseInsensitiveMatch];
     const tr = safeT(n);
     return tr !== n ? tr : n;
+}
+
+const PLAN_TEXT_BG = {
+    'Consume minimum 3 liters of water daily, more on training days.': 'Приемайте минимум 3 литра вода дневно, а в тренировъчни дни и повече.',
+    'Increase weight or reps weekly by 5-10% while maintaining form.': 'Увеличавайте тежестта или повторенията с 5–10% седмично, без да жертвате техниката.',
+    'Add 1-2 reps per set or increase load incrementally if reps exceed target range.': 'Добавяйте 1–2 повторения на серия или вдигайте натоварването постепенно, ако минавате целевия диапазон.',
+    'Deload week if performance drops >15% or persistent soreness/fatigue.': 'Направете разтоварваща седмица при спад в представянето над 15% или при постоянна мускулна треска/умора.',
+    'Ensure proper warm-up to prevent injury.': 'Правете качествена разгрявка, за да намалите риска от контузии.',
+    'Prioritize technique over weight to reduce risk.': 'Поставяйте техниката пред тежестта, за да намалите риска.',
+    'Modify exercises if experiencing discomfort or pain.': 'Модифицирайте упражненията, ако усещате дискомфорт или болка.',
+    'Drink at least 2-3 liters of water daily': 'Приемайте поне 2–3 литра вода дневно.',
+    'Drink at least 2-3 liters of water daily, more if sweating heavily': 'Приемайте поне 2–3 литра вода дневно, а при силно потене и повече.',
+    'gradual increase in sets or reps weekly if no excessive soreness': 'Постепенно увеличавайте сериите или повторенията всяка седмица, ако няма прекомерна мускулна треска.',
+    'Increase sets or reps weekly by small increments within target rep range': 'Увеличавайте сериите или повторенията постепенно всяка седмица в рамките на целевия диапазон.',
+    'Add 1 set or increase reps by 1-2 per exercise after week 2': 'След втората седмица добавете 1 серия или увеличете повторенията с 1–2 на упражнение.',
+    'Add 1 set or increase reps by 2 if form and recovery allow': 'Добавете 1 серия или увеличете повторенията с 2, ако техниката и възстановяването го позволяват.',
+    'Persistent soreness lasting more than 72 hours or decline in performance': 'Постоянна мускулна треска за над 72 часа или спад в представянето.',
+    'Any persistent joint pain or fatigue lasting over 3 days': 'Всяка постоянна ставна болка или умора с продължителност над 3 дни.',
+    'Avoid rushing movement tempo to prevent injury': 'Не избързвайте темпото на движенията, за да намалите риска от контузии.',
+    'Begin each session with a proper warmup to avoid injury': 'Започвайте всяка тренировка с добра разгрявка, за да избегнете контузии.',
+    'Do not ignore pain; stop any exercises causing sharp or persistent pain': 'Не игнорирайте болката; спрете упражненията, които причиняват остра или постоянна болка.',
+    'Maintain hydration and proper nutrition to support fat loss and recovery': 'Поддържайте добра хидратация и хранене, за да подпомогнете изгарянето на мазнини и възстановяването.',
+    'Maintain proper form especially on machine exercises': 'Поддържайте правилна техника, особено при упражненията на машини.',
+    'Monitor body response and do not ignore pain signals': 'Следете реакцията на тялото си и не игнорирайте сигналите за болка.',
+    'Dynamic Shoulder and Arm Mobility': 'Динамична мобилност за рамене и ръце',
+    'Hip and Ankle Mobility Drills': 'Мобилизационни упражнения за таз и глезени',
+    'Light Rowing and Arm Circles': 'Леко гребане и кръгове с ръце',
+    'Light Jog and Dynamic Leg Swings': 'Леко тичане и динамични замахи с крака',
+    'Treadmill walk': 'Ходене на пътека',
+    'Treadmill brisk walk': 'Бързо ходене на пътека',
+    Elliptical: 'Елиптикал',
+    'Elliptical light pace': 'Елиптикал с леко темпо',
+    '5 min row or bike; 2x10 band pull-aparts, 2x10 band dislocates; 1x8 empty bar bench, 1x8 bent-over row.': '5 минути гребен тренажор или велоергометър; 2x10 разтваряне с ластик, 2x10 мобилизации за рамене; 1x8 лежанка с празен лост, 1x8 гребане в наклон.',
+    '5 min bike; leg swings 10/side, hip circles 10/side; 1x8 goblet squat, 1x8 RDL with light KB.': '5 минути велоергометър; замахи с крак 10/страна, кръгове с ханш 10/страна; 1x8 goblet squat, 1x8 румънска тяга с лека пудовка.',
+    '5 min easy walk or bike; full-body dynamic stretch.': '5 минути леко ходене или велоергометър; динамично раздвижване за цялото тяло.',
+    '5 min row; band pull-aparts 2x15; 1x8 incline DB press light, 1x8 lateral raise light.': '5 минути гребен тренажор; 2x15 разтваряне с ластик; 1x8 лек наклонен лег с дъмбели, 1x8 леки странични вдигания.',
+    '5 min bike; 2x8 cat-cow, 2x8 hip hinge; 1x5 deadlift with bar, 1x5 with 60% working weight.': '5 минути велоергометър; 2x8 котка–крава, 2x8 hip hinge; 1x5 мъртва тяга с лост, 1x5 с 60% от работната тежест.'
+};
+
+function localizePlanText(text, safeT) {
+    if (text == null || text === '') return text;
+    const raw = String(text).trim();
+    if (!raw) return raw;
+    if (PLAN_TEXT_BG[raw]) return PLAN_TEXT_BG[raw];
+    const caseInsensitiveMatch = Object.keys(PLAN_TEXT_BG).find((key) => key.toLowerCase() === raw.toLowerCase());
+    if (caseInsensitiveMatch) return PLAN_TEXT_BG[caseInsensitiveMatch];
+    const tr = safeT(raw);
+    return tr !== raw ? tr : raw;
 }
 
 // ==========================================
@@ -2406,13 +2490,13 @@ const nutritionRenderers = {
             const name = m.mealName || 'Meal';
             const purpose = m.purpose || '';
             const foods = typeof m.exampleFoods === 'string' ? m.exampleFoods : (Array.isArray(m.exampleFoods) ? m.exampleFoods.join('; ') : '');
-            return `<li class="mb-2"><strong class="text-primary">${safeT(name)}</strong> — ${safeT(purpose)} <span class="text-muted block mt-1 text-[0.65rem]">${safeT(foods)}</span></li>`;
+            return `<li class="mb-2"><strong class="text-primary">${safeT(name)}</strong> — ${localizePlanText(purpose, safeT)} <span class="text-muted block mt-1 text-[0.65rem]">${localizePlanText(foods, safeT)}</span></li>`;
         }).join('');
         return `<ul class="protocol-list font-mono text-sm">${items}</ul>`;
     },
     renderNutritionWarnings: (plan, safeT) => {
         if (!plan?.warnings || !Array.isArray(plan.warnings) || plan.warnings.length === 0) return '';
-        const items = plan.warnings.map((w) => `<li><i class="fa-solid fa-triangle-exclamation text-warning"></i> ${safeT(w)}</li>`).join('');
+        const items = plan.warnings.map((w) => `<li><i class="fa-solid fa-triangle-exclamation text-warning"></i> ${localizePlanText(w, safeT)}</li>`).join('');
         return `<ul class="protocol-list font-mono text-sm text-warning">${items}</ul>`;
     }
 };
@@ -2464,7 +2548,7 @@ const progressRenderers = {
             parts.push(`<p class="text-warning"><i class="fa-solid fa-pause text-warning mr-1"></i> ${safeT('Deload week recommended')}</p>`);
         }
         const rec = result.recoveryRecommendations || [];
-        rec.forEach((r) => parts.push(`<p class="text-secondary"><i class="fa-solid fa-check text-primary mr-1"></i> ${safeT(r)}</p>`));
+        rec.forEach((r) => parts.push(`<p class="text-secondary"><i class="fa-solid fa-check text-primary mr-1"></i> ${localizePlanText(r, safeT)}</p>`));
         return parts.length ? parts.join('') : '<p class="text-muted">' + (safeT('No changes recommended') || 'No changes recommended') + '</p>';
     },
     renderRecommendations: (recommendations, safeT) => {
@@ -2705,13 +2789,13 @@ const dashModule = {
                     if (rg.restDayCount != null || rg.sleepTargetHours || rg.hydrationGuidance) {
                         recoveryHtml += `<li><i class="fa-solid fa-check text-primary"></i> ${safeT("Rest days")}: ${rg.restDayCount ?? '—'} ${safeT("per week")}</li>`;
                         if (rg.sleepTargetHours) recoveryHtml += `<li><i class="fa-solid fa-check text-primary"></i> ${safeT("Sleep")}: ${rg.sleepTargetHours} ${safeT("hours")}</li>`;
-                        if (rg.hydrationGuidance) recoveryHtml += `<li><i class="fa-solid fa-check text-primary"></i> ${safeT(rg.hydrationGuidance)}</li>`;
+                        if (rg.hydrationGuidance) recoveryHtml += `<li><i class="fa-solid fa-check text-primary"></i> ${localizePlanText(rg.hydrationGuidance, safeT)}</li>`;
                     }
                     if (pr.method || pr.weeklyAdjustment || pr.deloadTrigger) {
                         recoveryHtml += `<li class="mt-2"><strong class="text-primary text-[0.65rem] uppercase tracking-widest">${safeT("Progression Rules")}</strong></li>`;
-                        if (pr.method) recoveryHtml += `<li><i class="fa-solid fa-arrow-trend-up text-primary"></i> ${safeT(pr.method)}</li>`;
-                        if (pr.weeklyAdjustment) recoveryHtml += `<li><i class="fa-solid fa-arrow-trend-up text-primary"></i> ${safeT(pr.weeklyAdjustment)}</li>`;
-                        if (pr.deloadTrigger) recoveryHtml += `<li><i class="fa-solid fa-arrow-trend-up text-primary"></i> ${safeT(pr.deloadTrigger)}</li>`;
+                        if (pr.method) recoveryHtml += `<li><i class="fa-solid fa-arrow-trend-up text-primary"></i> ${localizePlanText(pr.method, safeT)}</li>`;
+                        if (pr.weeklyAdjustment) recoveryHtml += `<li><i class="fa-solid fa-arrow-trend-up text-primary"></i> ${localizePlanText(pr.weeklyAdjustment, safeT)}</li>`;
+                        if (pr.deloadTrigger) recoveryHtml += `<li><i class="fa-solid fa-arrow-trend-up text-primary"></i> ${localizePlanText(pr.deloadTrigger, safeT)}</li>`;
                     }
                     if (recoveryHtml) {
                         document.getElementById('res-recovery-plan').innerHTML = recoveryHtml;
@@ -2719,12 +2803,12 @@ const dashModule = {
                     if (warn.length > 0) {
                         const warnEl = document.getElementById('res-recovery-plan');
                         if (warnEl) {
-                            const warnHtml = `<li class="mt-2 pt-2 border-t border-border-light"><strong class="text-warning text-[0.65rem] uppercase tracking-widest">${safeT("Warnings")}</strong></li>${warn.map(w => `<li><i class="fa-solid fa-triangle-exclamation text-warning"></i> ${safeT(w)}</li>`).join('')}`;
+                            const warnHtml = `<li class="mt-2 pt-2 border-t border-border-light"><strong class="text-warning text-[0.65rem] uppercase tracking-widest">${safeT("Warnings")}</strong></li>${warn.map(w => `<li><i class="fa-solid fa-triangle-exclamation text-warning"></i> ${localizePlanText(w, safeT)}</li>`).join('')}`;
                             warnEl.insertAdjacentHTML('beforeend', warnHtml);
                         }
                     }
                 } else if (p.recovery && p.recovery.length > 0) {
-                    document.getElementById('res-recovery-plan').innerHTML = p.recovery.map(r => `<li><i class="fa-solid fa-check text-primary"></i> ${safeT(r)}</li>`).join('');
+                    document.getElementById('res-recovery-plan').innerHTML = p.recovery.map(r => `<li><i class="fa-solid fa-check text-primary"></i> ${localizePlanText(r, safeT)}</li>`).join('');
                 }
 
                 // Render AI Nutrition Plan (Phase 3: deterministic generator + structured UI)
@@ -2735,7 +2819,7 @@ const dashModule = {
 
                     const guidelines = (aiN.guidelines && Array.isArray(aiN.guidelines) && aiN.guidelines.length) ? aiN.guidelines : (aiN.notes || []);
                     const guidelinesContent = guidelines.length
-                        ? `<ul class="protocol-list font-mono text-sm">${guidelines.map(g => `<li><i class="fa-solid fa-check text-primary"></i> ${safeT(g)}</li>`).join('')}</ul>`
+                        ? `<ul class="protocol-list font-mono text-sm">${guidelines.map(g => `<li><i class="fa-solid fa-check text-primary"></i> ${localizePlanText(g, safeT)}</li>`).join('')}</ul>`
                         : `<p class="text-secondary text-sm font-mono">${safeT("Focus on whole foods and hit your macro targets above.")}</p>`;
 
                     const mealPlanContent = nutritionRenderers.renderMealPlan(aiN, safeT) || `<p class="text-secondary text-sm font-mono">${safeT("Eat 4–5 balanced meals daily with protein at each.")}</p>`;
@@ -2743,7 +2827,7 @@ const dashModule = {
                     const mealTiming = aiN.meal_timing;
                     const preText = mealTiming?.pre_workout || '60–90 мин преди: въглехидрати + протеин (напр. овес, банан, суроватъчен протеин). Кофеин по избор 30–45 мин преди.';
                     const postText = mealTiming?.post_workout || 'В рамките на 1–2 часа: 40–60 g въглехидрати + 25–40 g протеин. Пример: пилешко месо, ориз и зеленчуци или суроватъчен протеин и банан.';
-                    const mealTimingContent = `<ul class="protocol-list font-mono text-sm"><li><i class="fa-solid fa-clock text-primary"></i> <strong class="text-secondary">${safeT('Pre-workout')}:</strong> ${safeT(preText)}</li><li><i class="fa-solid fa-clock text-primary"></i> <strong class="text-secondary">${safeT('Post-workout')}:</strong> ${safeT(postText)}</li></ul>`;
+                    const mealTimingContent = `<ul class="protocol-list font-mono text-sm"><li><i class="fa-solid fa-clock text-primary"></i> <strong class="text-secondary">${safeT('Pre-workout')}:</strong> ${localizePlanText(preText, safeT)}</li><li><i class="fa-solid fa-clock text-primary"></i> <strong class="text-secondary">${safeT('Post-workout')}:</strong> ${localizePlanText(postText, safeT)}</li></ul>`;
 
                     let supplementStack = aiN.supplement_stack && Array.isArray(aiN.supplement_stack) ? aiN.supplement_stack : [];
                     if (supplementStack.length === 0) {
@@ -2752,7 +2836,7 @@ const dashModule = {
                         supplementStack = stacksBg[goal] || stacksBg.recomp;
                     }
                     let supplementContent = '<ul class="protocol-list font-mono text-sm">';
-                    supplementStack.forEach(s => { supplementContent += `<li><i class="fa-solid fa-capsules text-primary"></i> <strong class="text-primary">${safeT(s.name || '')}</strong> — ${safeT(s.purpose || '')} <span class="text-muted">(${safeT(s.dose || '')})</span></li>`; });
+                    supplementStack.forEach(s => { supplementContent += `<li><i class="fa-solid fa-capsules text-primary"></i> <strong class="text-primary">${safeT(s.name || '')}</strong> — ${localizePlanText(s.purpose || '', safeT)} <span class="text-muted">(${localizePlanText(s.dose || '', safeT)})</span></li>`; });
                     supplementContent += '</ul>';
 
                     const warningsContent = nutritionRenderers.renderNutritionWarnings(aiN, safeT);
@@ -2800,7 +2884,7 @@ const dashModule = {
                     const defaultWarmup = 'Около 5 минути леко кардио и динамично разтягане за мускулните групи в тази тренировка.';
                     p.aiResult.workout_plan.forEach((w, idx) => {
                         const warmupText = (w.warmup && String(w.warmup).trim()) ? w.warmup : defaultWarmup;
-                        const warmupHtml = `<div class="text-[0.7rem] mb-3 p-2 rounded bg-surface-hover border border-border-light text-secondary"><span class="text-primary font-bold uppercase text-[0.65rem] tracking-widest block mb-1">${safeT('Warm-up')}</span><span>${safeT(warmupText)}</span></div>`;
+                        const warmupHtml = `<div class="text-[0.7rem] mb-3 p-2 rounded bg-surface-hover border border-border-light text-secondary"><span class="text-primary font-bold uppercase text-[0.65rem] tracking-widest block mb-1">${safeT('Warm-up')}</span><span class="block">${localizePlanText(warmupText, safeT)}</span></div>`;
 
                         let exHtml = (w.exercises || []).map((e, exIdx) => {
                             const rpe = (e.rpe != null && e.rpe !== '') ? `${safeT('RPE')} ${e.rpe}` : '';
@@ -3096,14 +3180,44 @@ function toggleModal(modalId, show) {
 // ==========================================
 // 7. BOOTSTRAP & EVENTS
 // ==========================================
+function isLocalDevelopmentHost() {
+    return typeof window !== 'undefined' && ['localhost', '127.0.0.1'].includes(window.location.hostname);
+}
+
+async function resetLocalServiceWorkerState() {
+    if (typeof window === 'undefined' || !isLocalDevelopmentHost()) return;
+
+    if ('serviceWorker' in navigator) {
+        try {
+            const registrations = await navigator.serviceWorker.getRegistrations();
+            await Promise.all(registrations.map((registration) => registration.unregister()));
+        } catch (error) {
+            console.warn('[ASCEND] Could not clear local service workers:', error);
+        }
+    }
+
+    if ('caches' in window) {
+        try {
+            const cacheNames = await caches.keys();
+            await Promise.all(cacheNames.map((cacheName) => caches.delete(cacheName)));
+        } catch (error) {
+            console.warn('[ASCEND] Could not clear local caches:', error);
+        }
+    }
+}
+
 async function initApp() {
     // Register Service Worker for PWA
     if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-            navigator.serviceWorker.register('/sw.js').catch(err => {
-                console.log('SW registration failed: ', err);
+        if (isLocalDevelopmentHost()) {
+            void resetLocalServiceWorkerState();
+        } else {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js').catch(err => {
+                    console.log('SW registration failed: ', err);
+                });
             });
-        });
+        }
     }
 
     db.init();

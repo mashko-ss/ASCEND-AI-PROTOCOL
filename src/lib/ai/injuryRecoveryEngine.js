@@ -8,21 +8,14 @@
 
 import { normalizeInjuries } from './injuryAdjustmentEngine.js';
 import { getProgressHistory } from './progressTracker.js';
-
-const STORAGE_PREFIX = 'ascend_injury_recovery_';
+import {
+    getInjuryState as getStoredInjuryState,
+    saveInjuryState as saveStoredInjuryState
+} from '../data/storageAdapter.js';
 
 /** Reintroduction volume factors by week (1-indexed) */
 const REINTRO_VOLUME_WEEK1 = 0.65; // 60-70%
 const REINTRO_VOLUME_WEEK2 = 0.85; // 80-90%
-
-/**
- * Get storage key for user.
- * @param {string} userId
- * @returns {string}
- */
-function getStorageKey(userId) {
-    return STORAGE_PREFIX + (userId || 'default');
-}
 
 /**
  * Create default injury state.
@@ -48,8 +41,7 @@ function createDefaultState() {
  */
 export function getInjuryState(userId) {
     try {
-        const raw = localStorage.getItem(getStorageKey(userId));
-        const parsed = raw ? JSON.parse(raw) : null;
+        const parsed = getStoredInjuryState(userId);
         if (!parsed || typeof parsed !== 'object') return createDefaultState();
         return {
             ...createDefaultState(),
@@ -74,7 +66,7 @@ export function saveInjuryState(userId, state) {
             ...state,
             updatedAt: new Date().toISOString().slice(0, 10)
         };
-        localStorage.setItem(getStorageKey(userId), JSON.stringify(normalized));
+        saveStoredInjuryState(userId, normalized);
     } catch (e) {
         console.warn('[InjuryRecoveryEngine] Save failed:', e);
     }
