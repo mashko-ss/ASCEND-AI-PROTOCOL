@@ -1,6 +1,13 @@
 /**
  * ASCEND AI PROTOCOL - Storage Adapter
- * Phase 24: Local persistence abstraction without changing current UI behavior.
+ * Local persistence abstraction. Defaults to local mode.
+ *
+ * Core localStorage keys (read/write via this module only for these blobs):
+ *   ascend_users
+ *   ascend_current_user
+ *   ascend_protocol_v4_db
+ *
+ * FUTURE: route to Supabase here when syncing user rows, session, and protocol DB.
  */
 
 import { isSupabaseConfigured, hasActiveSupabaseSession } from './supabaseClient.js';

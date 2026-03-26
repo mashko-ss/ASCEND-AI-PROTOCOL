@@ -1,21 +1,14 @@
 /**
- * ASCEND AI PROTOCOL - Supabase Client Foundation
- * Phase 26: Safe, non-destructive Supabase scaffolding.
+ * ASCEND AI PROTOCOL — Supabase client (scaffold only)
+ *
+ * Reads SUPABASE_URL and SUPABASE_PUBLIC_KEY from the environment.
+ * Does not instantiate a client or open network connections in this phase.
+ *
+ * Reference when wiring cloud: https://zfpqdsdawjiwsxtfbgjf.supabase.co
+ * Project ref: zfpqdsdawjiwsxtfbgjf
  */
 
-import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
-
-let cachedClient = null;
-let authListenerInitialized = false;
-let knownSessionState = 'unknown';
-let sessionSnapshotPromise = null;
-let authState = {
-    status: 'unknown',
-    hasSession: false,
-    degraded: false,
-    reason: null,
-    lastCheckedAt: null
-};
+let warnedMissingConfig = false;
 
 function getEnvObject() {
     if (typeof window === 'undefined' || !window || typeof window.ENV !== 'object' || !window.ENV) {
@@ -57,147 +50,74 @@ function getSupabaseConfig() {
     };
 }
 
+function warnMissingConfigOnce() {
+    if (warnedMissingConfig) return;
+    warnedMissingConfig = true;
+    const { url, publicKey } = getSupabaseConfig();
+    if (!url || !publicKey) {
+        console.warn(
+            '[SupabaseClient] SUPABASE_URL and SUPABASE_PUBLIC_KEY are not both set; running in local mode.'
+        );
+    }
+}
+
+/**
+ * Returns true only when both URL and public key are present and the URL looks valid.
+ * Does not throw if variables are missing.
+ */
 export function isSupabaseConfigured() {
-    return getSupabaseConfig().isValid;
-}
-
-function setKnownSessionState(session) {
-    knownSessionState = session?.user?.id ? 'authenticated' : 'signed_out';
-    authState = {
-        status: knownSessionState,
-        hasSession: knownSessionState === 'authenticated',
-        degraded: false,
-        reason: null,
-        lastCheckedAt: Date.now()
-    };
-}
-
-function setAuthStateError(reason) {
-    knownSessionState = 'signed_out';
-    authState = {
-        status: 'error',
-        hasSession: false,
-        degraded: true,
-        reason: reason || 'session_check_failed',
-        lastCheckedAt: Date.now()
-    };
-}
-
-function ensureAuthStateListener(client) {
-    if (!client || authListenerInitialized || typeof client.auth?.onAuthStateChange !== 'function') {
-        return;
+    const valid = getSupabaseConfig().isValid;
+    if (!valid) {
+        warnMissingConfigOnce();
     }
-
-    try {
-        client.auth.onAuthStateChange((_event, session) => {
-            setKnownSessionState(session);
-        });
-        authListenerInitialized = true;
-    } catch (error) {
-        console.warn('[SupabaseClient] Failed to subscribe to auth state:', error);
-    }
+    return valid;
 }
 
+/**
+ * Compatibility stub: no client is created in this phase.
+ * // FUTURE: initialize Supabase client here when ready (createClient + options).
+ */
 export function getSupabaseClient() {
-    if (cachedClient) return cachedClient;
-    if (typeof window === 'undefined') return null;
-
-    const config = getSupabaseConfig();
-    if (!config.isValid) return null;
-
-    try {
-        cachedClient = createClient(config.url, config.publicKey, {
-            auth: {
-                persistSession: true,
-                autoRefreshToken: true,
-                detectSessionInUrl: true
-            }
-        });
-        ensureAuthStateListener(cachedClient);
-        return cachedClient;
-    } catch (error) {
-        console.warn('[SupabaseClient] Failed to initialize:', error);
-        return null;
-    }
+    return null;
 }
 
+/** No live session without a client; safe for local-only mode. */
 export function hasActiveSupabaseSession() {
-    return isSupabaseConfigured() && knownSessionState === 'authenticated';
+    return false;
 }
 
 export function getSupabaseAuthState() {
-    return { ...authState };
+    return {
+        status: 'signed_out',
+        hasSession: false,
+        degraded: false,
+        reason: null,
+        lastCheckedAt: null
+    };
 }
 
+/**
+ * Resolves without network I/O. Callers expecting a cloud session receive local mode.
+ * // FUTURE: use getSupabaseClient() and session APIs when the client exists.
+ */
 export async function getSupabaseSessionSnapshot() {
-    if (sessionSnapshotPromise) {
-        return sessionSnapshotPromise;
-    }
-
-    sessionSnapshotPromise = (async () => {
     if (!isSupabaseConfigured()) {
-            authState = {
-                status: 'signed_out',
-                hasSession: false,
-                degraded: false,
-                reason: 'supabase_not_configured',
-                lastCheckedAt: Date.now()
-            };
-            return {
-                ok: false,
-                mode: 'local',
-                user: null,
-                reason: 'supabase_not_configured'
-            };
-        }
-
-        const client = getSupabaseClient();
-        if (!client) {
-            setAuthStateError('supabase_client_unavailable');
-            return { ok: false, mode: 'local', user: null, reason: 'supabase_client_unavailable' };
-        }
-
-        ensureAuthStateListener(client);
-
-        try {
-            const { data, error } = await client.auth.getSession();
-            if (error) {
-                setAuthStateError(error.message || 'session_check_failed');
-                return {
-                    ok: false,
-                    mode: 'local',
-                    user: null,
-                    reason: error.message || 'session_check_failed'
-                };
-            }
-
-            const session = data?.session || null;
-            setKnownSessionState(session);
-
-            if (session?.user?.id) {
-                return { ok: true, mode: 'cloud', user: session.user };
-            }
-
-            return { ok: true, mode: 'local', user: null, reason: 'no_active_session' };
-        } catch (error) {
-            setAuthStateError(error?.message || 'session_check_failed');
-            return {
-                ok: false,
-                mode: 'local',
-                user: null,
-                reason: error?.message || 'session_check_failed'
-            };
-        }
-    })();
-
-    try {
-        return await sessionSnapshotPromise;
-    } finally {
-        sessionSnapshotPromise = null;
+        return {
+            ok: false,
+            mode: 'local',
+            user: null,
+            reason: 'supabase_not_configured'
+        };
     }
+    return {
+        ok: true,
+        mode: 'local',
+        user: null,
+        reason: 'no_active_session'
+    };
 }
 
 export async function testSupabaseConnection() {
-    const { ok, mode, reason } = await getSupabaseSessionSnapshot();
-    return reason ? { ok, mode, reason } : { ok, mode };
+    const snap = await getSupabaseSessionSnapshot();
+    return snap.reason ? { ok: snap.ok, mode: snap.mode, reason: snap.reason } : { ok: snap.ok, mode: snap.mode };
 }
