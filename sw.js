@@ -5,7 +5,7 @@
  * BUMP SW_VERSION on every deploy to invalidate old caches and force clients to update.
  * Example: '1.0.1' -> '1.0.2' or use build timestamp: Date.now().toString()
  */
-const SW_VERSION = '1.0.0';
+const SW_VERSION = '1.0.1';
 const CACHE_NAME = `iron-protocol-v${SW_VERSION}`;
 
 function shouldNeverCache(request) {

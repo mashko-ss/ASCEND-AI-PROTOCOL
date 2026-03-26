@@ -3,7 +3,7 @@
  * Uses Responses API (client.responses.create). Server-side only.
  */
 
-const DEFAULT_TIMEOUT_MS = 30_000;
+const DEFAULT_TIMEOUT_MS = 60_000;
 const DEFAULT_MODEL = 'gpt-4.1-mini';
 
 /**

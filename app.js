@@ -3,9 +3,9 @@
  * Architecture: Vanilla JS + Robust LocalStorage Simulation
  */
 
-import { toDashboardFormat, saveProgressEntry, evaluateProgressFromLatest, getRecommendationsFromLatest, getProgressHistory, createProtocol, advanceProtocolWeek, getNextDeloadWeek, regenerateNextWeekProtocol, getInjuryState, processProgressForRecovery } from './src/lib/ai/index.js';
-import { signInWithGoogle as signInWithGoogleCloud, restoreSession, getSessionUser, isCurrentUserAdmin, signOutUser, saveUsername } from './src/lib/core/authAdapter.js';
-import { getCurrentUser as storageGetCurrentUser } from './src/lib/data/storageAdapter.js';
+import { runEngine, toDashboardFormat, saveProgressEntry, evaluateProgressFromLatest, getRecommendationsFromLatest, getProgressHistory, createProtocol, saveNewProtocol as saveProtocolForCurrentUser, advanceProtocolWeek, getNextDeloadWeek, regenerateNextWeekProtocol, getInjuryState, processProgressForRecovery } from './src/lib/ai/index.js';
+import { createUser as createAuthUser, loginUser as loginAuthUser, signInWithGoogle as signInWithGoogleCloud, restoreSession, getSessionUser, isCurrentUserAdmin, isCloudAuthAvailable, signOutUser, saveUsername } from './src/lib/core/authAdapter.js';
+import { init as initStorage, getCurrentUser as storageGetCurrentUser, saveCurrentUser as storageSaveCurrentUser, getUserSlot, getAssessmentState as storageGetAssessmentState, saveAssessmentState as storageSaveAssessmentState, getTelemetry as storageGetTelemetry, appendTelemetry as storageAppendTelemetry } from './src/lib/data/storageAdapter.js';
 
 // Global App Namespace established early to prevent ReferenceErrors
 window.app = window.app || {};
@@ -15,52 +15,212 @@ window.app = window.app || {};
 // ==========================================
 const DB_KEY = 'ascend_protocol_v4_db';
 
+function getStoredIdentity() {
+    return storageGetCurrentUser();
+}
+
+function resolveLegacyUserKey(state, preferredUser = getStoredIdentity()) {
+    if (!state || !state.users || typeof state.users !== 'object') return null;
+
+    const preferredId = preferredUser?.id ? String(preferredUser.id) : '';
+    const preferredEmail = preferredUser?.email ? String(preferredUser.email).trim().toLowerCase() : '';
+
+    if (preferredId && state.users[preferredId]) return preferredId;
+    if (preferredEmail && state.users[preferredEmail]) return preferredEmail;
+
+    const matchedEntry = Object.entries(state.users).find(([, value]) =>
+        value && typeof value === 'object' && preferredEmail && String(value.email || '').trim().toLowerCase() === preferredEmail
+    );
+    if (matchedEntry) return matchedEntry[0];
+
+    if (state.currentUser && state.users[state.currentUser]) return state.currentUser;
+    return null;
+}
+
+function ensureLegacyUserSlot(state, preferredUser = getStoredIdentity(), overrides = {}) {
+    if (!state || typeof state !== 'object') return null;
+    if (!state.users || typeof state.users !== 'object') state.users = {};
+
+    const user = preferredUser || null;
+    const email = user?.email ? String(user.email).trim().toLowerCase() : '';
+    const key = resolveLegacyUserKey(state, user) || (user?.id ? String(user.id) : email);
+    if (!key) return null;
+
+    if (!state.users[key]) {
+        state.users[key] = {
+            email,
+            pass: typeof overrides.pass === 'string' ? overrides.pass : '',
+            isAdmin: user?.isAdmin === true,
+            username: typeof user?.username === 'string' ? user.username : '',
+            assessment_state: { step: 0, data: {} },
+            active_protocol: null,
+            history: [],
+            telemetry: []
+        };
+    }
+
+    const slot = state.users[key];
+    if (email) slot.email = email;
+    if (user?.isAdmin === true) slot.isAdmin = true;
+    if (typeof user?.username === 'string' && user.username.trim()) {
+        slot.username = user.username.trim();
+    }
+    if (typeof overrides.pass === 'string' && overrides.pass) {
+        slot.pass = overrides.pass;
+    }
+    if (!slot.assessment_state || typeof slot.assessment_state !== 'object') slot.assessment_state = { step: 0, data: {} };
+    if (!Array.isArray(slot.history)) slot.history = [];
+    if (!Array.isArray(slot.telemetry)) slot.telemetry = [];
+    if (!('active_protocol' in slot)) slot.active_protocol = null;
+
+    state.currentUser = key;
+    return slot;
+}
+
+function getLegacyState() {
+    try {
+        const raw = localStorage.getItem(DB_KEY);
+        const parsed = raw ? JSON.parse(raw) : null;
+        if (parsed && typeof parsed === 'object' && parsed.users && typeof parsed.users === 'object') {
+            return parsed;
+        }
+    } catch {
+        /* ignore */
+    }
+    return { users: {}, currentUser: null };
+}
+
+function saveLegacyState(state) {
+    localStorage.setItem(DB_KEY, JSON.stringify(state && typeof state === 'object' ? state : { users: {}, currentUser: null }));
+}
+
+function getLegacySlotForUser(preferredUser = getStoredIdentity()) {
+    const state = getLegacyState();
+    const key = resolveLegacyUserKey(state, preferredUser);
+    return {
+        state,
+        key,
+        slot: key ? state.users[key] : null
+    };
+}
+
+function resolveProtocolStorageKey(preferredUser = getStoredIdentity()) {
+    if (!preferredUser?.id) return '';
+    if (getUserSlot(preferredUser.id)) return preferredUser.id;
+    const { key } = getLegacySlotForUser(preferredUser);
+    return key || preferredUser.id;
+}
+
+function buildCurrentUserView(preferredUser = getStoredIdentity()) {
+    if (!preferredUser?.id && !preferredUser?.email) return null;
+
+    const protocolKey = resolveProtocolStorageKey(preferredUser);
+    const slot = protocolKey ? (getUserSlot(protocolKey) || getLegacySlotForUser(preferredUser).slot) : null;
+    const assessmentState = slot?.assessment_state || (protocolKey ? storageGetAssessmentState(protocolKey) : { step: 0, data: {} });
+    const telemetry = Array.isArray(slot?.telemetry) ? slot.telemetry : (protocolKey ? storageGetTelemetry(protocolKey) : []);
+
+    return {
+        ...(slot || {}),
+        ...preferredUser,
+        email: preferredUser.email || slot?.email || '',
+        username: preferredUser.username || slot?.username || '',
+        assessment_state: assessmentState,
+        active_protocol: slot?.active_protocol || null,
+        history: Array.isArray(slot?.history) ? slot.history : [],
+        telemetry
+    };
+}
+
 const db = {
     init: () => {
+        initStorage();
         if (!localStorage.getItem(DB_KEY)) {
-            localStorage.setItem(DB_KEY, JSON.stringify({
+            saveLegacyState({
                 users: {},
                 currentUser: null
-            }));
+            });
+        }
+
+        const storedUser = getStoredIdentity();
+        if (!storedUser) {
+            const { state, key, slot } = getLegacySlotForUser();
+            if (key && slot?.email) {
+                storageSaveCurrentUser({
+                    id: key,
+                    email: String(slot.email).trim().toLowerCase(),
+                    provider: 'local',
+                    isAdmin: slot.isAdmin === true,
+                    username: typeof slot.username === 'string' ? slot.username.trim() : '',
+                    createdAt: Date.now()
+                });
+                state.currentUser = key;
+                saveLegacyState(state);
+            }
         }
     },
-    get: () => JSON.parse(localStorage.getItem(DB_KEY)),
-    save: (data) => localStorage.setItem(DB_KEY, JSON.stringify(data)),
+    get: () => getLegacyState(),
+    save: (data) => saveLegacyState(data),
 
     // User Operations
-    getUser: (email) => {
-        return db.get().users[email] || null;
+    getUser: (identifier) => {
+        const state = db.get();
+        if (!identifier) return null;
+        const direct = state.users[identifier];
+        if (direct) return direct;
+        const normalized = String(identifier).trim().toLowerCase();
+        return Object.values(state.users).find((user) => String(user?.email || '').trim().toLowerCase() === normalized) || null;
     },
     getCurrentUser: () => {
-        const state = db.get();
-        return state.currentUser ? state.users[state.currentUser] : null;
+        const storedUser = getStoredIdentity();
+        if (storedUser) return buildCurrentUserView(storedUser);
+
+        const { state, key, slot } = getLegacySlotForUser();
+        if (!key || !slot?.email) return null;
+
+        const migratedUser = {
+            id: key,
+            email: String(slot.email).trim().toLowerCase(),
+            provider: 'local',
+            isAdmin: slot.isAdmin === true,
+            username: typeof slot.username === 'string' ? slot.username.trim() : '',
+            createdAt: Date.now()
+        };
+        storageSaveCurrentUser(migratedUser);
+        state.currentUser = key;
+        saveLegacyState(state);
+        return buildCurrentUserView(migratedUser);
     },
     createUser: (email, pass) => {
         const state = db.get();
-        if (state.users[email]) return false; // exists
-
-        state.users[email] = {
-            email,
-            pass,
-            isAdmin: false,
-            assessment_state: { step: 0, data: {} }, // Pause & Resume
-            active_protocol: null,
-            history: [], // Generated protocols array
-            telemetry: [] // Weekly check-ins array
-        };
-        state.currentUser = email;
+        if (db.getUser(email)) return false;
+        const user = createAuthUser(email, pass);
+        if (!user) return false;
+        ensureLegacyUserSlot(state, user, { pass });
         db.save(state);
         return true;
     },
     login: (email, pass) => {
         const state = db.get();
-        const user = state.users[email];
-        if (user && user.pass === pass) {
-            state.currentUser = email;
-            db.save(state);
-            return true;
+        let user = loginAuthUser(email, pass);
+        if (!user) {
+            const legacyUser = db.getUser(email);
+            if (legacyUser && legacyUser.pass === pass) {
+                const normalizedEmail = String(email).trim().toLowerCase();
+                user = createAuthUser(email, pass, {
+                    userId: legacyUser.id || normalizedEmail,
+                    username: legacyUser.username || ''
+                }) || loginAuthUser(email, pass) || {
+                    id: legacyUser.id || String(email).trim().toLowerCase(),
+                    email: normalizedEmail,
+                    username: legacyUser.username || '',
+                    isAdmin: legacyUser.isAdmin === true
+                };
+            }
         }
-        return false;
+        if (!user) return false;
+        ensureLegacyUserSlot(state, user);
+        db.save(state);
+        return true;
     },
     logout: () => {
         const state = db.get();
@@ -70,66 +230,43 @@ const db = {
 
     // Data Operations (on current user)
     saveAssessmentState: (step, data) => {
-        const state = db.get();
-        if (!state.currentUser) return;
-        state.users[state.currentUser].assessment_state = { step, data };
-        db.save(state);
+        const currentUser = getStoredIdentity();
+        const protocolKey = resolveProtocolStorageKey(currentUser);
+        if (!protocolKey) return;
+        storageSaveAssessmentState(protocolKey, { step, data });
     },
     clearAssessmentState: () => {
-        const state = db.get();
-        if (!state.currentUser) return;
-        state.users[state.currentUser].assessment_state = { step: 0, data: {} };
-        db.save(state);
+        const currentUser = getStoredIdentity();
+        const protocolKey = resolveProtocolStorageKey(currentUser);
+        if (!protocolKey) return;
+        storageSaveAssessmentState(protocolKey, { step: 0, data: {} });
     },
     saveNewProtocol: (protocol) => {
-        const state = db.get();
-        if (!state.currentUser) return;
-
-        const user = state.users[state.currentUser];
-        protocol.id = 'PRT-' + Date.now().toString().slice(-6);
-        protocol.created_at = new Date().toLocaleDateString();
-
-        // Push old to history if one exists
-        if (user.active_protocol) {
-            user.history.unshift(user.active_protocol);
-        }
-
-        user.active_protocol = protocol;
-        db.save(state);
+        return saveProtocolForCurrentUser(protocol);
     },
     saveTelemetry: (log) => {
-        const state = db.get();
-        if (!state.currentUser) return;
-
+        const currentUser = getStoredIdentity();
+        const protocolKey = resolveProtocolStorageKey(currentUser);
+        if (!protocolKey) return;
         log.id = 'CHK-' + Date.now().toString().slice(-6);
         log.date = new Date().toLocaleString(); // full timestamp for History Log
-        state.users[state.currentUser].telemetry.unshift(log); // newest first
-        db.save(state);
+        storageAppendTelemetry(protocolKey, log);
     }
 };
 
 /** Minimal bridge: legacy `db` shell expects a current user row; cloud OAuth uses storageAdapter via authAdapter. */
 function ensureLegacyUserForCloudSession(cloudUser) {
     if (!cloudUser || !cloudUser.email) return;
+    storageSaveCurrentUser({
+        id: String(cloudUser.id || cloudUser.email).trim().toLowerCase(),
+        email: String(cloudUser.email).trim().toLowerCase(),
+        provider: cloudUser.provider || 'local',
+        isAdmin: cloudUser.isAdmin === true,
+        username: typeof cloudUser.username === 'string' ? cloudUser.username.trim() : '',
+        createdAt: cloudUser.createdAt || Date.now()
+    });
     const state = db.get();
-    const email = String(cloudUser.email).trim().toLowerCase();
-    if (!state.users[email]) {
-        state.users[email] = {
-            email,
-            pass: '__oauth__',
-            isAdmin: cloudUser.isAdmin === true,
-            assessment_state: { step: 0, data: {} },
-            active_protocol: null,
-            history: [],
-            telemetry: []
-        };
-    } else {
-        state.users[email].isAdmin = cloudUser.isAdmin === true;
-    }
-    if (cloudUser.username) {
-        state.users[email].username = cloudUser.username;
-    }
-    state.currentUser = email;
+    ensureLegacyUserSlot(state, cloudUser, { pass: '__oauth__' });
     db.save(state);
 }
 
@@ -143,8 +280,9 @@ function hasUsernameForCurrentUser() {
 
 function persistUsernameToLegacyDb(trimmed) {
     const state = db.get();
-    if (!state.currentUser || !state.users[state.currentUser]) return;
-    state.users[state.currentUser].username = trimmed;
+    const user = ensureLegacyUserSlot(state);
+    if (!user) return;
+    user.username = trimmed;
     db.save(state);
 }
 
@@ -1294,7 +1432,7 @@ const authModule = {
     mountGoogleButton: () => {
         const authForm = document.getElementById('auth-form');
         const toggle = document.getElementById('auth-toggle-text');
-        if (!authForm || !toggle || document.getElementById('btn-auth-google')) return;
+        if (!isCloudAuthAvailable() || !authForm || !toggle || document.getElementById('btn-auth-google')) return;
 
         const wrap = document.createElement('div');
         wrap.className = 'mt-4';
@@ -1828,6 +1966,23 @@ NUTRITION PLAN RULES:
 
     _isGenerating: false,
 
+    persistGeneratedPlan: (plan, data, source = 'unknown') => {
+        const aiResult = toDashboardFormat(plan, data);
+        const protocol = algorithm.compile(data);
+        protocol.aiResult = aiResult;
+        protocol.apiPlan = plan;
+        protocol.apiSource = source;
+        if (plan?.planMeta) {
+            protocol.meta.splitType = plan.planMeta.splitType || protocol.meta.style;
+            protocol.meta.days = String(plan.planMeta.trainingDaysPerWeek || protocol.meta.days);
+        }
+
+        const userProfile = { goal: data.primary_goal, primary_goal: data.primary_goal, ...data };
+        const enhancedProtocol = createProtocol(userProfile, plan, aiResult.nutrition_plan, protocol, {});
+        db.saveNewProtocol(enhancedProtocol);
+        db.clearAssessmentState();
+    },
+
     generate: async (data) => {
         if (algorithm._isGenerating) return;
         algorithm._isGenerating = true;
@@ -1841,45 +1996,56 @@ NUTRITION PLAN RULES:
         if (nextBtn) nextBtn.disabled = true;
 
         try {
+            let generatedPlan = null;
+            let generationSource = 'unknown';
+
             bar.style.width = '20%';
             txt.textContent = langModule.t("Analyzing status...");
 
-            const res = await fetch('/api/ai/generate-plan', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data)
-            });
+            try {
+                const res = await fetch('/api/ai/generate-plan', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
 
-            bar.style.width = '70%';
-            txt.textContent = langModule.t("Building your workout plan...") || "Building your workout plan...";
+                bar.style.width = '70%';
+                txt.textContent = langModule.t("Building your workout plan...") || "Building your workout plan...";
 
-            const json = await res.json();
+                const json = await res.json();
 
-            if (json.source || json.debugStage) {
-                console.log('[AI Debug]', { source: json.source, debugStage: json.debugStage, debugMessage: json.debugMessage });
-            }
+                if (json.source || json.debugStage) {
+                    console.log('[AI Debug]', { source: json.source, debugStage: json.debugStage, debugMessage: json.debugMessage });
+                }
 
-            if (!res.ok || !json.success || !json.plan) {
-                throw new Error(json.error || json.debugMessage || langModule.t("Failed to generate plan. Please try again."));
+                if (!res.ok || !json.success || !json.plan) {
+                    throw new Error(json.error || json.debugMessage || langModule.t("Failed to generate plan. Please try again."));
+                }
+
+                generatedPlan = json.plan;
+                generationSource = json.source || 'api';
+            } catch (apiError) {
+                console.warn('[AI Generate] API path failed, falling back to local engine.', apiError);
+
+                bar.style.width = '85%';
+                txt.textContent = langModule.t("Building your workout plan...") || "Building your workout plan...";
+
+                const localResult = await runEngine(data);
+                if (!localResult?.plan) {
+                    throw apiError;
+                }
+
+                generatedPlan = localResult.plan;
+                generationSource = localResult.fallbackUsed ? 'local_fallback' : 'local_rule_engine';
+                if (localResult.error) {
+                    console.warn('[AI Generate] Local engine returned fallback output after an internal error.', localResult.error);
+                }
             }
 
             bar.style.width = '100%';
             txt.textContent = langModule.t("Finalizing your personal plan...") || "Finalizing your personal plan...";
 
-            const aiResult = toDashboardFormat(json.plan, data);
-            const protocol = algorithm.compile(data);
-            protocol.aiResult = aiResult;
-            protocol.apiPlan = json.plan;
-            protocol.apiSource = json.source;
-            if (json.plan?.planMeta) {
-                protocol.meta.splitType = json.plan.planMeta.splitType || protocol.meta.style;
-                protocol.meta.days = String(json.plan.planMeta.trainingDaysPerWeek || protocol.meta.days);
-            }
-
-            const userProfile = { goal: data.primary_goal, primary_goal: data.primary_goal, ...data };
-            const enhancedProtocol = createProtocol(userProfile, json.plan, aiResult.nutrition_plan, protocol, {});
-            db.saveNewProtocol(enhancedProtocol);
-            db.clearAssessmentState();
+            algorithm.persistGeneratedPlan(generatedPlan, data, generationSource);
 
             setTimeout(() => {
                 overlay?.classList.remove('active');
@@ -2943,16 +3109,6 @@ async function initApp() {
     db.init();
     langModule.init();
 
-    try {
-        await restoreSession();
-        const sessionUser = getSessionUser();
-        if (sessionUser) {
-            ensureLegacyUserForCloudSession(sessionUser);
-        }
-    } catch (e) {
-        console.warn('[ASCEND] Session restore skipped:', e);
-    }
-
     // Set active class on initial loader
     const activeBtn = document.getElementById(`lang-btn-${langModule.currentLanguage}`);
     if (activeBtn) activeBtn.classList.add('text-primary', 'font-bold');
@@ -3207,13 +3363,24 @@ async function initApp() {
 
     authModule.mountGoogleButton();
 
-    // Check auth to route properly
+    // Render immediately; do not block first paint on Supabase session restore.
     const user = db.getCurrentUser();
-    if (user) {
-        routeAfterAuth();
-    } else {
-        app.navigate('landing');
-    }
+    if (user) routeAfterAuth();
+    else app.navigate('landing');
+
+    void restoreSession()
+        .then(() => {
+            const sessionUser = getSessionUser();
+            if (sessionUser) {
+                ensureLegacyUserForCloudSession(sessionUser);
+                routeAfterAuth();
+            } else {
+                app.updateNav();
+            }
+        })
+        .catch((e) => {
+            console.warn('[ASCEND] Session restore skipped:', e);
+        });
 }
 
 // Run init when DOM is ready (handles ES module load-after-DOMContentLoaded race)

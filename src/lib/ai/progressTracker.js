@@ -1,47 +1,10 @@
 /**
  * ASCEND AI PROTOCOL - Progress Tracking Engine
  * Phase 5: Store and retrieve weekly progress for adaptive engine.
- * Uses localStorage. User-scoped.
+ * Uses storageAdapter so local and cloud flows stay aligned.
  */
 
-const STORAGE_PREFIX = 'ascend_progress_';
-
-/**
- * Get storage key for user.
- * @param {string} userId - User email or id
- * @returns {string}
- */
-function getStorageKey(userId) {
-    return STORAGE_PREFIX + (userId || 'default');
-}
-
-/**
- * Load progress entries from localStorage.
- * @param {string} userId
- * @returns {Array}
- */
-function loadEntries(userId) {
-    try {
-        const raw = localStorage.getItem(getStorageKey(userId));
-        const arr = raw ? JSON.parse(raw) : [];
-        return Array.isArray(arr) ? arr : [];
-    } catch {
-        return [];
-    }
-}
-
-/**
- * Save progress entries to localStorage.
- * @param {string} userId
- * @param {Array} entries
- */
-function saveEntries(userId, entries) {
-    try {
-        localStorage.setItem(getStorageKey(userId), JSON.stringify(entries));
-    } catch (e) {
-        console.warn('[ProgressTracker] Save failed:', e);
-    }
-}
+import { getProgressEntries, saveProgressEntries } from '../data/storageAdapter.js';
 
 /**
  * Validate a progress entry. Returns { valid: boolean, errors: string[] }.
@@ -86,7 +49,7 @@ export function saveProgressEntry(entry, userId) {
     if (!validation.valid) {
         return { success: false, errors: validation.errors };
     }
-    const entries = loadEntries(userId);
+    const entries = getProgressEntries(userId);
     const weekNumber = entries.length + 1;
     const normalized = {
         weekNumber,
@@ -102,7 +65,7 @@ export function saveProgressEntry(entry, userId) {
         notes: String(entry.notes || '').trim()
     };
     entries.unshift(normalized);
-    saveEntries(userId, entries);
+    saveProgressEntries(userId, entries);
     return { success: true, entry: normalized };
 }
 
@@ -112,7 +75,7 @@ export function saveProgressEntry(entry, userId) {
  * @returns {Array}
  */
 export function getProgressHistory(userId) {
-    return loadEntries(userId);
+    return getProgressEntries(userId);
 }
 
 /**
@@ -121,7 +84,7 @@ export function getProgressHistory(userId) {
  * @returns {Object|null}
  */
 export function getLatestProgress(userId) {
-    const entries = loadEntries(userId);
+    const entries = getProgressEntries(userId);
     return entries.length > 0 ? entries[0] : null;
 }
 
@@ -130,5 +93,5 @@ export function getLatestProgress(userId) {
  * @param {string} userId
  */
 export function clearProgressHistory(userId) {
-    saveEntries(userId, []);
+    saveProgressEntries(userId, []);
 }

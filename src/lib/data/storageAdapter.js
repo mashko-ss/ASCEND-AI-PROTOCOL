@@ -11,6 +11,7 @@
  */
 
 import { isSupabaseConfigured, hasActiveSupabaseSession } from './supabaseClient.js';
+import { saveCloudPersistenceBundle } from './cloudPersistence.js';
 
 const KEYS = {
     CURRENT_USER: 'ascend_current_user',
@@ -21,6 +22,8 @@ const KEYS = {
     PROGRESS: (userId) => `ascend_progress_${userId || 'default'}`,
     INJURY_RECOVERY: (userId) => `ascend_injury_recovery_${userId || 'default'}`
 };
+
+const cloudSyncTimers = new Map();
 
 function readJson(key, fallback = null) {
     try {
@@ -187,6 +190,15 @@ function createSyncState(overrides = {}) {
         reason: null,
         ...overrides
     };
+}
+
+function canAttemptCloudSync(userId) {
+    return Boolean(userId && isSupabaseConfigured() && hasActiveSupabaseSession());
+}
+
+function buildCloudSyncSource(userId, success) {
+    if (!canAttemptCloudSync(userId)) return 'local';
+    return success ? 'cloud' : 'cloud-fallback-local';
 }
 
 function normalizePendingMergeRecord(record) {
@@ -498,6 +510,7 @@ export function saveActiveProtocol(userId, protocol) {
     ensureUserSlot(userId);
     state.users[userId].active_protocol = protocol;
     saveProtocolState(state);
+    scheduleCloudPersistence(userId, 'active_protocol');
 }
 
 export function getProtocolHistory(userId) {
@@ -512,6 +525,7 @@ export function saveProtocolHistory(userId, history) {
     ensureUserSlot(userId);
     state.users[userId].history = Array.isArray(history) ? history : [];
     saveProtocolState(state);
+    scheduleCloudPersistence(userId, 'protocol_history');
 }
 
 export function getAssessmentState(userId) {
@@ -551,6 +565,7 @@ export function getProgressEntries(userId) {
 export function saveProgressEntries(userId, entries) {
     if (!userId) return;
     writeJson(KEYS.PROGRESS(userId), Array.isArray(entries) ? entries : []);
+    scheduleCloudPersistence(userId, 'progress_logs');
 }
 
 export function getInjuryState(userId) {
@@ -769,6 +784,73 @@ export function restoreUserProtocolState(userId, data = {}) {
     saveProgressEntries(userId, progressLogs);
 
     return getUserPersistenceData(userId);
+}
+
+export async function persistUserCloudState(userId, reason = 'manual') {
+    if (!userId) {
+        return createSyncState({ reason: 'user_id_required' });
+    }
+
+    const currentUser = getCurrentUser();
+    if (!currentUser?.id || String(currentUser.id) !== String(userId) || currentUser.provider === 'local') {
+        return createSyncState({
+            enabled: getCloudPersistenceMode() !== 'local-only',
+            source: 'local',
+            hasSession: hasActiveSupabaseSession(),
+            degraded: false,
+            reason: 'cloud_user_not_active'
+        });
+    }
+
+    if (!canAttemptCloudSync(userId)) {
+        return saveSyncState(userId, {
+            enabled: getCloudPersistenceMode() !== 'local-only',
+            source: 'local',
+            hasSession: hasActiveSupabaseSession(),
+            pendingMerge: getPendingMergeState(userId).hasPending,
+            degraded: false,
+            reason: 'cloud_session_unavailable'
+        });
+    }
+
+    const result = await saveCloudPersistenceBundle(
+        currentUser,
+        getUserPersistenceData(userId),
+        {
+            pendingMergeBundle: getPendingMergeBundle(userId),
+            pendingMergePersistenceState: getPendingMergePersistenceState(userId)
+        }
+    );
+
+    return saveSyncState(userId, {
+        enabled: getCloudPersistenceMode() !== 'local-only',
+        source: buildCloudSyncSource(userId, result.ok),
+        hasSession: hasActiveSupabaseSession(),
+        lastSyncAt: result.ok ? Date.now() : getSyncState(userId).lastSyncAt,
+        pendingMerge: getPendingMergeState(userId).hasPending,
+        degraded: result.ok === false,
+        reason: result.ok ? null : (result.reason || `cloud_sync_failed:${reason}`)
+    });
+}
+
+export function scheduleCloudPersistence(userId, reason = 'state_change', delayMs = 150) {
+    if (!userId || !canAttemptCloudSync(userId)) return false;
+
+    const key = String(userId);
+    const existingTimer = cloudSyncTimers.get(key);
+    if (existingTimer) {
+        clearTimeout(existingTimer);
+    }
+
+    const timer = setTimeout(() => {
+        cloudSyncTimers.delete(key);
+        persistUserCloudState(key, reason).catch((error) => {
+            console.warn('[StorageAdapter] Cloud persistence failed:', error);
+        });
+    }, Math.max(0, Number(delayMs) || 0));
+
+    cloudSyncTimers.set(key, timer);
+    return true;
 }
 
 export function getSyncState(userId) {

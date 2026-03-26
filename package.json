@@ -4,6 +4,7 @@
   "description": "Personal Training & Nutrition Planner",
   "type": "module",
   "scripts": {
+    "dev": "vercel.cmd dev",
     "build": "node build.js",
     "make-admin": "node scripts/make-admin.mjs"
   },

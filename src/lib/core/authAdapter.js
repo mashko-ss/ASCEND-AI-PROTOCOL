@@ -9,6 +9,13 @@ import {
 } from '../data/storageAdapter.js';
 import { restoreCurrentUserData, getCurrentSyncState as getBackendSyncState } from '../data/backendAdapter.js';
 import {
+    getSupabaseClient,
+    isSupabaseConfigured,
+    getSupabaseSessionSnapshot,
+    consumeSupabaseOAuthCodeIfPresent,
+    getSupabaseAuthState
+} from '../data/supabaseClient.js';
+import {
     createUser as localCreateUser,
     loginUser as localLoginUser,
     logoutUser as localLogoutUser,
@@ -17,15 +24,50 @@ import {
 
 let restoreSessionPromise = null;
 let signOutPromise = null;
+let sessionUser = null;
+
+function getBrowserEnvValue(key) {
+    if (typeof window === 'undefined' || !window || typeof window.ENV !== 'object' || !window.ENV) {
+        return '';
+    }
+    const value = window.ENV[key];
+    return typeof value === 'string' ? value.trim() : '';
+}
+
+function normalizeRedirectUrl(value) {
+    if (!value || typeof value !== 'string') return '';
+    try {
+        const parsed = new URL(value.trim());
+        return parsed.toString();
+    } catch {
+        return '';
+    }
+}
+
+function resolveGoogleRedirectUrl() {
+    if (typeof window === 'undefined') return undefined;
+
+    const configured = normalizeRedirectUrl(
+        getBrowserEnvValue('AUTH_REDIRECT_URL') || getBrowserEnvValue('APP_URL')
+    );
+    const currentUrl = `${window.location.origin}${window.location.pathname}`;
+    const isLocalhost = ['localhost', '127.0.0.1'].includes(window.location.hostname);
+
+    if (isLocalhost) {
+        return configured || 'https://ascend-ai-protocol.vercel.app/';
+    }
+
+    return configured || currentUrl;
+}
 
 // FUTURE: route to cloud auth here (e.g. Supabase session + merge with local user).
 
-export function createUser(email) {
-    return localCreateUser(email);
+export function createUser(email, password = '', options = {}) {
+    return localCreateUser(email, password, options);
 }
 
-export function loginUser(email) {
-    return localLoginUser(email);
+export function loginUser(email, password = '') {
+    return localLoginUser(email, password);
 }
 
 export function logoutUser() {
@@ -33,7 +75,7 @@ export function logoutUser() {
 }
 
 export function getCurrentUser() {
-    return getLocalCurrentUser();
+    return sessionUser || getStoredCurrentUser() || getLocalCurrentUser();
 }
 
 export async function saveUsername(raw) {
@@ -56,8 +98,22 @@ export async function restoreSession() {
     }
 
     restoreSessionPromise = (async () => {
+        const previousUser = getStoredCurrentUser() || getLocalCurrentUser();
+
+        if (isSupabaseConfigured()) {
+            await consumeSupabaseOAuthCodeIfPresent();
+            const snapshot = await getSupabaseSessionSnapshot();
+            if (snapshot?.user) {
+                sessionUser = snapshot.user;
+                saveCurrentUser(snapshot.user);
+                await restoreCurrentUserData(previousUser);
+                return snapshot.user;
+            }
+        }
+
         const localUser = getLocalCurrentUser();
-        await restoreCurrentUserData();
+        await restoreCurrentUserData(previousUser);
+        sessionUser = null;
         return localUser;
     })();
 
@@ -69,11 +125,17 @@ export async function restoreSession() {
 }
 
 export function getSessionUser() {
-    return null;
+    return sessionUser;
 }
 
 export function isCurrentUserAdmin() {
-    return false;
+    if (sessionUser?.app_metadata?.is_admin === true) return true;
+    if (sessionUser?.isAdmin === true) return true;
+    return getStoredCurrentUser()?.isAdmin === true;
+}
+
+export function isCloudAuthAvailable() {
+    return isSupabaseConfigured() && Boolean(getSupabaseClient());
 }
 
 export function getCurrentSyncState() {
@@ -81,7 +143,40 @@ export function getCurrentSyncState() {
 }
 
 export async function signInWithGoogle() {
-    return { ok: false, mode: 'local', provider: 'google', reason: 'cloud_auth_not_configured' };
+    const client = getSupabaseClient();
+    if (!client) {
+        return { ok: false, mode: 'local', provider: 'google', reason: 'cloud_auth_not_configured' };
+    }
+
+    const redirectTo = resolveGoogleRedirectUrl();
+
+    try {
+        const { data, error } = await client.auth.signInWithOAuth({
+            provider: 'google',
+            options: {
+                redirectTo,
+                skipBrowserRedirect: true
+            }
+        });
+
+        if (error) {
+            return { ok: false, mode: 'cloud', provider: 'google', reason: error.message || 'oauth_sign_in_unavailable' };
+        }
+
+        return {
+            ok: true,
+            mode: 'cloud',
+            provider: 'google',
+            redirectUrl: data?.url || null
+        };
+    } catch (error) {
+        return {
+            ok: false,
+            mode: 'cloud',
+            provider: 'google',
+            reason: error?.message || 'oauth_sign_in_unavailable'
+        };
+    }
 }
 
 export async function signInWithFacebook() {
@@ -107,9 +202,19 @@ export async function signOutUser() {
     }
 
     signOutPromise = (async () => {
+        const client = getSupabaseClient();
+        if (client) {
+            try {
+                await client.auth.signOut();
+            } catch (error) {
+                console.warn('[ASCEND] Supabase sign-out failed:', error);
+            }
+        }
+
+        sessionUser = null;
         localLogoutUser();
         clearCurrentUser();
-        return { ok: true, mode: 'local' };
+        return { ok: true, mode: getSupabaseAuthState().hasSession ? 'cloud' : 'local' };
     })();
 
     try {

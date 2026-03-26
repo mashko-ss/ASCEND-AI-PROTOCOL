@@ -14,6 +14,7 @@ import {
     getActiveProtocol as getStoredActiveProtocol,
     saveActiveProtocol as saveStoredActiveProtocol,
     getProtocolHistory as getStoredProtocolHistory,
+    saveProtocolHistory as saveStoredProtocolHistory,
     ensureUserSlot
 } from '../data/storageAdapter.js';
 
@@ -151,14 +152,12 @@ export function saveNewProtocol(protocol) {
     const userId = getCurrentUserId();
     if (!userId) return null;
     ensureUserSlot(userId, protocol?.email || userId);
-    const state = getDb();
-    const user = state.users[userId];
     const toSave = ensureProtocolModel(protocol, userId);
-    if (user.active_protocol) {
-        user.history = [{ ...user.active_protocol, status: 'archived' }, ...getStoredProtocolHistory(userId)];
+    const activeProtocol = getStoredActiveProtocol(userId);
+    if (activeProtocol) {
+        saveStoredProtocolHistory(userId, [{ ...activeProtocol, status: 'archived' }, ...getStoredProtocolHistory(userId)]);
     }
-    user.active_protocol = toSave;
-    saveDb(state);
+    saveStoredActiveProtocol(userId, toSave);
     return toSave;
 }
 
@@ -292,14 +291,9 @@ export function completeProtocol(userId) {
     const protocol = getActiveProtocol(userId);
     if (!protocol) return;
 
-    const state = getDb();
-    const user = state.users?.[userId];
-    if (!user) return;
-
     const completed = { ...protocol, status: 'completed' };
-    user.history = [{ ...completed }, ...getStoredProtocolHistory(userId)];
-    user.active_protocol = null;
-    saveDb(state);
+    saveStoredProtocolHistory(userId, [{ ...completed }, ...getStoredProtocolHistory(userId)]);
+    saveStoredActiveProtocol(userId, null);
 }
 
 /**

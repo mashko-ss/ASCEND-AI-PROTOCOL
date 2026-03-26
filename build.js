@@ -29,7 +29,8 @@ loadProjectEnvFiles();
 const env = {
     SUPABASE_URL: process.env.SUPABASE_URL || '',
     SUPABASE_PUBLIC_KEY: process.env.SUPABASE_PUBLIC_KEY || '',
-    SUPABASE_ANON_KEY: process.env.SUPABASE_ANON_KEY || ''
+    SUPABASE_ANON_KEY: process.env.SUPABASE_ANON_KEY || '',
+    AUTH_REDIRECT_URL: process.env.AUTH_REDIRECT_URL || process.env.APP_URL || ''
 };
 
 const configContent = `// SYSTEM GENERATED FILE - DO NOT EDIT MANUALLY
