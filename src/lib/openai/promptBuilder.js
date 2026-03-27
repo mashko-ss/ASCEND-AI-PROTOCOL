@@ -15,7 +15,11 @@ DEVELOPER RULES (strict):
 - Each exercise: name, sets (number), reps (string e.g. "8-12"), restSec (number), intensity ("easy"|"moderate"|"hard"), notes (string).
 - Respect equipment access: bodyweight users get no barbells/dumbbells; home_basic allows bands/resistance.
 - Beginner plans: max 5 exercises per session, lower volume.
-- Never suggest exercises contraindicated for stated limitations.`;
+- Never suggest exercises contraindicated for stated limitations.
+- Use concrete exercise names only. Never output generic placeholders like "Bench Press or Push-up".
+- Personalize the exercise menu to the user: vary by goal, targetFocus, equipment, experience, weekly frequency, session duration, and day position in the split.
+- Avoid near-identical day structures across the week unless intentionally repeating a strength lift. Each day should feel meaningfully distinct.
+- If targetFocus is chest, legs, or core, bias exercise selection and weekly emphasis accordingly.`;
 
 const PLAN_JSON_SCHEMA = `{
   "planMeta": {
@@ -88,6 +92,12 @@ ${JSON.stringify(userContext, null, 2)}
 
 REQUIRED OUTPUT SCHEMA (output exactly this structure, valid JSON only):
 ${PLAN_JSON_SCHEMA}
+
+EXERCISE SELECTION QUALITY BAR:
+- Make the plan feel custom, not generic.
+- Prefer 1-2 anchor lifts plus tailored accessories instead of repeating the same default movements for every user.
+- Different days in the same week should use different concrete exercise variations when appropriate.
+- Use gym-friendly exercise names that a real trainee would understand immediately.
 
 Respond with ONLY the JSON object. No other text.`;
 

@@ -190,15 +190,15 @@ export function toDashboardFormat(plan, rawInput = {}, existingProtocol = null) 
         warnings: np.warnings,
         guidelines: np.notes,
         meal_timing: {
-            pre_workout: '60–90 min before: 30–40g carbs + 15–20g protein (e.g. oats + banana + whey, or rice cakes + Greek yogurt). Caffeine optional 30–45 min pre (3–5 mg/kg).',
-            post_workout: 'Within 1–2 hours: 40–60g carbs + 25–40g protein. Example: chicken + rice + vegetables, or whey + banana + toast. Prioritize whole foods when possible.'
+            pre_workout: '60–90 min before: 30–40g carbs + 15–20g protein (e.g. oats + banana + whey, or rice cakes with yogurt). Caffeine is optional 30–45 min pre-workout if tolerated.',
+            post_workout: 'Within 1–2 hours: 40–60g carbs + 25–40g protein. Example: chicken + rice + vegetables, or whey + banana + toast. Prioritize whole-food meals when possible.'
         },
         supplement_stack
     };
 
     nutrition_plan.meal_timing = {
-        pre_workout: '60-90 min before training: light carbs + easy protein. Example: oats + banana, or rice cakes and yogurt. Optional caffeine 30-45 min before if tolerated.',
-        post_workout: 'Within 1-2 hours after training: protein + carbs for recovery. Example: chicken and rice, or a protein shake with banana. Prefer whole-food meals when possible.'
+        pre_workout: '60-90 min before training: easy-to-digest carbs + protein. Example: oats + banana, or rice cakes with yogurt. Caffeine is optional 30-45 min before if it sits well with you.',
+        post_workout: 'Within 1-2 hours after training: protein + carbs for recovery. Example: chicken and rice, or a protein shake with banana. Choose whole-food meals when possible.'
     };
 
     const result = { workout_plan, nutrition_plan };

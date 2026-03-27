@@ -1494,12 +1494,13 @@ body.dashboard-active .dashboard-main {
     justify-content: center !important;
     text-align: center !important;
     padding: 18px 16px !important;
-    background: var(--bg-base);
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.015), rgba(255, 255, 255, 0.005)), var(--bg-base);
     border: 1px solid var(--border-color);
-    border-radius: var(--radius-sm);
+    border-radius: 22px;
     cursor: pointer;
-    transition: all var(--transition-fast);
+    transition: transform var(--transition-fast), border-color var(--transition-fast), background var(--transition-fast), box-shadow var(--transition-fast), color var(--transition-fast);
     box-sizing: border-box;
+    box-shadow: 0 8px 18px rgba(0, 0, 0, 0.2);
 }
 
 /* Balanced icons inside assessment cards */
@@ -1644,11 +1645,14 @@ body.dashboard-active .dashboard-main {
 
 .radio-card:hover .radio-card-content {
     border-color: var(--text-muted);
+    transform: translateY(-2px);
+    box-shadow: 0 14px 24px rgba(0, 0, 0, 0.28);
 }
 
 .radio-card input:checked ~ .radio-card-content {
     border-color: var(--accent-primary);
-    background: rgba(234, 88, 12, 0.05);
+    background: linear-gradient(180deg, rgba(234, 88, 12, 0.12), rgba(234, 88, 12, 0.03));
+    box-shadow: 0 0 0 1px rgba(234, 88, 12, 0.18), 0 18px 36px rgba(234, 88, 12, 0.12);
 }
 
 .radio-card input:checked ~ .radio-card-content i,
@@ -1666,18 +1670,21 @@ body.dashboard-active .dashboard-main {
     padding: 0.6rem 1.25rem;
     background: var(--bg-base);
     border: 1px solid var(--border-color);
-    border-radius: var(--radius-sm);
+    border-radius: 999px;
     font-size: 0.8rem;
     font-family: var(--font-mono);
     text-transform: uppercase;
     cursor: pointer;
-    transition: all var(--transition-fast);
+    transition: transform var(--transition-fast), border-color var(--transition-fast), background var(--transition-fast), color var(--transition-fast), box-shadow var(--transition-fast);
     color: var(--text-secondary);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.18);
 }
 
 .chip-content:hover {
     border-color: var(--text-muted);
     color: var(--text-primary);
+    transform: translateY(-1px);
+    box-shadow: 0 12px 20px rgba(0, 0, 0, 0.24);
 }
 
 /* Анкета (стъпка 8): изречения с нормален регистър, без принудителни главни букви */
@@ -1687,10 +1694,11 @@ body.dashboard-active .dashboard-main {
 }
 
 .chip-checkbox input:checked~.chip-content {
-    background: var(--text-primary);
-    color: var(--bg-base);
-    border-color: var(--text-primary);
+    background: linear-gradient(180deg, rgba(234, 88, 12, 0.16), rgba(234, 88, 12, 0.08));
+    color: var(--text-primary);
+    border-color: var(--accent-primary);
     font-weight: 700;
+    box-shadow: 0 0 0 1px rgba(234, 88, 12, 0.18), 0 14px 28px rgba(234, 88, 12, 0.12);
 }
 
 .slider-container {

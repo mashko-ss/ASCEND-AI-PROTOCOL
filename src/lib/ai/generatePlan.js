@@ -46,7 +46,7 @@ export function ensureUniqueDayExercises(plan, normalizedInput) {
     const experienceLevel = classification.experienceLevel || 'beginner';
     const maxExercises = getMaxExercisesForDuration(input.sessionDurationMin ?? 60);
     const allowedTypes = getEquipmentCompatibleTypes(input.equipmentAccess || 'home_basic');
-    const dayFocusMap = getDayFocusMap(classification.splitType || 'full_body', plan.weeklyPlan.length, goal);
+    const dayFocusMap = getDayFocusMap(classification.splitType || 'full_body', plan.weeklyPlan.length, goal, input.targetFocus || 'overall');
 
     const signatures = new Map();
     let hasDuplicates = false;
@@ -64,8 +64,17 @@ export function ensureUniqueDayExercises(plan, normalizedInput) {
 
     const weeklyPlan = plan.weeklyPlan.map((day, i) => {
         const focus = dayFocusMap[i] || day.focus || 'Full Body';
-        const sessionType = day.sessionType || getSessionTypeForDay(i, plan.weeklyPlan.length, goal);
-        const exercises = getExercisesForFocus(focus, sessionType, maxExercises, experienceLevel, allowedTypes);
+        const sessionType = day.sessionType || getSessionTypeForDay(i, plan.weeklyPlan.length, goal, focus);
+        const exercises = getExercisesForFocus(focus, sessionType, maxExercises, experienceLevel, allowedTypes, {
+            goal,
+            experienceLevel,
+            equipmentAccess: input.equipmentAccess || 'home_basic',
+            targetFocus: input.targetFocus || 'overall',
+            limitations: input.limitations || 'none',
+            dayIndex: i,
+            totalDays: plan.weeklyPlan.length,
+            splitType: classification.splitType || 'full_body'
+        });
         return {
             ...day,
             mainBlocks: [{
@@ -95,7 +104,8 @@ export async function generatePlan(normalizedInput) {
                 if (rawPlan) {
                     const validation = validatePlan(rawPlan);
                     if (validation.valid && validation.sanitizedPlan) {
-                        return applyPhaseForWeek1(validation.sanitizedPlan, classification.goal || 'recomp');
+                        const uniquePlan = ensureUniqueDayExercises(validation.sanitizedPlan, normalizedInput);
+                        return applyPhaseForWeek1(uniquePlan, classification.goal || 'recomp');
                     }
                 }
             }
@@ -133,6 +143,8 @@ export function generateRulePlan(normalizedInput) {
     const trainingDaysPerWeek = input.trainingDaysPerWeek ?? 3;
     const sessionDurationMin = input.sessionDurationMin ?? 60;
     const equipmentAccess = input.equipmentAccess || 'home_basic';
+    const targetFocus = input.targetFocus || 'overall';
+    const limitations = input.limitations || 'none';
     const recoveryProfile = classification.recoveryProfile || 'moderate';
     const scheduleProfile = classification.scheduleProfile || 'standard';
 
@@ -165,7 +177,9 @@ export function generateRulePlan(normalizedInput) {
         experienceLevel,
         maxExercises,
         allowedTypes,
-        equipmentAccess
+        equipmentAccess,
+        targetFocus,
+        limitations
     });
 
     const progressionRules = getProgressionRules(goal, experienceLevel);
@@ -188,14 +202,23 @@ export function generateRulePlan(normalizedInput) {
 }
 
 function buildWeeklyPlan(opts) {
-    const { splitType, trainingDaysPerWeek, sessionDurationMin, goal, experienceLevel, maxExercises, allowedTypes } = opts;
+    const { splitType, trainingDaysPerWeek, sessionDurationMin, goal, experienceLevel, maxExercises, allowedTypes, equipmentAccess, targetFocus = 'overall', limitations = 'none' } = opts;
     const plan = [];
-    const dayFocusMap = getDayFocusMap(splitType, trainingDaysPerWeek, goal);
+    const dayFocusMap = getDayFocusMap(splitType, trainingDaysPerWeek, goal, targetFocus);
 
     for (let i = 0; i < trainingDaysPerWeek; i++) {
         const focus = dayFocusMap[i] || 'Full Body';
-        const sessionType = getSessionTypeForDay(i, trainingDaysPerWeek, goal);
-        const exercises = getExercisesForFocus(focus, sessionType, maxExercises, experienceLevel, allowedTypes);
+        const sessionType = getSessionTypeForDay(i, trainingDaysPerWeek, goal, focus);
+        const exercises = getExercisesForFocus(focus, sessionType, maxExercises, experienceLevel, allowedTypes, {
+            goal,
+            experienceLevel,
+            equipmentAccess,
+            targetFocus,
+            limitations,
+            dayIndex: i,
+            totalDays: trainingDaysPerWeek,
+            splitType
+        });
 
         plan.push({
             dayIndex: i + 1,
@@ -203,13 +226,13 @@ function buildWeeklyPlan(opts) {
             focus,
             sessionType,
             durationMin: sessionDurationMin,
-            warmup: [{ name: 'Light cardio + dynamic stretches', durationMin: 5 }],
+            warmup: [{ name: buildWarmupForDay(focus, equipmentAccess, limitations), durationMin: 5 }],
             mainBlocks: [{
                 blockName: focus,
                 exerciseType: sessionType === 'conditioning' ? 'circuit' : 'compound',
                 exercises: exercises.map((e) => ({ ...e }))
             }],
-            cooldown: [{ name: 'Static stretching + breathing', durationMin: 5 }]
+            cooldown: [{ name: buildCooldownForDay(sessionType, limitations), durationMin: 5 }]
         });
     }
 
@@ -234,21 +257,33 @@ export function buildWeeklyPlanFromInput(normalizedInput) {
         experienceLevel: classification.experienceLevel || 'beginner',
         maxExercises,
         allowedTypes,
-        equipmentAccess: input.equipmentAccess || 'home_basic'
+        equipmentAccess: input.equipmentAccess || 'home_basic',
+        targetFocus: input.targetFocus || 'overall',
+        limitations: input.limitations || 'none'
     });
 }
 
-function getDayFocusMap(splitType, days, goal) {
+function getDayFocusMap(splitType, days, goal, targetFocus = 'overall') {
     const map = [];
     switch (splitType) {
         case 'full_body':
-            for (let i = 0; i < days; i++) map.push('Full Body');
+            for (let i = 0; i < days; i++) {
+                if (targetFocus === 'chest') map.push('Full Body (Chest Emphasis)');
+                else if (targetFocus === 'legs') map.push('Full Body (Leg Emphasis)');
+                else if (targetFocus === 'core') map.push('Full Body + Core');
+                else map.push('Full Body');
+            }
             break;
         case 'upper_lower':
-            for (let i = 0; i < days; i++) map.push(i % 2 === 0 ? 'Upper Body' : 'Lower Body');
+            for (let i = 0; i < days; i++) {
+                if (targetFocus === 'core') map.push(i % 2 === 0 ? 'Upper Body + Core' : 'Lower Body + Core');
+                else map.push(i % 2 === 0 ? 'Upper Body' : 'Lower Body');
+            }
             break;
         case 'push_pull_legs':
-            const ppl = ['Push (Chest, Shoulders, Triceps)', 'Pull (Back, Biceps)', 'Legs'];
+            const ppl = targetFocus === 'core'
+                ? ['Push + Core', 'Pull + Core', 'Legs + Core']
+                : ['Push (Chest, Shoulders, Triceps)', 'Pull (Back, Biceps)', 'Legs'];
             for (let i = 0; i < days; i++) map.push(ppl[i % 3]);
             break;
         case 'bodypart_split':
@@ -265,20 +300,29 @@ function getDayFocusMap(splitType, days, goal) {
     return map;
 }
 
-function getSessionTypeForDay(dayIndex, totalDays, goal) {
+function getSessionTypeForDay(dayIndex, totalDays, goal, focus = '') {
+    const focusKey = String(focus || '').toLowerCase();
+    if (focusKey.includes('conditioning')) return 'conditioning';
+    if (focusKey.includes('recovery') || focusKey.includes('mobility')) return 'recovery';
     if (goal === 'endurance') return dayIndex === totalDays - 1 ? 'conditioning' : 'mixed';
-    if (goal === 'fat_loss' && dayIndex === totalDays - 1) return 'conditioning';
-    if (dayIndex === totalDays - 1 && totalDays >= 4) return 'recovery';
+    if (goal === 'fat_loss' && totalDays >= 5 && dayIndex === totalDays - 1) return 'conditioning';
+    if (dayIndex === totalDays - 1 && totalDays >= 6) return 'recovery';
     return goal === 'strength' ? 'strength' : 'hypertrophy';
 }
 
-function getExercisesForFocus(focus, sessionType, maxExercises, experienceLevel, allowedTypes) {
+function getExercisesForFocus(focus, sessionType, maxExercises, experienceLevel, allowedTypes, context = {}) {
     const count = Math.min(maxExercises, experienceLevel === 'beginner' ? 5 : maxExercises);
     const exercises = [];
-    const templates = getExerciseTemplates(focus, sessionType);
+    const templates = getExerciseTemplates(focus, sessionType, context);
+    const usedNames = new Set();
 
     for (let i = 0; i < count && i < templates.length; i++) {
-        const t = templates[i];
+        const t = personalizeTemplate(templates[i], {
+            ...context,
+            focus,
+            sessionType,
+            allowedTypes
+        }, i, usedNames);
         exercises.push({
             name: t.name,
             sets: t.sets,
@@ -385,8 +429,606 @@ const EXERCISE_TEMPLATES = {
     ]
 };
 
+function createVariant(name, tags = [], extra = {}) {
+    return { name, tags, ...extra };
+}
+
+const EXERCISE_VARIANTS = {
+    'Squat or Leg Press': {
+        gym: [
+            createVariant('Barbell Back Squat', ['legs', 'quads', 'strength']),
+            createVariant('Leg Press', ['legs', 'quads', 'hypertrophy']),
+            createVariant('Bulgarian Split Squat', ['legs', 'quads', 'glutes', 'hypertrophy'], { contraindications: ['knees'] }),
+            createVariant('Goblet Squat', ['legs', 'quads', 'core'])
+        ],
+        home_basic: [
+            createVariant('Goblet Squat', ['legs', 'quads', 'core']),
+            createVariant('Bodyweight Squats', ['legs', 'quads', 'bodyweight']),
+            createVariant('Reverse Lunge', ['legs', 'quads', 'glutes']),
+            createVariant('Step-Up', ['legs', 'quads', 'glutes'])
+        ],
+        bodyweight: [
+            createVariant('Bodyweight Squats', ['legs', 'quads', 'bodyweight']),
+            createVariant('Reverse Lunge', ['legs', 'quads', 'glutes']),
+            createVariant('Split Squat', ['legs', 'quads', 'glutes']),
+            createVariant('Step-Up', ['legs', 'quads', 'glutes'])
+        ]
+    },
+    'Bench Press or Push-up': {
+        gym: [
+            createVariant('Barbell Bench Press', ['push', 'chest', 'strength']),
+            createVariant('Incline Barbell Bench Press', ['push', 'chest', 'upper_chest', 'strength']),
+            createVariant('Dumbbell Incline Bench Press', ['push', 'chest', 'hypertrophy']),
+            createVariant('Machine Chest Press', ['push', 'chest', 'hypertrophy'])
+        ],
+        home_basic: [
+            createVariant('Push-Up', ['push', 'chest', 'bodyweight']),
+            createVariant('Feet-Elevated Push-Up', ['push', 'chest', 'bodyweight', 'strength']),
+            createVariant('Resistance Band Chest Press', ['push', 'chest', 'band']),
+            createVariant('Backpack Floor Press', ['push', 'chest', 'strength'])
+        ],
+        bodyweight: [
+            createVariant('Push-Up', ['push', 'chest', 'bodyweight']),
+            createVariant('Feet-Elevated Push-Up', ['push', 'chest', 'bodyweight', 'strength']),
+            createVariant('Decline Push-Up', ['push', 'chest', 'bodyweight', 'strength']),
+            createVariant('Tempo Push-Up', ['push', 'chest', 'bodyweight', 'hypertrophy'])
+        ]
+    },
+    'Row or Pull-up': {
+        gym: [
+            createVariant('Bent-Over Barbell Row', ['pull', 'back', 'strength']),
+            createVariant('Cable Row', ['pull', 'back', 'hypertrophy']),
+            createVariant('Seated Row Machine', ['pull', 'back', 'hypertrophy']),
+            createVariant('Pull-Ups', ['pull', 'back', 'lats', 'strength'])
+        ],
+        home_basic: [
+            createVariant('Resistance Band Row', ['pull', 'back', 'band']),
+            createVariant('Inverted Row', ['pull', 'back', 'bodyweight']),
+            createVariant('One-Arm Backpack Row', ['pull', 'back', 'strength']),
+            createVariant('Doorway Towel Row', ['pull', 'back', 'bodyweight'])
+        ],
+        bodyweight: [
+            createVariant('Inverted Row', ['pull', 'back', 'bodyweight']),
+            createVariant('Doorway Towel Row', ['pull', 'back', 'bodyweight']),
+            createVariant('Pull-Ups', ['pull', 'back', 'strength']),
+            createVariant('Chin-Ups', ['pull', 'back', 'biceps', 'strength'])
+        ]
+    },
+    'Overhead Press': {
+        gym: [
+            createVariant('Overhead Press', ['push', 'shoulders', 'strength'], { contraindications: ['shoulders'] }),
+            createVariant('Seated Military Press', ['push', 'shoulders', 'hypertrophy'], { contraindications: ['shoulders'] }),
+            createVariant('Overhead Dumbbell Press', ['push', 'shoulders', 'hypertrophy'], { contraindications: ['shoulders'] }),
+            createVariant('Seated Dumbbell Shoulder Press', ['push', 'shoulders', 'hypertrophy'], { contraindications: ['shoulders'] })
+        ],
+        home_basic: [
+            createVariant('Pike Push-Up', ['push', 'shoulders', 'bodyweight'], { contraindications: ['shoulders'] }),
+            createVariant('Band Overhead Press', ['push', 'shoulders', 'band'], { contraindications: ['shoulders'] }),
+            createVariant('Single-Arm Backpack Press', ['push', 'shoulders', 'strength'], { contraindications: ['shoulders'] })
+        ],
+        bodyweight: [
+            createVariant('Pike Push-Up', ['push', 'shoulders', 'bodyweight'], { contraindications: ['shoulders'] }),
+            createVariant('Wall Pike Press', ['push', 'shoulders', 'bodyweight'], { contraindications: ['shoulders'] }),
+            createVariant('Handstand Hold', ['push', 'shoulders', 'bodyweight'], { contraindications: ['shoulders'] })
+        ]
+    },
+    'Romanian Deadlift': {
+        gym: [
+            createVariant('Romanian Deadlift', ['legs', 'hamstrings', 'glutes', 'strength'], { contraindications: ['lower_back'] }),
+            createVariant('Hip Thrusts', ['legs', 'glutes', 'hypertrophy']),
+            createVariant('Conventional Deadlift', ['legs', 'back', 'strength'], { contraindications: ['lower_back'] }),
+            createVariant('Single-Leg Romanian Deadlift', ['legs', 'hamstrings', 'glutes', 'balance'])
+        ],
+        home_basic: [
+            createVariant('Single-Leg Romanian Deadlift', ['legs', 'hamstrings', 'glutes', 'balance']),
+            createVariant('Hip Thrusts', ['legs', 'glutes', 'hypertrophy']),
+            createVariant('Glute Bridge', ['legs', 'glutes', 'bodyweight']),
+            createVariant('Backpack Romanian Deadlift', ['legs', 'hamstrings', 'glutes', 'strength'], { contraindications: ['lower_back'] })
+        ],
+        bodyweight: [
+            createVariant('Single-Leg Romanian Deadlift', ['legs', 'hamstrings', 'glutes', 'balance']),
+            createVariant('Glute Bridge', ['legs', 'glutes', 'bodyweight']),
+            createVariant('Hamstring Walkout', ['legs', 'hamstrings', 'bodyweight']),
+            createVariant('Hip Thrusts', ['legs', 'glutes', 'bodyweight'])
+        ]
+    },
+    'Plank or Core': {
+        gym: [
+            createVariant('Hanging Leg Raises', ['core', 'abs']),
+            createVariant('Cable Woodchoppers', ['core', 'obliques']),
+            createVariant('Ab Wheel Rollout', ['core', 'abs', 'strength']),
+            createVariant('Plank', ['core', 'abs'])
+        ],
+        home_basic: [
+            createVariant('Dead Bug', ['core', 'abs']),
+            createVariant('Side Plank', ['core', 'obliques']),
+            createVariant('Hollow Body Hold', ['core', 'abs']),
+            createVariant('Mountain Climbers', ['core', 'conditioning'])
+        ],
+        bodyweight: [
+            createVariant('Dead Bug', ['core', 'abs']),
+            createVariant('Side Plank', ['core', 'obliques']),
+            createVariant('Hollow Body Hold', ['core', 'abs']),
+            createVariant('Mountain Climbers', ['core', 'conditioning'])
+        ]
+    },
+    'Bicep Curl': {
+        gym: [
+            createVariant('Barbell Curl', ['pull', 'biceps']),
+            createVariant('Dumbbell Bicep Curl', ['pull', 'biceps']),
+            createVariant('Hammer Curl', ['pull', 'biceps', 'forearms'])
+        ],
+        home_basic: [
+            createVariant('Resistance Band Bicep Curl', ['pull', 'biceps', 'band']),
+            createVariant('Backpack Curl', ['pull', 'biceps']),
+            createVariant('Hammer Curl', ['pull', 'biceps', 'forearms'])
+        ],
+        bodyweight: [
+            createVariant('Towel Bicep Curl Isometric', ['pull', 'biceps', 'bodyweight']),
+            createVariant('Backpack Curl', ['pull', 'biceps'])
+        ]
+    },
+    'Tricep Extension': {
+        gym: [
+            createVariant('Cable Tricep Pushdown', ['push', 'triceps']),
+            createVariant('Tricep Extension', ['push', 'triceps']),
+            createVariant('Dips', ['push', 'triceps', 'chest'], { contraindications: ['shoulders', 'wrist_elbow'] })
+        ],
+        home_basic: [
+            createVariant('Resistance Band Tricep Pressdown', ['push', 'triceps', 'band']),
+            createVariant('Overhead Band Tricep Extension', ['push', 'triceps', 'band'], { contraindications: ['shoulders'] }),
+            createVariant('Bench Dips', ['push', 'triceps', 'bodyweight'], { contraindications: ['shoulders', 'wrist_elbow'] })
+        ],
+        bodyweight: [
+            createVariant('Bench Dips', ['push', 'triceps', 'bodyweight'], { contraindications: ['shoulders', 'wrist_elbow'] }),
+            createVariant('Diamond Push-Up', ['push', 'triceps', 'bodyweight'])
+        ]
+    },
+    'Incline DB Press or Dips': {
+        gym: [
+            createVariant('Dumbbell Incline Bench Press', ['push', 'chest', 'upper_chest', 'hypertrophy']),
+            createVariant('Incline Barbell Bench Press', ['push', 'chest', 'upper_chest', 'strength']),
+            createVariant('Dips', ['push', 'triceps', 'chest'], { contraindications: ['shoulders', 'wrist_elbow'] })
+        ],
+        home_basic: [
+            createVariant('Feet-Elevated Push-Up', ['push', 'chest', 'upper_chest', 'bodyweight']),
+            createVariant('Backpack Floor Press', ['push', 'chest', 'strength']),
+            createVariant('Resistance Band Chest Press', ['push', 'chest', 'band'])
+        ],
+        bodyweight: [
+            createVariant('Feet-Elevated Push-Up', ['push', 'chest', 'upper_chest', 'bodyweight']),
+            createVariant('Decline Push-Up', ['push', 'chest', 'bodyweight']),
+            createVariant('Diamond Push-Up', ['push', 'triceps', 'bodyweight'])
+        ]
+    },
+    'Lat Pulldown or Chin-up': {
+        gym: [
+            createVariant('Lat Pulldown', ['pull', 'back', 'lats']),
+            createVariant('Pull-Ups', ['pull', 'back', 'lats', 'strength']),
+            createVariant('Assisted Pull-up Machine', ['pull', 'back', 'lats'])
+        ],
+        home_basic: [
+            createVariant('Resistance Band Lat Pulldown', ['pull', 'back', 'lats', 'band']),
+            createVariant('Inverted Row', ['pull', 'back', 'bodyweight']),
+            createVariant('Chin-Ups', ['pull', 'back', 'biceps', 'strength'])
+        ],
+        bodyweight: [
+            createVariant('Pull-Ups', ['pull', 'back', 'lats', 'strength']),
+            createVariant('Chin-Ups', ['pull', 'back', 'biceps', 'strength']),
+            createVariant('Inverted Row', ['pull', 'back', 'bodyweight'])
+        ]
+    },
+    'Face Pull or Reverse Fly': {
+        gym: [
+            createVariant('Cable Face Pulls', ['pull', 'rear_delts', 'shoulders']),
+            createVariant('Face Pulls', ['pull', 'rear_delts', 'shoulders']),
+            createVariant('Reverse Pec Deck', ['pull', 'rear_delts', 'shoulders'])
+        ],
+        home_basic: [
+            createVariant('Resistance Band Face Pull', ['pull', 'rear_delts', 'shoulders', 'band']),
+            createVariant('Bent-Over Rear Delt Raise', ['pull', 'rear_delts', 'shoulders'])
+        ],
+        bodyweight: [
+            createVariant('Prone Y-T-W Raises', ['pull', 'rear_delts', 'shoulders', 'bodyweight']),
+            createVariant('Scapular Wall Slides', ['pull', 'shoulders', 'mobility'])
+        ]
+    },
+    'Lunges or Step-up': {
+        gym: [
+            createVariant('Walking Lunges', ['legs', 'quads', 'glutes']),
+            createVariant('Bulgarian Split Squat', ['legs', 'quads', 'glutes'], { contraindications: ['knees'] }),
+            createVariant('Step-Up', ['legs', 'quads', 'glutes']),
+            createVariant('Jump Lunges', ['legs', 'conditioning'], { contraindications: ['knees'] })
+        ],
+        home_basic: [
+            createVariant('Reverse Lunge', ['legs', 'quads', 'glutes']),
+            createVariant('Walking Lunges', ['legs', 'quads', 'glutes']),
+            createVariant('Step-Up', ['legs', 'quads', 'glutes'])
+        ],
+        bodyweight: [
+            createVariant('Reverse Lunge', ['legs', 'quads', 'glutes']),
+            createVariant('Walking Lunges', ['legs', 'quads', 'glutes']),
+            createVariant('Step-Up', ['legs', 'quads', 'glutes'])
+        ]
+    },
+    'Leg Curl or Nordic': {
+        gym: [
+            createVariant('Seated Leg Curls', ['legs', 'hamstrings']),
+            createVariant('Leg Curl Machine', ['legs', 'hamstrings']),
+            createVariant('Nordic Curl', ['legs', 'hamstrings', 'strength'])
+        ],
+        home_basic: [
+            createVariant('Towel Hamstring Curl', ['legs', 'hamstrings', 'bodyweight']),
+            createVariant('Nordic Curl', ['legs', 'hamstrings', 'strength']),
+            createVariant('Hamstring Walkout', ['legs', 'hamstrings', 'bodyweight'])
+        ],
+        bodyweight: [
+            createVariant('Nordic Curl', ['legs', 'hamstrings', 'strength']),
+            createVariant('Towel Hamstring Curl', ['legs', 'hamstrings', 'bodyweight']),
+            createVariant('Hamstring Walkout', ['legs', 'hamstrings', 'bodyweight'])
+        ]
+    },
+    'Calf Raise': {
+        gym: [
+            createVariant('Standing Calf Raises', ['legs', 'calves']),
+            createVariant('Seated Calf Raises', ['legs', 'calves'])
+        ],
+        home_basic: [
+            createVariant('Standing Calf Raises', ['legs', 'calves']),
+            createVariant('Single-Leg Calf Raise', ['legs', 'calves', 'bodyweight'])
+        ],
+        bodyweight: [
+            createVariant('Standing Calf Raises', ['legs', 'calves']),
+            createVariant('Single-Leg Calf Raise', ['legs', 'calves', 'bodyweight'])
+        ]
+    },
+    'Cable Fly or Push-up': {
+        gym: [
+            createVariant('Cable Chest Fly', ['push', 'chest', 'hypertrophy']),
+            createVariant('Push-Up', ['push', 'chest', 'bodyweight']),
+            createVariant('Dumbbell Flyes', ['push', 'chest', 'hypertrophy'])
+        ],
+        home_basic: [
+            createVariant('Push-Up', ['push', 'chest', 'bodyweight']),
+            createVariant('Decline Push-Up', ['push', 'chest', 'bodyweight']),
+            createVariant('Resistance Band Chest Fly', ['push', 'chest', 'band'])
+        ],
+        bodyweight: [
+            createVariant('Push-Up', ['push', 'chest', 'bodyweight']),
+            createVariant('Decline Push-Up', ['push', 'chest', 'bodyweight']),
+            createVariant('Tempo Push-Up', ['push', 'chest', 'bodyweight'])
+        ]
+    },
+    'Deadlift or Rack Pull': {
+        gym: [
+            createVariant('Barbell Deadlift', ['pull', 'back', 'hamstrings', 'strength'], { contraindications: ['lower_back'] }),
+            createVariant('Conventional Deadlift', ['pull', 'back', 'hamstrings', 'strength'], { contraindications: ['lower_back'] }),
+            createVariant('Romanian Deadlift', ['pull', 'hamstrings', 'glutes', 'strength'], { contraindications: ['lower_back'] })
+        ],
+        home_basic: [
+            createVariant('Backpack Romanian Deadlift', ['pull', 'hamstrings', 'glutes', 'strength'], { contraindications: ['lower_back'] }),
+            createVariant('Single-Leg Romanian Deadlift', ['pull', 'hamstrings', 'glutes'])
+        ],
+        bodyweight: [
+            createVariant('Single-Leg Romanian Deadlift', ['pull', 'hamstrings', 'glutes']),
+            createVariant('Hip Hinge Drill', ['pull', 'hamstrings', 'mobility'])
+        ]
+    },
+    'Lat Pulldown': {
+        gym: [
+            createVariant('Lat Pulldown', ['pull', 'back', 'lats']),
+            createVariant('Assisted Pull-up Machine', ['pull', 'back', 'lats']),
+            createVariant('Pull-Ups', ['pull', 'back', 'lats', 'strength'])
+        ],
+        home_basic: [
+            createVariant('Resistance Band Lat Pulldown', ['pull', 'back', 'lats', 'band']),
+            createVariant('Inverted Row', ['pull', 'back', 'bodyweight'])
+        ],
+        bodyweight: [
+            createVariant('Pull-Ups', ['pull', 'back', 'lats', 'strength']),
+            createVariant('Inverted Row', ['pull', 'back', 'bodyweight'])
+        ]
+    },
+    'Face Pull': {
+        gym: [
+            createVariant('Cable Face Pulls', ['pull', 'rear_delts', 'shoulders']),
+            createVariant('Face Pulls', ['pull', 'rear_delts', 'shoulders'])
+        ],
+        home_basic: [
+            createVariant('Resistance Band Face Pull', ['pull', 'rear_delts', 'shoulders', 'band'])
+        ],
+        bodyweight: [
+            createVariant('Prone Y-T-W Raises', ['pull', 'rear_delts', 'shoulders', 'bodyweight'])
+        ]
+    },
+    'Dead Bug or Bird Dog': {
+        gym: [
+            createVariant('Dead Bug', ['core', 'abs']),
+            createVariant('Bird Dog', ['core', 'stability']),
+            createVariant('Pallof Press', ['core', 'obliques'])
+        ],
+        home_basic: [
+            createVariant('Dead Bug', ['core', 'abs']),
+            createVariant('Bird Dog', ['core', 'stability']),
+            createVariant('Pallof Press', ['core', 'obliques', 'band'])
+        ],
+        bodyweight: [
+            createVariant('Dead Bug', ['core', 'abs']),
+            createVariant('Bird Dog', ['core', 'stability']),
+            createVariant('Side Plank', ['core', 'obliques'])
+        ]
+    },
+    'Jump Rope or High Knees': {
+        gym: [
+            createVariant('Jump Rope', ['conditioning', 'cardio']),
+            createVariant('Rowing Machine', ['conditioning', 'cardio']),
+            createVariant('Stationary Bike Intervals', ['conditioning', 'cardio'])
+        ],
+        home_basic: [
+            createVariant('Jump Rope', ['conditioning', 'cardio']),
+            createVariant('High Knees', ['conditioning', 'cardio']),
+            createVariant('Mountain Climbers', ['conditioning', 'cardio', 'core'])
+        ],
+        bodyweight: [
+            createVariant('Jump Rope', ['conditioning', 'cardio']),
+            createVariant('High Knees', ['conditioning', 'cardio']),
+            createVariant('Mountain Climbers', ['conditioning', 'cardio', 'core'])
+        ]
+    },
+    Burpees: {
+        gym: [
+            createVariant('Burpees', ['conditioning', 'cardio']),
+            createVariant('Battle Ropes', ['conditioning', 'cardio']),
+            createVariant('SkiErg Sprint', ['conditioning', 'cardio'])
+        ],
+        home_basic: [
+            createVariant('Burpees', ['conditioning', 'cardio']),
+            createVariant('Jump Squats', ['conditioning', 'cardio']),
+            createVariant('Fast Mountain Climbers', ['conditioning', 'cardio', 'core'])
+        ],
+        bodyweight: [
+            createVariant('Burpees', ['conditioning', 'cardio']),
+            createVariant('Jump Squats', ['conditioning', 'cardio']),
+            createVariant('Fast Mountain Climbers', ['conditioning', 'cardio', 'core'])
+        ]
+    },
+    'Mountain Climbers': {
+        gym: [
+            createVariant('Mountain Climbers', ['conditioning', 'core']),
+            createVariant('Assault Bike Sprint', ['conditioning', 'cardio']),
+            createVariant('Sled Push', ['conditioning', 'legs'])
+        ],
+        home_basic: [
+            createVariant('Mountain Climbers', ['conditioning', 'core']),
+            createVariant('Bear Crawl', ['conditioning', 'core']),
+            createVariant('Skater Hops', ['conditioning', 'legs'])
+        ],
+        bodyweight: [
+            createVariant('Mountain Climbers', ['conditioning', 'core']),
+            createVariant('Bear Crawl', ['conditioning', 'core']),
+            createVariant('Skater Hops', ['conditioning', 'legs'])
+        ]
+    }
+};
+
+const EXERCISE_PATTERN_ALIASES = {
+    'Bench Press': 'Bench Press or Push-up',
+    'Incline DB Press': 'Incline DB Press or Dips',
+    'Leg Curl': 'Leg Curl or Nordic',
+    'Tricep Pushdown': 'Tricep Extension',
+    'Face Pull': 'Face Pull or Reverse Fly'
+};
+
+function getEquipmentVariantKey(equipmentAccess) {
+    if (equipmentAccess === 'gym' || equipmentAccess === 'mixed') return 'gym';
+    if (equipmentAccess === 'bodyweight') return 'bodyweight';
+    return 'home_basic';
+}
+
+function hashString(value) {
+    let hash = 0;
+    const text = String(value || '');
+    for (let i = 0; i < text.length; i++) {
+        hash = ((hash << 5) - hash) + text.charCodeAt(i);
+        hash |= 0;
+    }
+    return Math.abs(hash);
+}
+
+function inferFocusTags(focus, sessionType, targetFocus) {
+    const text = String(focus || '').toLowerCase();
+    const tags = new Set();
+    if (text.includes('push') || text.includes('chest') || text.includes('tricep')) {
+        tags.add('push');
+        tags.add('chest');
+        tags.add('triceps');
+    }
+    if (text.includes('pull') || text.includes('back') || text.includes('bicep')) {
+        tags.add('pull');
+        tags.add('back');
+        tags.add('biceps');
+        tags.add('lats');
+    }
+    if (text.includes('leg') || text.includes('lower')) {
+        tags.add('legs');
+        tags.add('quads');
+        tags.add('hamstrings');
+        tags.add('glutes');
+        tags.add('calves');
+    }
+    if (text.includes('shoulder') || text.includes('upper')) {
+        tags.add('shoulders');
+    }
+    if (text.includes('core')) {
+        tags.add('core');
+        tags.add('abs');
+        tags.add('obliques');
+    }
+    if (text.includes('full body')) {
+        tags.add('push');
+        tags.add('pull');
+        tags.add('legs');
+    }
+    if (sessionType === 'conditioning') tags.add('conditioning');
+    if (targetFocus && targetFocus !== 'overall') {
+        if (targetFocus === 'legs') {
+            tags.add('legs');
+            tags.add('quads');
+            tags.add('hamstrings');
+            tags.add('glutes');
+        } else if (targetFocus === 'chest') {
+            tags.add('chest');
+            tags.add('push');
+        } else if (targetFocus === 'core') {
+            tags.add('core');
+            tags.add('abs');
+            tags.add('obliques');
+        } else {
+            tags.add(targetFocus);
+        }
+    }
+    return tags;
+}
+
+function scoreVariant(variant, context, slotIndex, usedNames) {
+    let score = 0;
+    const tags = variant.tags || [];
+    const focusTags = inferFocusTags(context.focus, context.sessionType, context.targetFocus);
+    tags.forEach((tag) => {
+        if (focusTags.has(tag)) score += 3;
+    });
+    if (context.goal === 'strength' && tags.includes('strength')) score += 3;
+    if ((context.goal === 'muscle_gain' || context.goal === 'recomposition') && tags.includes('hypertrophy')) score += 3;
+    if (context.goal === 'fat_loss' && tags.includes('conditioning')) score += 3;
+    if (context.sessionType === 'conditioning' && tags.includes('conditioning')) score += 4;
+    if (context.targetFocus === 'core' && tags.includes('core')) score += 5;
+    if (context.targetFocus === 'chest' && tags.includes('chest')) score += 5;
+    if (context.targetFocus === 'legs' && (tags.includes('legs') || tags.includes('quads') || tags.includes('hamstrings') || tags.includes('glutes'))) score += 5;
+    if (context.experienceLevel === 'beginner' && tags.includes('strength')) score -= 1;
+    if (usedNames.has(variant.name)) score -= 8;
+    if (Array.isArray(variant.contraindications) && variant.contraindications.includes(context.limitations)) score -= 1000;
+    score += (slotIndex % 2 === 0 && tags.includes('strength')) ? 1 : 0;
+    return score;
+}
+
+function selectVariantName(patternName, context, slotIndex, usedNames) {
+    const resolvedPattern = EXERCISE_PATTERN_ALIASES[patternName] || patternName;
+    const variantGroups = EXERCISE_VARIANTS[resolvedPattern];
+    if (!variantGroups) return patternName;
+
+    const equipmentKey = getEquipmentVariantKey(context.equipmentAccess || 'home_basic');
+    const pool = variantGroups[equipmentKey] || variantGroups.gym || variantGroups.home_basic || variantGroups.bodyweight;
+    if (!Array.isArray(pool) || pool.length === 0) return patternName;
+
+    const viable = pool
+        .map((variant, index) => ({ variant, index, score: scoreVariant(variant, context, slotIndex, usedNames) }))
+        .filter((entry) => entry.score > -500)
+        .sort((a, b) => b.score - a.score || a.index - b.index);
+
+    if (!viable.length) return patternName;
+
+    const preferredPool = viable.filter((entry) => !usedNames.has(entry.variant.name));
+    const candidatePool = preferredPool.length ? preferredPool : viable;
+    const choiceWindow = candidatePool.slice(0, Math.min(3, candidatePool.length));
+    const seed = hashString([
+        resolvedPattern,
+        context.goal,
+        context.experienceLevel,
+        context.equipmentAccess,
+        context.targetFocus,
+        context.focus,
+        context.dayIndex,
+        context.totalDays,
+        context.splitType,
+        context.limitations,
+        slotIndex
+    ].join('|'));
+    return choiceWindow[seed % choiceWindow.length].variant.name;
+}
+
+function personalizeTemplate(template, context, slotIndex, usedNames) {
+    const personalized = { ...template };
+    personalized.name = selectVariantName(template.name, context, slotIndex, usedNames);
+    usedNames.add(personalized.name);
+
+    const name = personalized.name.toLowerCase();
+    const isMainLift = /bench|press|squat|deadlift|row|pull-up|pullup|lat pulldown|hip thrust/.test(name);
+    const isCore = /plank|dead bug|bird dog|twist|woodchopper|rollout|leg raise|pallof|mountain climber|hollow/.test(name);
+    const isConditioning = context.sessionType === 'conditioning' || /jump|burpee|rope|bike|rowing|skierg|sled|high knees/.test(name);
+
+    if (context.goal === 'strength' && isMainLift) {
+        personalized.sets = Math.max(personalized.sets, context.experienceLevel === 'advanced' ? 5 : 4);
+        personalized.reps = /deadlift/.test(name) ? '3-6' : '4-8';
+        personalized.restSec = Math.max(personalized.restSec, 120);
+        personalized.intensity = context.experienceLevel === 'beginner' ? 'moderate' : 'hard';
+    } else if (context.goal === 'fat_loss' && !isConditioning) {
+        personalized.reps = isMainLift ? '8-12' : (isCore ? '12-20' : '10-15');
+        personalized.restSec = Math.min(personalized.restSec, isMainLift ? 90 : 60);
+    } else if ((context.goal === 'muscle_gain' || context.goal === 'recomposition') && isMainLift) {
+        personalized.reps = '6-10';
+        personalized.restSec = Math.max(personalized.restSec, 75);
+    }
+
+    if (context.targetFocus === 'core' && isCore) {
+        personalized.sets = Math.max(personalized.sets, 3);
+        if (personalized.reps === '30-60s') personalized.reps = '40-60s';
+    }
+
+    if (context.experienceLevel === 'beginner' && personalized.intensity === 'hard') {
+        personalized.intensity = 'moderate';
+    }
+
+    return personalized;
+}
+
+function prioritizeTemplates(templates, patternNames) {
+    const priority = new Set(patternNames);
+    return [...templates].sort((a, b) => {
+        const aPriority = priority.has(a.name) ? 0 : 1;
+        const bPriority = priority.has(b.name) ? 0 : 1;
+        return aPriority - bPriority;
+    });
+}
+
+function buildWarmupForDay(focus, equipmentAccess, limitations) {
+    const key = String(focus || '').toLowerCase();
+    if (key.includes('push') || key.includes('chest') || key.includes('shoulder')) {
+        return equipmentAccess === 'gym'
+            ? '5 min row; mobility for shoulders and upper back; 2 подготвителни серии за първото натискащо упражнение.'
+            : '3-5 min brisk walk; arm circles; band pull-aparts; 2 леки подготвителни серии за първото натискащо движение.';
+    }
+    if (key.includes('pull') || key.includes('back') || key.includes('bicep')) {
+        return equipmentAccess === 'gym'
+            ? '5 min row or bike; shoulder blade activation; 2 леки подготвителни серии за първото гребащо движение.'
+            : '3-5 min brisk walk; band rows; shoulder blade activation; 2 леки серии за първото гребащо движение.';
+    }
+    if (key.includes('leg') || key.includes('lower')) {
+        return '5 min bike or treadmill walk; hip and ankle mobility; 2 леки подготвителни серии за първото упражнение за крака.';
+    }
+    if (key.includes('conditioning')) {
+        return '5 min леко кардио; динамично раздвижване на цяло тяло; 1-2 по-леки подготвителни серии преди интервалите.';
+    }
+    if (limitations && limitations !== 'none') {
+        return '5 min леко кардио; щадяща мобилност около чувствителната зона; започни плавно с първите 1-2 серии.';
+    }
+    return '5 min леко кардио + динамична мобилност за мускулите, които ще тренираш днес.';
+}
+
+function buildCooldownForDay(sessionType, limitations) {
+    if (sessionType === 'conditioning') {
+        return '3-5 min леко ходене; спокойно дишане и кратко разтягане на прасци, бедра и гърди.';
+    }
+    if (limitations && limitations !== 'none') {
+        return '3-5 min спокойно дишане и леко разтягане, без да натоварваш чувствителната зона.';
+    }
+    return '3-5 min спокойно дишане и леко разтягане за основните мускули от тренировката.';
+}
+
 function mapFocusToTemplateKey(focus) {
     const f = String(focus || '').toLowerCase();
+    if (f.includes('push')) return 'push';
+    if (f.includes('pull')) return 'pull';
+    if (f.includes('legs')) return 'legs';
     if (f.includes('push') && (f.includes('chest') || f.includes('tricep'))) return 'push';
     if (f.includes('pull') && (f.includes('back') || f.includes('bicep'))) return 'pull';
     if (f.includes('chest') && f.includes('tricep')) return 'chest_triceps';
@@ -403,7 +1045,7 @@ function mapFocusToTemplateKey(focus) {
     return 'full_body';
 }
 
-function getExerciseTemplates(focus, sessionType) {
+function getExerciseTemplates(focus, sessionType, context = {}) {
     if (sessionType === 'conditioning') {
         return EXERCISE_TEMPLATES.conditioning.map((t) => ({ ...t }));
     }
@@ -411,8 +1053,27 @@ function getExerciseTemplates(focus, sessionType) {
         return EXERCISE_TEMPLATES.recovery.map((t) => ({ ...t }));
     }
     const key = mapFocusToTemplateKey(focus);
-    const templates = EXERCISE_TEMPLATES[key] || EXERCISE_TEMPLATES.full_body;
-    return templates.map((t) => ({ ...t }));
+    let templates = (EXERCISE_TEMPLATES[key] || EXERCISE_TEMPLATES.full_body).map((t) => ({ ...t }));
+    const focusKey = String(focus || '').toLowerCase();
+
+    if (context.targetFocus === 'core' || focusKey.includes('core')) {
+        const coreTemplate = { name: 'Plank or Core', sets: 3, reps: '10-15', restSec: 45, intensity: 'moderate', notes: '' };
+        const hasCore = templates.some((template) => /plank|core|dead bug|bird dog/i.test(template.name));
+        if (!hasCore) {
+            if (templates.length >= 5) templates[templates.length - 1] = coreTemplate;
+            else templates.push(coreTemplate);
+        }
+    }
+
+    if (context.targetFocus === 'chest' && (focusKey.includes('push') || focusKey.includes('upper') || focusKey.includes('full body') || focusKey.includes('chest'))) {
+        templates = prioritizeTemplates(templates, ['Bench Press or Push-up', 'Incline DB Press or Dips', 'Cable Fly or Push-up']);
+    }
+
+    if (context.targetFocus === 'legs' && (focusKey.includes('legs') || focusKey.includes('lower') || focusKey.includes('full body'))) {
+        templates = prioritizeTemplates(templates, ['Squat or Leg Press', 'Romanian Deadlift', 'Lunges or Step-up', 'Leg Curl or Nordic']);
+    }
+
+    return templates;
 }
 
 function getProgressionRules(goal, experienceLevel) {

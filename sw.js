@@ -4,7 +4,7 @@
  *
  * SW_VERSION is generated during build from commit SHA or timestamp.
  */
-const SW_VERSION = '20260327051132';
+const SW_VERSION = '20260327054509';
 const CACHE_NAME = `iron-protocol-v${SW_VERSION}`;
 
 function shouldNeverCache(request) {
