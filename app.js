@@ -4,7 +4,7 @@
  */
 
 import { runEngine, toDashboardFormat, saveProgressEntry, evaluateProgressFromLatest, getRecommendationsFromLatest, getProgressHistory, createProtocol, saveNewProtocol as saveProtocolForCurrentUser, advanceProtocolWeek, getNextDeloadWeek, regenerateNextWeekProtocol, getInjuryState, processProgressForRecovery } from './src/lib/ai/index.js';
-import { createUser as createAuthUser, loginUser as loginAuthUser, signInWithGoogle as signInWithGoogleCloud, restoreSession, getSessionUser, isCurrentUserAdmin, isCloudAuthAvailable, signOutUser, saveUsername } from './src/lib/core/authAdapter.js';
+import { createUser as createAuthUser, loginUser as loginAuthUser, signInWithGoogle as signInWithGoogleCloud, restoreSession, getSessionUser, isCurrentUserAdmin, isCloudAuthAvailable, signOutUser, saveUsername, consumePendingAuthError } from './src/lib/core/authAdapter.js';
 import { init as initStorage, getCurrentUser as storageGetCurrentUser, saveCurrentUser as storageSaveCurrentUser, getUserSlot, getAssessmentState as storageGetAssessmentState, saveAssessmentState as storageSaveAssessmentState, getTelemetry as storageGetTelemetry, appendTelemetry as storageAppendTelemetry, getProtocolState as storageGetProtocolState, saveProtocolState as storageSaveProtocolState } from './src/lib/data/storageAdapter.js';
 
 // Global App Namespace established early to prevent ReferenceErrors
@@ -1472,6 +1472,9 @@ const authModule = {
                 if (sessionUser) {
                     ensureLegacyUserForCloudSession(sessionUser);
                     routeAfterAuth();
+                } else if (errEl) {
+                    errEl.textContent = langModule.t('Google sign-in failed.');
+                    errEl.classList.remove('hidden');
                 }
             }
         } catch (e) {
@@ -3489,6 +3492,16 @@ async function initApp() {
                 ensureLegacyUserForCloudSession(sessionUser);
                 routeAfterAuth();
             } else {
+                const authError = consumePendingAuthError();
+                if (authError) {
+                    app.navigate('auth', 'login');
+                    const errEl = document.getElementById('auth-error');
+                    if (errEl) {
+                        errEl.textContent = authError;
+                        errEl.classList.remove('hidden');
+                    }
+                    return;
+                }
                 app.updateNav();
             }
         })

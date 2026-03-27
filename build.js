@@ -20,6 +20,12 @@ function loadProjectEnvFiles() {
 
 loadProjectEnvFiles();
 
+function buildVersion() {
+    const commit = String(process.env.VERCEL_GIT_COMMIT_SHA || '').trim();
+    if (commit) return commit.slice(0, 12);
+    return new Date().toISOString().replace(/[^0-9]/g, '').slice(0, 14);
+}
+
 // This script runs during the Vercel build process.
 // It takes the environment variables securely configured in the Vercel dashboard
 // and explicitly writes them to a static config.js file so the frontend can read them.
@@ -38,4 +44,12 @@ window.ENV = ${JSON.stringify(env, null, 4)};
 `;
 
 fs.writeFileSync('config.js', configContent);
+
+const swTemplatePath = path.join(process.cwd(), 'sw.template.js');
+if (fs.existsSync(swTemplatePath)) {
+    const swTemplate = fs.readFileSync(swTemplatePath, 'utf8');
+    const swContent = swTemplate.replace(/__BUILD_VERSION__/g, buildVersion());
+    fs.writeFileSync('sw.js', swContent);
+}
+
 console.log('Build Success: config.js generated with environment variables.');

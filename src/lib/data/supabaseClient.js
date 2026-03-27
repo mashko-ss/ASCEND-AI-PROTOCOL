@@ -8,6 +8,7 @@ let clientInstance = null;
 let authListenerAttached = false;
 let cachedSession = null;
 let cachedUser = null;
+const AUTH_ERROR_STORAGE_KEY = 'ascend_oauth_last_error';
 
 const authState = {
     status: 'signed_out',
@@ -59,6 +60,52 @@ function updateAuthState(session, overrides = {}) {
     authState.degraded = overrides.degraded ?? false;
     authState.reason = overrides.reason ?? (session ? null : 'no_active_session');
     authState.lastCheckedAt = overrides.lastCheckedAt ?? Date.now();
+}
+
+function storeAuthError(message) {
+    if (typeof window === 'undefined' || !message) return;
+    try {
+        window.sessionStorage?.setItem(AUTH_ERROR_STORAGE_KEY, String(message));
+    } catch {
+        /* ignore */
+    }
+}
+
+function clearStoredAuthError() {
+    if (typeof window === 'undefined') return;
+    try {
+        window.sessionStorage?.removeItem(AUTH_ERROR_STORAGE_KEY);
+    } catch {
+        /* ignore */
+    }
+}
+
+export function consumeStoredAuthError() {
+    if (typeof window === 'undefined') return '';
+    try {
+        const message = window.sessionStorage?.getItem(AUTH_ERROR_STORAGE_KEY) || '';
+        if (message) {
+            window.sessionStorage?.removeItem(AUTH_ERROR_STORAGE_KEY);
+        }
+        return message;
+    } catch {
+        return '';
+    }
+}
+
+function cleanupAuthQueryParams(url) {
+    [
+        'code',
+        'state',
+        'error',
+        'error_code',
+        'error_description'
+    ].forEach((key) => url.searchParams.delete(key));
+}
+
+function replaceUrlWithoutAuthParams(url) {
+    if (typeof window.history?.replaceState !== 'function') return;
+    window.history.replaceState({}, document.title, url.toString());
 }
 
 async function getVerifiedUser(client, session) {
@@ -165,6 +212,22 @@ export async function consumeSupabaseOAuthCodeIfPresent() {
     }
 
     const url = new URL(window.location.href);
+    const authError = url.searchParams.get('error_description')
+        || url.searchParams.get('error')
+        || url.searchParams.get('error_code');
+
+    if (authError) {
+        storeAuthError(authError);
+        cleanupAuthQueryParams(url);
+        replaceUrlWithoutAuthParams(url);
+        updateAuthState(null, {
+            degraded: true,
+            reason: authError,
+            lastCheckedAt: Date.now()
+        });
+        return { ok: false, reason: authError };
+    }
+
     const code = url.searchParams.get('code');
     if (!code) {
         return { ok: true, reason: 'no_code' };
@@ -173,14 +236,16 @@ export async function consumeSupabaseOAuthCodeIfPresent() {
     try {
         const { data, error } = await client.auth.exchangeCodeForSession(code);
         if (error) {
-            return { ok: false, reason: error.message || 'exchange_code_failed' };
+            const reason = error.message || 'exchange_code_failed';
+            storeAuthError(reason);
+            cleanupAuthQueryParams(url);
+            replaceUrlWithoutAuthParams(url);
+            return { ok: false, reason };
         }
 
-        url.searchParams.delete('code');
-        url.searchParams.delete('state');
-        if (typeof window.history?.replaceState === 'function') {
-            window.history.replaceState({}, document.title, url.toString());
-        }
+        clearStoredAuthError();
+        cleanupAuthQueryParams(url);
+        replaceUrlWithoutAuthParams(url);
 
         cachedSession = data?.session || null;
         cachedUser = data?.user || data?.session?.user || null;
@@ -192,7 +257,11 @@ export async function consumeSupabaseOAuthCodeIfPresent() {
 
         return { ok: true, reason: 'code_exchanged', session: cachedSession, user: cachedUser };
     } catch (error) {
-        return { ok: false, reason: error?.message || 'exchange_code_failed' };
+        const reason = error?.message || 'exchange_code_failed';
+        storeAuthError(reason);
+        cleanupAuthQueryParams(url);
+        replaceUrlWithoutAuthParams(url);
+        return { ok: false, reason };
     }
 }
 

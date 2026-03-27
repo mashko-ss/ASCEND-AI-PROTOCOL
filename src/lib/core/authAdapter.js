@@ -13,7 +13,8 @@ import {
     isSupabaseConfigured,
     getSupabaseSessionSnapshot,
     consumeSupabaseOAuthCodeIfPresent,
-    getSupabaseAuthState
+    getSupabaseAuthState,
+    consumeStoredAuthError
 } from '../data/supabaseClient.js';
 import {
     createUser as localCreateUser,
@@ -232,4 +233,8 @@ export async function signOutUser() {
     } finally {
         signOutPromise = null;
     }
+}
+
+export function consumePendingAuthError() {
+    return consumeStoredAuthError();
 }
