@@ -16,6 +16,7 @@ import { validatePlan } from './validatePlan.js';
 import { generateFallbackPlan } from './fallbackPlan.js';
 import { savePlanResult } from './savePlanResult.js';
 import { generateNutritionPlan } from './generateNutritionPlan.js';
+import { generateSupplementRecommendations } from './supplementEngine.js';
 import { evaluateProgress, evaluateProgressWithLog } from './adaptiveEngine.js';
 import { getLatestProgress, getProgressHistory, saveProgressEntry, validateProgressEntry, clearProgressHistory } from './progressTracker.js';
 import { generateRecommendations } from './recommendationEngine.js';
@@ -136,7 +137,9 @@ export function toDashboardFormat(plan, rawInput = {}, existingProtocol = null) 
     })
         : [];
 
-    const np = generateNutritionPlan(rawInput);
+    const nutritionMemory = existingProtocol?.aiResult?.nutritionMemory || existingProtocol?.nutritionMemory;
+    const supplementMemory = existingProtocol?.aiResult?.supplementMemory || existingProtocol?.supplementMemory || null;
+    const np = generateNutritionPlan(rawInput, nutritionMemory ? { nutritionMemory } : {});
     const goal = rawInput.primary_goal || plan.planMeta?.goal || 'recomp';
     const supplementStacks = {
         fat_loss: [
@@ -158,7 +161,19 @@ export function toDashboardFormat(plan, rawInput = {}, existingProtocol = null) 
             { name: 'Protein', purpose: 'Recovery and muscle maintenance.', dose: 'As needed.' }
         ]
     };
-    const supplement_stack = supplementStacks[goal] || supplementStacks.muscle_gain;
+    let supplement_stack = supplementStacks[goal] || supplementStacks.muscle_gain;
+    const supplementOutput = generateSupplementRecommendations(rawInput, supplementMemory);
+    const personalizedSupplementStack = [
+        ...(supplementOutput?.essentials || []),
+        ...(supplementOutput?.optional || [])
+    ].map((item) => ({
+        name: item.name,
+        purpose: item.purpose || '',
+        dose: item.dose || ''
+    }));
+    if (personalizedSupplementStack.length > 0) {
+        supplement_stack = personalizedSupplementStack;
+    }
 
     const nutrition_plan = {
         calories: np.calories,
@@ -181,8 +196,20 @@ export function toDashboardFormat(plan, rawInput = {}, existingProtocol = null) 
         supplement_stack
     };
 
+    nutrition_plan.meal_timing = {
+        pre_workout: '60-90 min before training: light carbs + easy protein. Example: oats + banana, or rice cakes and yogurt. Optional caffeine 30-45 min before if tolerated.',
+        post_workout: 'Within 1-2 hours after training: protein + carbs for recovery. Example: chicken and rice, or a protein shake with banana. Prefer whole-food meals when possible.'
+    };
+
     const result = { workout_plan, nutrition_plan };
+    result.supplement_plan = {
+        essentials: supplementOutput?.essentials || [],
+        optional: supplementOutput?.optional || [],
+        avoid_or_caution: supplementOutput?.avoid_or_caution || [],
+        reasoning: supplementOutput?.reasoning || []
+    };
     if (np.nutritionMemory) result.nutritionMemory = np.nutritionMemory;
+    if (supplementOutput?.supplementMemory) result.supplementMemory = supplementOutput.supplementMemory;
     return result;
 }
 

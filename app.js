@@ -2276,12 +2276,30 @@ function handleBackNavigation() {
 // ==========================================
 // 5.55 DASHBOARD VISIBLE LABELS (BG copy; API/internal English unchanged)
 // ==========================================
+const SPLIT_LABEL_BG = {
+    full_body: 'Цяло тяло',
+    push_pull_legs: 'PPL — гърди, гръб и крака',
+    ppl: 'PPL — гърди, гръб и крака',
+    upper_lower: 'Горна / долна част',
+    hybrid: 'Хибриден сплит',
+    body_part: 'Сплит по мускулни групи',
+    bodypart_split: 'Класически сплит по групи',
+    arnold: 'Арнолд сплит'
+};
+
 function localizeSplitLabel(raw, safeT) {
-    const s = String(raw || '').toLowerCase().trim().replace(/\s+/g, '_');
+    const s = String(raw || '').toLowerCase().trim().replace(/\s+/g, '_').replace(/-+/g, '_');
+    if (SPLIT_LABEL_BG[s]) return SPLIT_LABEL_BG[s];
     const key = `split_${s}`;
     const tr = safeT(key);
     if (tr !== key) return tr;
-    return String(raw || '').replace(/_/g, ' ');
+    return String(raw || '')
+        .replace(/push/ig, 'гърди / рамене / трицепс')
+        .replace(/pull/ig, 'гръб / бицепс')
+        .replace(/legs/ig, 'крака')
+        .replace(/_/g, ' ')
+        .replace(/\s{2,}/g, ' ')
+        .trim();
 }
 
 function localizeDayHeader(raw, safeT) {
@@ -2321,6 +2339,16 @@ const FOCUS_LABEL_BG = {
     'Chest and fat loss conditioning': 'Гърди и кондиция за изгаряне на мазнини',
     'Full body fat loss with chest emphasis': 'Цяло тяло с акцент върху гърди и изгаряне на мазнини'
 };
+
+Object.assign(FOCUS_LABEL_BG, {
+    'CHEST, SHOULDERS, TRICEPS (PUSH)': 'Гърди, рамене и трицепс',
+    'BACK, BICEPS (PULL)': 'Гръб и бицепс',
+    'LEGS (QUAD AND HAMSTRING EMPHASIS)': 'Крака — акцент предно и задно бедро',
+    'LEGS (GLUTE AND CALF EMPHASIS)': 'Крака — акцент седалище и прасци',
+    'PUSH (CHEST, SHOULDERS, TRICEPS)': 'Гърди, рамене и трицепс',
+    'PULL (BACK, BICEPS)': 'Гръб и бицепс',
+    'PPL - PUSH, PULL, LEGS': 'PPL — гърди, гръб и крака'
+});
 
 function localizeFocusLabel(focus, safeT) {
     const f = String(focus || '').trim();
@@ -2403,6 +2431,19 @@ const EXERCISE_LABEL_BG = {
     'Rowing Machine': 'Гребен тренажор'
 };
 
+Object.assign(EXERCISE_LABEL_BG, {
+    'Dumbbell Incline Bench Press': 'Наклонен лег с дъмбели',
+    'Seated Military Press': 'Раменна преса от седеж',
+    'Cable Face Pulls': 'Фейс пул на скрипец',
+    'Romanian Deadlifts': 'Румънска тяга',
+    'Jump Lunges': 'Скокови напади',
+    'Wall Sit': 'Стол до стена',
+    'Hip Thrusts': 'Хип тръст',
+    'Seated Calf Raises': 'Повдигане за прасци от седеж',
+    'Jump Rope': 'Скачане на въже',
+    'Elliptical Machine': 'Кростренажор'
+});
+
 function localizeExerciseName(name, safeT) {
     const n = String(name || '').trim();
     if (EXERCISE_LABEL_BG[n]) return EXERCISE_LABEL_BG[n];
@@ -2449,15 +2490,152 @@ const PLAN_TEXT_BG = {
     '5 min bike; 2x8 cat-cow, 2x8 hip hinge; 1x5 deadlift with bar, 1x5 with 60% working weight.': '5 минути велоергометър; 2x8 котка–крава, 2x8 hip hinge; 1x5 мъртва тяга с лост, 1x5 с 60% от работната тежест.'
 };
 
+const PLAN_TEXT_EXACT_BG = {
+    'Monitor knees closely during high volume leg days to avoid overuse': 'Следи коленете при по-обемните дни за крака, за да не ги претовариш.',
+    'Ensure proper warm-up and cool-down to reduce injury risk': 'Направи добра загрявка и кратко отпускане след тренировка, за да намалиш риска от контузии.',
+    'Adjust intensity if any joint pain occurs': 'При болка в ставите намали тежестта или обема още в същата тренировка.',
+    'Increase volume by adding 1-2 reps per exercise weekly; when reps exceed upper limit, increase weight by 5%': 'Вдигай обема постепенно: добавяй по 1–2 повторения на упражнение седмично, а щом минеш горната граница, качи тежестта с около 5%.',
+    'If all sets in a session are completed at upper rep ranges, increase weights next week': 'Ако покриеш всички серии в горната граница на повторенията, качи тежестите следващата седмица.',
+    'If form deteriorates or persistent fatigue is felt for more than 3 consecutive sessions, reduce volume by 40% for one week': 'Ако техниката се разпада или умората се трупа 3 поредни тренировки, свали обема с около 40% за една седмица.',
+    'Protein Powder': 'Протеин на прах',
+    'Creatine Monohydrate': 'Креатин монохидрат',
+    'Vitamin D3': 'Витамин D3',
+    'Omega-3 (EPA/DHA)': 'Омега-3 (EPA/DHA)',
+    'Electrolytes': 'Електролити',
+    'Magnesium': 'Магнезий',
+    'Caffeine': 'Кофеин',
+    'Vitamin B12': 'Витамин B12',
+    'Iron (if needed)': 'Желязо (само при нужда)',
+    'Zinc': 'Цинк',
+    'Energy and protein to start the day': 'Енергия и протеин за силен старт на деня',
+    'Sustained energy': 'Равномерна енергия за деня',
+    'High-protein start': 'Силен старт с повече протеин',
+    'Balanced midday nutrition': 'Балансирано хранене по обяд',
+    'Protein and fiber': 'Протеин и фибри',
+    'Light and filling': 'Леко, но засищащо',
+    'Evening satiety and recovery': 'Ситост и възстановяване вечер',
+    'Balanced evening meal': 'Балансирана вечеря',
+    'Between-meal protein': 'Междинен прием на протеин',
+    'Bridge to next meal': 'Леко хранене до следващото основно',
+    'Fuel for training': 'Гориво за тренировка',
+    'Pre-training energy': 'Лесна енергия преди тренировка',
+    'Recovery and muscle repair': 'Възстановяване след тренировка',
+    'Protein and carbs for recovery': 'Протеин и въглехидрати за възстановяване',
+    'Recovery': 'Възстановяване'
+};
+
+const PLAN_TEXT_FRAGMENT_BG = [
+    [/Convenient way to hit daily protein targets\./gi, 'Удобен начин да си покриеш дневния протеин.'],
+    [/Supports strength and lean mass; well-researched\./gi, 'Подкрепя силата и чистата мускулна маса; една от най-добре проучените добавки.'],
+    [/Bone health, immunity, mood; especially if low sun exposure\./gi, 'Подкрепя костите, имунитета и тонуса, особено ако не стоиш много на слънце.'],
+    [/Recovery, joint health, cardiovascular support\./gi, 'Подпомага възстановяването, ставите и общото здраве.'],
+    [/Muscle function, sleep support, recovery\./gi, 'Подкрепя мускулната функция, съня и възстановяването.'],
+    [/Hydration and performance during long or sweaty sessions\./gi, 'Помага за хидратация и представяне при дълги или по-потни тренировки.'],
+    [/Performance and focus; supports fat oxidation when cutting\./gi, 'Помага за фокус и представяне, особено когато чистиш мазнини.'],
+    [/Energy metabolism; important for plant-based diets\./gi, 'Подкрепя енергийния метаболизъм и е важен при растително хранене.'],
+    [/Support for plant-based diets; get levels checked before supplementing\./gi, 'Полезно е при растително хранене, но първо си пусни изследвания.'],
+    [/Immune support, recovery; plant-based diets may have lower absorption\./gi, 'Подкрепя имунитета и възстановяването; при растително хранене усвояването може да е по-ниско.'],
+    [/1[–-]2 scoops \(20[–-]40g protein\) as needed to meet daily target\./gi, '1–2 дози при нужда, за да си покриеш дневния протеин.'],
+    [/5 g daily, any time\. Loading optional\./gi, '5 г дневно, по всяко време. Зареждането е по желание.'],
+    [/2,000[–-]4,000 IU daily with a fat-containing meal\./gi, '2000–4000 IU дневно с хранене, което съдържа мазнини.'],
+    [/2[–-]3 g EPA\+DHA daily\./gi, '2–3 г EPA+DHA дневно.'],
+    [/200[–-]400 mg elemental magnesium \(glycinate or citrate\) before bed if needed\./gi, '200–400 мг магнезий вечер при нужда.'],
+    [/As needed during training; follow product label\./gi, 'При нужда по време на тренировка, според етикета на продукта.'],
+    [/3[–-]5 mg\/kg 30[–-]45 min pre-workout\. Start low if sensitive\./gi, '3–5 мг/кг 30–45 мин преди тренировка; ако си чувствителен, започни с по-ниска доза.'],
+    [/500[–-]1000 mcg cyanocobalamin or methylcobalamin, 2[–-]3x per week\./gi, '500–1000 мкг 2–3 пъти седмично.'],
+    [/Only if deficient; follow healthcare provider guidance\./gi, 'Само при дефицит и след препоръка от специалист.'],
+    [/15[–-]30 mg elemental zinc \(with food\); avoid long-term high dose\./gi, '15–30 мг с храна; не стой дълго на високи дози.'],
+    [/Prioritize protein at every meal \(aim for 25[–-]40g per meal\)\./gi, 'Слагай протеин във всяко хранене и гони около 25–40 г на прием.'],
+    [/Eat whole foods 80% of the time; allow flexibility for the rest\./gi, 'Дръж основата на истинска храна, но си остави малко гъвкавост.'],
+    [/Time carbs around training for energy and recovery\./gi, 'Дръж повече въглехидрати около тренировката за енергия и възстановяване.'],
+    [/Include fiber-rich vegetables with lunch and dinner\./gi, 'Добавяй зеленчуци с повече фибри на обяд и вечеря.'],
+    [/Moderate deficit; avoid aggressive cuts to preserve muscle\./gi, 'Дръж умерен калориен дефицит и не режи прекалено рязко, за да пазиш мускула.'],
+    [/Surplus supports muscle growth; monitor body fat to avoid excessive gain\./gi, 'Излишъкът помага за мускулен растеж, но следи мазнините да не тръгнат прекалено нагоре.'],
+    [/Maintenance calories with adequate protein; progress may be slower but sustainable\./gi, 'Калории около поддръжката и достатъчно протеин: прогресът е по-бавен, но устойчив.'],
+    [/Ensure B12 and iron from fortified foods or supplements\./gi, 'Следи за B12 и желязо чрез обогатени храни или добавки.'],
+    [/Keep carbs under 50g; focus on fats and protein\./gi, 'Дръж въглехидратите под 50 г и наблягай на мазнини и протеин.'],
+    [/Higher training volume: prioritize recovery nutrition and sleep\./gi, 'При по-голям тренировъчен обем сложи възстановяването, храненето и съня на първо място.'],
+    [/Greek yogurt/gi, 'йогурт'],
+    [/гръцко кисело мляко/gi, 'йогурт'],
+    [/rice cakes \(GF\)/gi, 'оризовки (без глутен)'],
+    [/rice cakes/gi, 'оризовки'],
+    [/оризови питки/gi, 'оризовки'],
+    [/cottage cheese/gi, 'извара'],
+    [/protein shake/gi, 'протеинов шейк'],
+    [/plant protein shake/gi, 'растителен протеинов шейк'],
+    [/whey shake/gi, 'протеинов шейк'],
+    [/whey or plant protein/gi, 'суроватъчен или растителен протеин'],
+    [/whey/gi, 'суроватъчен протеин'],
+    [/whole-food meals/gi, 'пълноценни хранения'],
+    [/whole foods/gi, 'истинска храна'],
+    [/whole-grain toast/gi, 'пълнозърнест тост'],
+    [/whole-grain bread/gi, 'пълнозърнест хляб'],
+    [/light carbs/gi, 'леки въглехидрати'],
+    [/chicken and rice/gi, 'пиле и ориз'],
+    [/chicken \+ rice \+ vegetables/gi, 'пиле + ориз + зеленчуци'],
+    [/salmon \+ rice \+ vegetables/gi, 'сьомга + ориз + зеленчуци'],
+    [/lentils \+ rice \+ vegetables/gi, 'леща + ориз + зеленчуци'],
+    [/oats \+ banana/gi, 'овес + банан'],
+    [/toast \+ honey/gi, 'тост + мед'],
+    [/Stationary Bike/gi, 'Велоергометър'],
+    [/Jump Rope or High Knees/gi, 'Скачане на въже или високи колена'],
+    [/Jump Rope/gi, 'Скачане на въже'],
+    [/Elliptical Machine/gi, 'Кростренажор'],
+    [/60-90 min before training/gi, '60–90 мин преди тренировка'],
+    [/30-45 min before/gi, '30–45 мин преди'],
+    [/Within 1-2 hours after training/gi, 'До 1–2 часа след тренировка']
+];
+
+function getCaseInsensitiveMappedValue(raw, mapping) {
+    const direct = mapping[raw];
+    if (direct) return direct;
+    const match = Object.keys(mapping).find((key) => key.toLowerCase() === raw.toLowerCase());
+    return match ? mapping[match] : '';
+}
+
+function prettifyPlanText(raw, safeT) {
+    let output = String(raw || '').trim();
+    if (!output) return output;
+
+    const exact = getCaseInsensitiveMappedValue(output, PLAN_TEXT_EXACT_BG);
+    if (exact) {
+        output = exact;
+    }
+
+    const isBulgarianUi = typeof safeT === 'function' && safeT('Back') !== 'Back';
+    if (!exact && typeof safeT === 'function') {
+        const translated = safeT(output);
+        if (translated !== output) {
+            output = translated;
+        }
+    }
+
+    if (!isBulgarianUi && !exact) {
+        return output;
+    }
+
+    PLAN_TEXT_FRAGMENT_BG.forEach(([pattern, replacement]) => {
+        output = output.replace(pattern, replacement);
+    });
+
+    return output
+        .replace(/\s+or\s+/gi, ' или ')
+        .replace(/\s+and\s+/gi, ' и ')
+        .replace(/\s*;\s*/g, ', ')
+        .replace(/\s{2,}/g, ' ')
+        .replace(/\s+,/g, ',')
+        .replace(/\s+\./g, '.')
+        .trim();
+}
+
 function localizePlanText(text, safeT) {
     if (text == null || text === '') return text;
     const raw = String(text).trim();
     if (!raw) return raw;
-    if (PLAN_TEXT_BG[raw]) return PLAN_TEXT_BG[raw];
+    if (PLAN_TEXT_BG[raw]) return prettifyPlanText(PLAN_TEXT_BG[raw], safeT);
     const caseInsensitiveMatch = Object.keys(PLAN_TEXT_BG).find((key) => key.toLowerCase() === raw.toLowerCase());
-    if (caseInsensitiveMatch) return PLAN_TEXT_BG[caseInsensitiveMatch];
-    const tr = safeT(raw);
-    return tr !== raw ? tr : raw;
+    if (caseInsensitiveMatch) return prettifyPlanText(PLAN_TEXT_BG[caseInsensitiveMatch], safeT);
+    return prettifyPlanText(raw, safeT);
 }
 
 // ==========================================
@@ -2502,6 +2680,41 @@ const nutritionRenderers = {
         const items = plan.warnings.map((w) => `<li><i class="fa-solid fa-triangle-exclamation text-warning"></i> ${localizePlanText(w, safeT)}</li>`).join('');
         return `<ul class="protocol-list font-mono text-sm text-warning">${items}</ul>`;
     }
+};
+
+nutritionRenderers.renderMealPlan = (plan, safeT) => {
+    if (!plan?.mealPlan || !Array.isArray(plan.mealPlan) || plan.mealPlan.length === 0) return '';
+    const items = plan.mealPlan.map((meal) => {
+        const name = meal.mealName || 'Meal';
+        const purpose = meal.purpose || '';
+        const foods = typeof meal.exampleFoods === 'string'
+            ? meal.exampleFoods
+            : (Array.isArray(meal.exampleFoods) ? meal.exampleFoods.join('; ') : '');
+        const calories = meal.estimatedCalories ? `${meal.estimatedCalories} ${safeT('kcal unit')}` : '';
+        return `<article class="nutrition-meal-card">
+            <div class="nutrition-meal-head">
+                <span class="nutrition-meal-name">${safeT(name)}</span>
+                ${calories ? `<span class="nutrition-meal-calories">${calories}</span>` : ''}
+            </div>
+            <p class="nutrition-meal-purpose">${localizePlanText(purpose, safeT)}</p>
+            <p class="nutrition-meal-foods">${localizePlanText(foods, safeT)}</p>
+        </article>`;
+    }).join('');
+    return `<div class="nutrition-meal-grid">${items}</div>`;
+};
+
+nutritionRenderers.renderSupplementStack = (stack, safeT) => {
+    if (!Array.isArray(stack) || stack.length === 0) return '';
+    const cards = stack.map((item) => `
+        <article class="supplement-card">
+            <div class="supplement-card-head">
+                <span class="supplement-name">${localizePlanText(item.name || '', safeT)}</span>
+                <span class="supplement-dose">${localizePlanText(item.dose || '', safeT)}</span>
+            </div>
+            <p class="supplement-purpose">${localizePlanText(item.purpose || '', safeT)}</p>
+        </article>
+    `).join('');
+    return `<div class="supplement-stack">${cards}</div>`;
 };
 
 // ==========================================
@@ -2830,7 +3043,7 @@ const dashModule = {
                     const mealTiming = aiN.meal_timing;
                     const preText = mealTiming?.pre_workout || '60–90 мин преди: въглехидрати + протеин (напр. овес, банан, суроватъчен протеин). Кофеин по избор 30–45 мин преди.';
                     const postText = mealTiming?.post_workout || 'В рамките на 1–2 часа: 40–60 g въглехидрати + 25–40 g протеин. Пример: пилешко месо, ориз и зеленчуци или суроватъчен протеин и банан.';
-                    const mealTimingContent = `<ul class="protocol-list font-mono text-sm"><li><i class="fa-solid fa-clock text-primary"></i> <strong class="text-secondary">${safeT('Pre-workout')}:</strong> ${localizePlanText(preText, safeT)}</li><li><i class="fa-solid fa-clock text-primary"></i> <strong class="text-secondary">${safeT('Post-workout')}:</strong> ${localizePlanText(postText, safeT)}</li></ul>`;
+                    const mealTimingContent = `<div class="nutrition-timing-grid"><article class="timing-card"><span class="timing-label">${safeT('Pre-workout')}</span><p class="timing-copy">${localizePlanText(preText, safeT)}</p></article><article class="timing-card"><span class="timing-label">${safeT('Post-workout')}</span><p class="timing-copy">${localizePlanText(postText, safeT)}</p></article></div>`;
 
                     let supplementStack = aiN.supplement_stack && Array.isArray(aiN.supplement_stack) ? aiN.supplement_stack : [];
                     if (supplementStack.length === 0) {
@@ -2841,6 +3054,17 @@ const dashModule = {
                     let supplementContent = '<ul class="protocol-list font-mono text-sm">';
                     supplementStack.forEach(s => { supplementContent += `<li><i class="fa-solid fa-capsules text-primary"></i> <strong class="text-primary">${safeT(s.name || '')}</strong> — ${localizePlanText(s.purpose || '', safeT)} <span class="text-muted">(${localizePlanText(s.dose || '', safeT)})</span></li>`; });
                     supplementContent += '</ul>';
+
+                    if (p.aiResult.supplement_plan) {
+                        supplementStack = [
+                            ...(p.aiResult.supplement_plan.essentials || []),
+                            ...(p.aiResult.supplement_plan.optional || [])
+                        ];
+                    }
+                    const renderedSupplementStack = nutritionRenderers.renderSupplementStack(supplementStack, safeT);
+                    if (renderedSupplementStack) {
+                        supplementContent = renderedSupplementStack;
+                    }
 
                     const warningsContent = nutritionRenderers.renderNutritionWarnings(aiN, safeT);
 

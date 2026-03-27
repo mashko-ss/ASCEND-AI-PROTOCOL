@@ -400,3 +400,7 @@ export const bg = {
   Longevity: 'Дълголетие',
   Endurance: 'Издръжливост',
 };
+
+bg.split_push_pull_legs = 'PPL — гърди, гръб и крака';
+bg.split_hybrid = 'Хибриден сплит';
+bg.split_ppl = 'PPL — гърди, гръб и крака';
